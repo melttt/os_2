@@ -34,6 +34,23 @@ static inline void
 outw(uint16_t port, uint16_t data) {
     asm volatile ("outw %0, %1" :: "a" (data), "d" (port));
 }
+static inline void
+stosb(void *addr, int32_t data, int32_t cnt)
+{
+  asm volatile("cld; rep stosb" :
+               "=D" (addr), "=c" (cnt) :
+               "0" (addr), "1" (cnt), "a" (data) :
+               "memory", "cc");
+}
+
+static inline void
+stosl(void *addr, int32_t data, int32_t cnt)
+{
+  asm volatile("cld; rep stosl" :
+               "=D" (addr), "=c" (cnt) :
+               "0" (addr), "1" (cnt), "a" (data) :
+               "memory", "cc");
+}
 
 
 static inline uint32_t
