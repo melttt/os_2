@@ -284,5 +284,47 @@ memcmp(const void *v1, const void *v2, size_t n)
     }
     return 0;
 }
+void swap(void *a,void *b,int sz)
+{
+    char *n = (char*)a;
+    char *m = (char*)b;
+    char tmp;
+    int i = 0;
+    for(i = 0 ; i < sz ; i ++)
+    {
+       tmp = n[i];
+       n[i] = m[i];
+       m[i] = tmp;
+    }
+}
+char* itoa(int num, char* str, int radix)
+{
+    char index[] = "0123456789ABCDEF";
+    uint32_t unum;
+    int32_t i = 0,j = 0;
 
+    if(num < 0 && radix == 10)
+    {
+        unum = -num;
+        str[i ++] = '-';
+    }else{
+        unum = num; 
+    }
 
+    do{
+       str[i ++] = index[unum % radix]; 
+       unum /= radix;
+    }while(unum != 0);
+    
+    str[i] = '\0';
+
+    if(str[0] == '-')
+    {
+        j ++;        
+    }
+    for(i -= 1 ; j < i ; i --, j ++)
+    {
+        swap(&str[i],&str[j],sizeof(char));
+    }
+    return str;
+}

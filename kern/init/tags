@@ -1,0 +1,81 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CH_MAX	../kernel.asm	/^#define CH_MAX 15$/;"	d
+Disassembly	../kernel.asm	/^Disassembly of section .text:$/;"	l
+_CONSOLE_H_	../driver/console.h	2;"	d
+_start	../init/entry.S	/^_start = V2P_WO(entry)$/;"	d
+base	../kernel.asm	/^        base = 10;$/;"	d
+ch	../kernel.asm	/^           ch = *(++fmt);$/;"	d
+cnt	../kernel.asm	/^    cnt = vprintfmt(putch,fmt,ap);$/;"	d
+console_clear	../driver/console.c	/^void console_clear()$/;"	f
+console_clear	../driver/console.h	/^void console_clear();$/;"	p
+console_putc	../driver/console.c	/^void console_putc(char cstr)$/;"	f
+console_putc	../driver/console.h	/^void console_putc(char cstr);$/;"	p
+console_putc_color	../driver/console.c	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	f
+console_putc_color	../driver/console.h	/^void console_putc_color(char c, real_color_t back, real_color_t fore);$/;"	p
+cprintf	../libs/stdio.c	/^int cprintf(const char *fmt, ...)$/;"	f
+cursor_x	../driver/console.c	/^static uint8_t cursor_x = 0;$/;"	v	file:
+cursor_x	../kernel.asm	/^        cursor_x = (cursor_x + 8) & ~ (8 - 1);$/;"	d
+cursor_x	../kernel.asm	/^        cursor_x = 0; $/;"	d
+cursor_x	../kernel.asm	/^        cursor_x = 0;$/;"	d
+cursor_x	../kernel.asm	/^    cursor_x = 0;$/;"	d
+cursor_y	../driver/console.c	/^static uint8_t cursor_y = 0;$/;"	v	file:
+cursor_y	../kernel.asm	/^        cursor_y = 24;$/;"	d
+cursor_y	../kernel.asm	/^    cursor_y = 0;$/;"	d
+default	../kernel.asm	/^               default:$/;"	l
+dig	../kernel.asm	/^            dig = *s - '0';$/;"	d
+dig	../kernel.asm	/^            dig = *s - 'A' + 10;$/;"	d
+dig	../kernel.asm	/^            dig = *s - 'a' + 10;$/;"	d
+entry	../init/entry.S	/^entry:$/;"	l
+entry	../kernel.asm	/^entry:$/;"	l
+entrypgdir	../init/init.c	/^pde_t entrypgdir[NPDENTRIES] = {$/;"	v
+int	../kernel.asm	/^int cprintf(const char *fmt, ...)$/;"	l
+int	../kernel.asm	/^int main()$/;"	l
+int	../kernel.asm	/^int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)$/;"	l
+int	../kernel.asm	/^int$/;"	l
+long	../kernel.asm	/^long$/;"	l
+main	../init/init.c	/^int main()$/;"	f
+move_cursor	../driver/console.c	/^static void move_cursor()$/;"	f	file:
+putch	../libs/stdio.c	/^static void putch(char ch)$/;"	f	file:
+rc_black	../driver/console.h	/^    rc_black,$/;"	e	enum:real_color
+rc_blue	../driver/console.h	/^    rc_blue,$/;"	e	enum:real_color
+rc_brown	../driver/console.h	/^    rc_brown,$/;"	e	enum:real_color
+rc_cyan	../driver/console.h	/^    rc_cyan,$/;"	e	enum:real_color
+rc_dark_grey	../driver/console.h	/^    rc_dark_grey,$/;"	e	enum:real_color
+rc_green	../driver/console.h	/^    rc_green,$/;"	e	enum:real_color
+rc_light_blue	../driver/console.h	/^    rc_light_blue,$/;"	e	enum:real_color
+rc_light_brown	../driver/console.h	/^    rc_light_brown,$/;"	e	enum:real_color
+rc_light_cyan	../driver/console.h	/^    rc_light_cyan,$/;"	e	enum:real_color
+rc_light_green	../driver/console.h	/^    rc_light_green,$/;"	e	enum:real_color
+rc_light_grey	../driver/console.h	/^    rc_light_grey,$/;"	e	enum:real_color
+rc_light_magenta	../driver/console.h	/^    rc_light_magenta,$/;"	e	enum:real_color
+rc_light_red	../driver/console.h	/^    rc_light_red,$/;"	e	enum:real_color
+rc_magenta	../driver/console.h	/^    rc_magenta,$/;"	e	enum:real_color
+rc_red	../driver/console.h	/^    rc_red,$/;"	e	enum:real_color
+rc_white	../driver/console.h	/^    rc_white,$/;"	e	enum:real_color
+rc_xxxx	../driver/console.h	/^    rc_xxxx$/;"	e	enum:real_color
+real_color	../driver/console.h	/^enum real_color{$/;"	g
+real_color_t	../driver/console.h	/^}real_color_t;$/;"	t	typeref:enum:real_color
+scroll	../driver/console.c	/^static void scroll()$/;"	f	file:
+size_t	../kernel.asm	/^size_t $/;"	l
+size_t	../kernel.asm	/^size_t$/;"	l
+static	../kernel.asm	/^static inline void$/;"	l
+static	../kernel.asm	/^static uint8_t cursor_x = 0;$/;"	l
+static	../kernel.asm	/^static uint8_t cursor_y = 0;$/;"	l
+static	../kernel.asm	/^static void move_cursor()$/;"	l
+static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base)$/;"	l
+static	../kernel.asm	/^static void putch(char ch)$/;"	l
+static	../kernel.asm	/^static void scroll()$/;"	l
+str	../kernel.asm	/^                   str = va_arg(ap, char*);$/;"	d
+tmp	../kernel.asm	/^       tmp = n[i];$/;"	d
+unum	../kernel.asm	/^        unum = -num;$/;"	d
+unum	../kernel.asm	/^        unum = num; $/;"	d
+video_memory	../driver/console.c	/^static uint16_t *video_memory = (uint16_t*)P2V(0xB800);$/;"	v	file:
+void	../kernel.asm	/^void console_clear()$/;"	l
+void	../kernel.asm	/^void console_putc(char cstr)$/;"	l
+void	../kernel.asm	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	l
+void	../kernel.asm	/^void swap(void *a,void *b,int sz)$/;"	l

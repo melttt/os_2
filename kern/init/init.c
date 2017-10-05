@@ -2,12 +2,32 @@
 #include "mmu.h"
 #include "param.h"
 #include "memlayout.h"
-static uint8_t *crt = (uint8_t*)P2V(0xb8000);  // CGA memory
+#include "stdio.h"
+#include "console.h"
+struct e820map{
+    int nr_map;
+    struct{
+        long long addr;
+        long long size;
+        long type;
 
+    }map[30];
+} *emap;
 int main()
 {
-    uint8_t color = (0 << 4) | (15 & 0x0F);
-    *crt ++ = 'A' ; *crt ++ = color;
+    int i; 
+    console_clear();
+    cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
+    emap = (struct e820map*)P2V(0x8000);
+    if(emap->nr_map == 12345)
+        cprintf("error!");
+    else
+    {
+        for(i = 0 ; i < emap->nr_map ; i ++) { 
+            cprintf("start : %8x ,size : %8x, flag : %x\n",(int)emap->map[i].addr,(int)emap->map[i].size,(int)emap->map[i].type);
+        }
+
+    }
     while(1);
     return 0;
 }

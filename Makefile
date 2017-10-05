@@ -1,11 +1,16 @@
 BOOTLOADER_DIR := ./boot
+TOOLS_DIR := ./tools
 KERN_DIR := ./kern
+LIBS_DIR := ./libs
 KERN_LD := ./tools/kernel.ld
-INCLUDEFLAGS := -I./boot -I./libs -I./kern
+INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
 S_OBJS = $(shell find $(KERN_DIR) -name "*.S")
+LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
 OBJS := $(patsubst %.c,%.o,$(C_OBJS))
 OBJS += $(patsubst %.S,%.o,$(S_OBJS))
+OBJS += $(patsubst %.c,%.o,$(LIBS_OBJS))
+D_OBJS := $(patsubst %o,%d,$(OBJS))
 
 
 ifndef QEMU
@@ -51,6 +56,7 @@ $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootm
 	$(OBJCOPY) -S -O binary -j .text $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootblock
 	$(BOOTLOADER_DIR)/sign.pl $(BOOTLOADER_DIR)/bootblock
 
+
 $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) 
 	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS) 
 	$(OBJDUMP) -S $@ > $@.asm
@@ -58,13 +64,21 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)
 ifndef CPUS
 CPUS := 2
 endif
+GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUOPTS =  -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
+	then echo "-gdb tcp::$(GDBPORT)"; \
+	else echo "-s -p $(GDBPORT)"; fi)
 
 qemu: xv6.img 
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)  
+
+qemu-gdb:  xv6.img  $(TOOLS_DIR)/.gdbinit
+	@echo "*** Now run 'gdb'." 1>&2
+	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
 clean: 
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
 	rm -f xv6.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
-	
+	rm -f $(OBJS) $(D_OBJS)
