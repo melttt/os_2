@@ -110,5 +110,5 @@ void console_putc(char cstr)
         console_putc_color(cstr,rc_black, rc_white); 
 }
 
-
 /************************VGA_END******************************/
+

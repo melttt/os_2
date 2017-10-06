@@ -3,7 +3,7 @@ TOOLS_DIR := ./tools
 KERN_DIR := ./kern
 LIBS_DIR := ./libs
 KERN_LD := ./tools/kernel.ld
-INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs
+INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs -I./boot
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
 S_OBJS = $(shell find $(KERN_DIR) -name "*.S")
 LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
@@ -35,9 +35,9 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-CFLAGS = $(INCLUDEFLAGS) -fno-pic -static -fno-builtin   -fno-strict-aliasing   -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
-#CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fvar-tracking -fvar-tracking-assignments -O0 -g -Wall -MD -gdwarf-2 -m32 -Werror -fno-omit-frame-pointer
-CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
+
+CFLAGS :=$(INCLUDEFLAGS) -fno-pic -static -fno-builtin   -fno-strict-aliasing   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector 
+
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
@@ -76,9 +76,10 @@ qemu: xv6.img
 qemu-gdb:  xv6.img  $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
-
 clean: 
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
 	rm -f xv6.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
+test :
+	@echo $(CFLAGS)
