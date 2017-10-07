@@ -62,7 +62,7 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
 ifndef CPUS
-CPUS := 2
+CPUS := 4
 endif
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUOPTS =  -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)

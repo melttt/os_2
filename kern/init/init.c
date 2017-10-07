@@ -7,6 +7,7 @@
 #include "elf.h"
 #include "uart.h"
 #include "kdebug.h"
+#include "mp.h"
 //#define g(x) #x
 
 struct e820map{
@@ -50,6 +51,8 @@ int main()
         }
 
     }
+    mpinit();
+    cprintf("cpunum : %d\n", ncpu);
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     f();
 
