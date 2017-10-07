@@ -7,7 +7,7 @@
 #include "elf.h"
 #include "uart.h"
 #include "kdebug.h"
-#define g(x) #x
+//#define g(x) #x
 
 struct e820map{
     int nr_map;
@@ -18,16 +18,27 @@ struct e820map{
 
     }map[30];
 } *emap;
+void g()
+{
+    assert(1 == 2);
+}
+void f()
+{
+    g();
+}
 int main()
 {
     int i; 
+    extern char data[],edata[],end[];
+    /*
     extern char __STABSTR_BEGIN__[],__STAB_BEGIN__[],__STAB_END__[];
     struct stab *sts,*ste;
     int left,right;
+    */
     console_clear();
     uartinit();
-
-    cprintf("%x\n",(int)__STABSTR_BEGIN__);
+    cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
+    //cprintf("%x\n",(int)__STABSTR_BEGIN__);
     cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
     emap = (struct e820map*)P2V(0x8000);
     if(emap->nr_map == 12345)
@@ -39,14 +50,20 @@ int main()
         }
 
     }
+//    *(int*)(0x80109010 - 4) = 0x12345678;
+    f();
+
+    /*
     sts = (struct stab*)__STAB_BEGIN__; 
     sts += 1;
     ste = (struct stab*)__STAB_END__;
     left = 0;
     right = (ste - sts) - 1;
     cprintf("total : %d\n", right);
-    stab_binsearch(sts,&left,&right,N_SO,0x80100190);
+    stab_binsearch(sts,&left,&right,N_SO,0x80100007);
+    stab_binsearch(sts,&left,&right,N_FUN,0x80100007);
     cprintf("left : %d , right : %d",left, right); 
+    */
     while(1);
     return 0;
 }
