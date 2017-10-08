@@ -7,6 +7,7 @@
 int ismp;
 int ncpu;
 uchar ioapicid;
+volatile uint *lapic;
 struct cpu cpus[NCPU];
 
 

@@ -53,6 +53,7 @@ int main()
     }
     mpinit();
     cprintf("cpunum : %d\n", ncpu);
+    cprintf("LAPIC : %x\n",(int)lapic);
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     f();
 

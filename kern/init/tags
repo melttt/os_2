@@ -5,12 +5,63 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 CH_MAX	../kernel.asm	/^#define CH_MAX 15$/;"	d
+COM1	../driver/uart.c	5;"	d	file:
 Disassembly	../kernel.asm	/^Disassembly of section .text:$/;"	l
+MAX_FN_NAME	../debug/kdebug.c	93;"	d	file:
+MPBOOT	../smp/mp.h	37;"	d
+MPBUS	../smp/mp.h	66;"	d
+MPIOAPIC	../smp/mp.h	67;"	d
+MPIOINTR	../smp/mp.h	68;"	d
+MPLINTR	../smp/mp.h	69;"	d
+MPPROC	../smp/mp.h	65;"	d
+N_BCOMM	../debug/stabs.h	39;"	d
+N_BINCL	../debug/stabs.h	31;"	d
+N_BSLINE	../debug/stabs.h	27;"	d
+N_DSLINE	../debug/stabs.h	26;"	d
+N_ECOML	../debug/stabs.h	41;"	d
+N_ECOMM	../debug/stabs.h	40;"	d
+N_EINCL	../debug/stabs.h	34;"	d
+N_ENTRY	../debug/stabs.h	35;"	d
+N_EXCL	../debug/stabs.h	37;"	d
+N_FNAME	../debug/stabs.h	18;"	d
+N_FUN	../debug/stabs.h	19;"	d
+N_GSYM	../debug/stabs.h	17;"	d
+N_LBRAC	../debug/stabs.h	36;"	d
+N_LCSYM	../debug/stabs.h	21;"	d
+N_LENG	../debug/stabs.h	42;"	d
+N_LSYM	../debug/stabs.h	30;"	d
+N_MAIN	../debug/stabs.h	22;"	d
+N_PC	../debug/stabs.h	23;"	d
+N_PSYM	../debug/stabs.h	33;"	d
+N_RBRAC	../debug/stabs.h	38;"	d
+N_RSYM	../debug/stabs.h	24;"	d
+N_SLINE	../debug/stabs.h	25;"	d
+N_SO	../debug/stabs.h	29;"	d
+N_SOL	../debug/stabs.h	32;"	d
+N_SSYM	../debug/stabs.h	28;"	d
+N_STSYM	../debug/stabs.h	20;"	d
 _CONSOLE_H_	../driver/console.h	2;"	d
+_KERN_DEBUG_KDEBUG_H_	../debug/kdebug.h	2;"	d
+_KERN_DERIVER_UART_H_	../driver/uart.h	2;"	d
+_KERN_SMP_MP_H_	../smp/mp.h	2;"	d
+__KERN_DEBUG_STAB_H__	../debug/stabs.h	2;"	d
+__panic	../debug/kdebug.c	/^__panic(const char *file, int line, const char *fmt, ...)$/;"	f
+__panic	../debug/kdebug.h	/^void  __panic(const char *file, int line, const char *fmt, ...);$/;"	p
 _start	../init/entry.S	/^_start = V2P_WO(entry)$/;"	d
+addr	../init/init.c	/^        long long addr;$/;"	m	struct:e820map::__anon1	file:
+addr	../kernel.asm	/^  addr = P2V(a);$/;"	d
+addr	../smp/mp.h	/^  uint *addr;                  \/\/ I\/O APIC address$/;"	m	struct:mpioapic
+apicid	../smp/mp.h	/^  uchar apicid;                 \/\/ local APIC id$/;"	m	struct:mpproc
+apicid	../smp/mp.h	/^  uchar apicid;                \/\/ Local APIC ID$/;"	m	struct:cpu
+apicno	../smp/mp.h	/^  uchar apicno;                 \/\/ I\/O APIC id$/;"	m	struct:mpioapic
+assert	../debug/kdebug.h	13;"	d
 base	../kernel.asm	/^        base = 10;$/;"	d
+bda	../kernel.asm	/^  bda = (uchar *) P2V(0x400);$/;"	d
 ch	../kernel.asm	/^           ch = *(++fmt);$/;"	d
+checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp
+checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mpconf
 cnt	../kernel.asm	/^    cnt = vprintfmt(putch,fmt,ap);$/;"	d
+conf	../kernel.asm	/^  conf = (struct mpconf*) P2V((uint) mp->physaddr);$/;"	d
 console_clear	../driver/console.c	/^void console_clear()$/;"	f
 console_clear	../driver/console.h	/^void console_clear();$/;"	p
 console_putc	../driver/console.c	/^void console_putc(char cstr)$/;"	f
@@ -18,6 +69,9 @@ console_putc	../driver/console.h	/^void console_putc(char cstr);$/;"	p
 console_putc_color	../driver/console.c	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	f
 console_putc_color	../driver/console.h	/^void console_putc_color(char c, real_color_t back, real_color_t fore);$/;"	p
 cprintf	../libs/stdio.c	/^int cprintf(const char *fmt, ...)$/;"	f
+cpu	../smp/mp.h	/^  struct cpu *cpu;$/;"	m	struct:cpu	typeref:struct:cpu::cpu
+cpu	../smp/mp.h	/^struct cpu {$/;"	s
+cpus	../smp/mp.c	/^struct cpu cpus[NCPU];$/;"	v	typeref:struct:cpu
 cursor_x	../driver/console.c	/^static uint8_t cursor_x = 0;$/;"	v	file:
 cursor_x	../kernel.asm	/^        cursor_x = (cursor_x + 8) & ~ (8 - 1);$/;"	d
 cursor_x	../kernel.asm	/^        cursor_x = 0; $/;"	d
@@ -26,21 +80,96 @@ cursor_x	../kernel.asm	/^    cursor_x = 0;$/;"	d
 cursor_y	../driver/console.c	/^static uint8_t cursor_y = 0;$/;"	v	file:
 cursor_y	../kernel.asm	/^        cursor_y = 24;$/;"	d
 cursor_y	../kernel.asm	/^    cursor_y = 0;$/;"	d
+debuginfo_eip	../debug/kdebug.c	/^debuginfo_eip(uintptr_t addr, struct eipdebuginfo *info) {$/;"	f	file:
 default	../kernel.asm	/^               default:$/;"	l
+default	../kernel.asm	/^    default:$/;"	l
+delay	../driver/uart.c	/^delay(void) {$/;"	f	file:
 dig	../kernel.asm	/^            dig = *s - '0';$/;"	d
 dig	../kernel.asm	/^            dig = *s - 'A' + 10;$/;"	d
 dig	../kernel.asm	/^            dig = *s - 'a' + 10;$/;"	d
+e	../kernel.asm	/^  e = addr+len;$/;"	d
+e820map	../init/init.c	/^struct e820map{$/;"	s	file:
+ebp	../kernel.asm	/^        ebp = (uint32_t*)(*ebp);$/;"	d
+eip	../kernel.asm	/^        eip = ebp + 1;$/;"	d
+eip_file	../debug/kdebug.c	/^    const char *eip_file;                   \/\/ source code filename for eip$/;"	m	struct:eipdebuginfo	file:
+eip_fn_name	../debug/kdebug.c	/^    char eip_fn_name[MAX_FN_NAME];                \/\/ name of function containing eip$/;"	m	struct:eipdebuginfo	file:
+eipdebuginfo	../debug/kdebug.c	/^struct eipdebuginfo {$/;"	s	file:
+emap	../init/init.c	/^} *emap;$/;"	v	typeref:struct:e820map
+emap	../kernel.asm	/^    emap = (struct e820map*)P2V(0x8000);$/;"	d
 entry	../init/entry.S	/^entry:$/;"	l
 entry	../kernel.asm	/^entry:$/;"	l
+entry	../smp/mp.h	/^  ushort entry;                 \/\/ entry count$/;"	m	struct:mpconf
 entrypgdir	../init/init.c	/^pde_t entrypgdir[NPDENTRIES] = {$/;"	v
+f	../init/init.c	/^void f()$/;"	f
+feature	../smp/mp.h	/^  uint feature;                 \/\/ feature flags from CPUID instruction$/;"	m	struct:mpproc
+flags	../smp/mp.h	/^  uchar flags;                  \/\/ CPU flags$/;"	m	struct:mpproc
+flags	../smp/mp.h	/^  uchar flags;                  \/\/ I\/O APIC flags$/;"	m	struct:mpioapic
+g	../init/init.c	/^void g()$/;"	f
+have_matches	../kernel.asm	/^        have_matches = 1;$/;"	d
+imcrp	../smp/mp.h	/^  uchar imcrp;$/;"	m	struct:mp
 int	../kernel.asm	/^int cprintf(const char *fmt, ...)$/;"	l
 int	../kernel.asm	/^int main()$/;"	l
+int	../kernel.asm	/^int vcprintf(const char *fmt, va_list ap)$/;"	l
 int	../kernel.asm	/^int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)$/;"	l
 int	../kernel.asm	/^int$/;"	l
+intena	../smp/mp.h	/^  int intena;                  \/\/ Were interrupts enabled before pushcli?$/;"	m	struct:cpu
+ioapic	../kernel.asm	/^      ioapic = (struct mpioapic*)p;$/;"	d
+ioapicid	../kernel.asm	/^      ioapicid = ioapic->apicno;$/;"	d
+ioapicid	../kernel.asm	/^    ioapicid = 0;$/;"	d
+ioapicid	../smp/mp.c	/^uchar ioapicid;$/;"	v
+is_panic	../debug/kdebug.c	/^static bool is_panic = 0;$/;"	v	file:
+is_panic	../kernel.asm	/^   is_panic = 1;$/;"	d
+ismp	../kernel.asm	/^      ismp = 0;$/;"	d
+ismp	../kernel.asm	/^  ismp = 1;$/;"	d
+ismp	../smp/mp.c	/^int ismp;$/;"	v
+l	../kernel.asm	/^            l = m;$/;"	d
+l	../kernel.asm	/^            l = true_m + 1;$/;"	d
+lapic	../kernel.asm	/^    lapic = 0;$/;"	d
+lapic	../kernel.asm	/^  lapic = (uint*)conf->lapicaddr;$/;"	d
+lapic	../smp/mp.h	/^volatile uint *lapic;  \/\/ Initialized in mp.c$/;"	v
+lapicaddr	../smp/mp.h	/^  uint *lapicaddr;              \/\/ address of local APIC$/;"	m	struct:mpconf
+left	../kernel.asm	/^    left = 0;$/;"	d
+len	../kernel.asm	/^                   len = strlen(str);$/;"	d
+len	../kernel.asm	/^    len = strlen(str);$/;"	d
+length	../smp/mp.h	/^  uchar length;                 \/\/ 1$/;"	m	struct:mp
+length	../smp/mp.h	/^  ushort length;                \/\/ total table length$/;"	m	struct:mpconf
 long	../kernel.asm	/^long$/;"	l
+m	../kernel.asm	/^        m = true_m;$/;"	d
 main	../init/init.c	/^int main()$/;"	f
+map	../init/init.c	/^    }map[30];$/;"	m	struct:e820map	typeref:struct:e820map::__anon1	file:
 move_cursor	../driver/console.c	/^static void move_cursor()$/;"	f	file:
+mp	../smp/mp.h	/^struct mp {             \/\/ floating pointer$/;"	s
+mpconf	../smp/mp.h	/^struct mpconf {         \/\/ configuration table header$/;"	s
+mpconfig	../smp/mp.c	/^mpconfig(struct mp **pmp)$/;"	f	file:
+mpinit	../smp/mp.c	/^mpinit(void)$/;"	f
+mpinit	../smp/mp.h	/^void            mpinit(void);$/;"	p
+mpioapic	../smp/mp.h	/^struct mpioapic {       \/\/ I\/O APIC table entry$/;"	s
+mpproc	../smp/mp.h	/^struct mpproc {         \/\/ processor table entry$/;"	s
+mpsearch	../smp/mp.c	/^mpsearch(void)$/;"	f	file:
+mpsearch1	../smp/mp.c	/^mpsearch1(uint a, int len)$/;"	f	file:
+n_desc	../debug/stabs.h	/^    uint16_t n_desc;        \/\/ description field$/;"	m	struct:stab
+n_other	../debug/stabs.h	/^    uint8_t n_other;        \/\/ misc info (usually empty)$/;"	m	struct:stab
+n_strx	../debug/stabs.h	/^    uint32_t n_strx;        \/\/ index into string table of name$/;"	m	struct:stab
+n_type	../debug/stabs.h	/^    uint8_t n_type;         \/\/ type of symbol$/;"	m	struct:stab
+n_value	../debug/stabs.h	/^    uintptr_t n_value;      \/\/ value of symbol$/;"	m	struct:stab
+ncli	../smp/mp.h	/^  int ncli;                    \/\/ Depth of pushcli nesting.$/;"	m	struct:cpu
+ncpu	../kernel.asm	/^    ncpu = 1;$/;"	d
+ncpu	../smp/mp.c	/^int ncpu;$/;"	v
+nr_map	../init/init.c	/^    int nr_map;$/;"	m	struct:e820map	file:
+oemlength	../smp/mp.h	/^  ushort oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf
+oemtable	../smp/mp.h	/^  uint *oemtable;               \/\/ OEM table pointer$/;"	m	struct:mpconf
+p	../kernel.asm	/^    p = ((bda[0x14]<<8)|bda[0x13])*1024;$/;"	d
+panic	../debug/kdebug.h	10;"	d
+panic_dead	../kernel.asm	/^panic_dead:$/;"	l
+physaddr	../smp/mp.h	/^  void *physaddr;               \/\/ phys addr of MP config table$/;"	m	struct:mp
+print_cur_status	../debug/kdebug.c	/^print_cur_status()$/;"	f
+print_cur_status	../debug/kdebug.h	/^void print_cur_status();$/;"	p
+print_stack_trace	../debug/kdebug.c	/^print_stack_trace()$/;"	f
+print_stack_trace	../debug/kdebug.h	/^void print_stack_trace();$/;"	p
+proc	../kernel.asm	/^      proc = (struct mpproc*)p;$/;"	d
+product	../smp/mp.h	/^  uchar product[20];            \/\/ product id$/;"	m	struct:mpconf
 putch	../libs/stdio.c	/^static void putch(char ch)$/;"	f	file:
+r	../kernel.asm	/^            r = m - 1;$/;"	d
 rc_black	../driver/console.h	/^    rc_black,$/;"	e	enum:real_color
 rc_blue	../driver/console.h	/^    rc_blue,$/;"	e	enum:real_color
 rc_brown	../driver/console.h	/^    rc_brown,$/;"	e	enum:real_color
@@ -60,22 +189,70 @@ rc_white	../driver/console.h	/^    rc_white,$/;"	e	enum:real_color
 rc_xxxx	../driver/console.h	/^    rc_xxxx$/;"	e	enum:real_color
 real_color	../driver/console.h	/^enum real_color{$/;"	g
 real_color_t	../driver/console.h	/^}real_color_t;$/;"	t	typeref:enum:real_color
+reserved	../smp/mp.h	/^  uchar reserved;$/;"	m	struct:mpconf
+reserved	../smp/mp.h	/^  uchar reserved[3];$/;"	m	struct:mp
+reserved	../smp/mp.h	/^  uchar reserved[8];$/;"	m	struct:mpproc
+right	../kernel.asm	/^    right = (stab_end - stab_begin) - 1;$/;"	d
 scroll	../driver/console.c	/^static void scroll()$/;"	f	file:
+signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf
+signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "_MP_"$/;"	m	struct:mp
+signature	../smp/mp.h	/^  uchar signature[4];           \/\/ CPU signature$/;"	m	struct:mpproc
+size	../init/init.c	/^        long long size;$/;"	m	struct:e820map::__anon1	file:
 size_t	../kernel.asm	/^size_t $/;"	l
 size_t	../kernel.asm	/^size_t$/;"	l
+specrev	../smp/mp.h	/^  uchar specrev;                \/\/ [14]$/;"	m	struct:mp
+stab	../debug/stabs.h	/^struct stab {$/;"	s
+stab_binsearch	../debug/kdebug.c	/^stab_binsearch(struct stab *stabs, int *region_left, int *region_right,$/;"	f	file:
+started	../smp/mp.h	/^  volatile uint started;       \/\/ Has the CPU started?$/;"	m	struct:cpu
+static	../kernel.asm	/^static bool is_panic = 0;$/;"	l
+static	../kernel.asm	/^static inline uint8_t$/;"	l
 static	../kernel.asm	/^static inline void$/;"	l
+static	../kernel.asm	/^static int uart;    \/\/ is there a uart?$/;"	l
+static	../kernel.asm	/^static int$/;"	l
+static	../kernel.asm	/^static struct mp*$/;"	t
+static	../kernel.asm	/^static struct mpconf*$/;"	t
+static	../kernel.asm	/^static uchar$/;"	l
 static	../kernel.asm	/^static uint8_t cursor_x = 0;$/;"	l
 static	../kernel.asm	/^static uint8_t cursor_y = 0;$/;"	l
+static	../kernel.asm	/^static void $/;"	l
 static	../kernel.asm	/^static void move_cursor()$/;"	l
-static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base)$/;"	l
+static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base, int width)$/;"	l
 static	../kernel.asm	/^static void putch(char ch)$/;"	l
 static	../kernel.asm	/^static void scroll()$/;"	l
+static	../kernel.asm	/^static void$/;"	l
 str	../kernel.asm	/^                   str = va_arg(ap, char*);$/;"	d
+sum	../kernel.asm	/^  sum = 0;$/;"	d
+sum	../smp/mp.c	/^sum(uchar *addr, int len)$/;"	f	file:
 tmp	../kernel.asm	/^       tmp = n[i];$/;"	d
+tmp	../kernel.asm	/^    tmp = stab_begin[left].n_strx + strst_begin;$/;"	d
+tmplen	../kernel.asm	/^    tmplen = strfind(tmp,':') - tmp;$/;"	d
+true_m	../kernel.asm	/^        true_m = (l + r) \/ 2;$/;"	d
+type	../init/init.c	/^        long type;$/;"	m	struct:e820map::__anon1	file:
+type	../smp/mp.h	/^  uchar type;                   \/\/ MP system config type$/;"	m	struct:mp
+type	../smp/mp.h	/^  uchar type;                   \/\/ entry type (0)$/;"	m	struct:mpproc
+type	../smp/mp.h	/^  uchar type;                   \/\/ entry type (2)$/;"	m	struct:mpioapic
+uart	../driver/uart.c	/^static int uart;    \/\/ is there a uart?$/;"	v	file:
+uart	../kernel.asm	/^  uart = 1;$/;"	d
+uartinit	../driver/uart.c	/^uartinit(void)$/;"	f
+uartinit	../driver/uart.h	/^uartinit(void);$/;"	p
+uartputc	../driver/uart.c	/^uartputc(int c)$/;"	f
+uartputc	../driver/uart.h	/^uartputc(int c);$/;"	p
 unum	../kernel.asm	/^        unum = -num;$/;"	d
 unum	../kernel.asm	/^        unum = num; $/;"	d
-video_memory	../driver/console.c	/^static uint16_t *video_memory = (uint16_t*)P2V(0xB800);$/;"	v	file:
+vcprintf	../libs/stdio.c	/^int vcprintf(const char *fmt, va_list ap)$/;"	f
+version	../smp/mp.h	/^  uchar version;                \/\/ I\/O APIC version$/;"	m	struct:mpioapic
+version	../smp/mp.h	/^  uchar version;                \/\/ [14]$/;"	m	struct:mpconf
+version	../smp/mp.h	/^  uchar version;                \/\/ local APIC verison$/;"	m	struct:mpproc
+video_memory	../driver/console.c	/^static uint16_t *video_memory = (uint16_t*)P2V(0xB8000);$/;"	v	file:
+void	../kernel.asm	/^void  $/;"	l
 void	../kernel.asm	/^void console_clear()$/;"	l
 void	../kernel.asm	/^void console_putc(char cstr)$/;"	l
 void	../kernel.asm	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	l
+void	../kernel.asm	/^void f()$/;"	l
+void	../kernel.asm	/^void g()$/;"	l
 void	../kernel.asm	/^void swap(void *a,void *b,int sz)$/;"	l
+void	../kernel.asm	/^void$/;"	l
+width	../kernel.asm	/^                   width = 0;$/;"	d
+width	../kernel.asm	/^                   width = width * 10 +  ch - '0';$/;"	d
+xchecksum	../smp/mp.h	/^  uchar xchecksum;              \/\/ extended table checksum$/;"	m	struct:mpconf
+xlength	../smp/mp.h	/^  ushort xlength;               \/\/ extended table length$/;"	m	struct:mpconf

@@ -68,7 +68,7 @@ struct cpu {
 #define MPIOINTR  0x03  // One per bus interrupt source
 #define MPLINTR   0x04  // One per system interrupt source
 
-volatile uint *lapic;  // Initialized in mp.c
+extern volatile uint *lapic;  // Initialized in mp.c
 void            mpinit(void);
 extern int   ismp;
 extern uchar ioapicid;
