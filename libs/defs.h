@@ -7,7 +7,8 @@
 #endif
 
 typedef int bool;
-
+#define true 1
+#define false 0
 typedef char int8_t;
 typedef unsigned char uchar;
 typedef unsigned char uint8_t;

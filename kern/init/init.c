@@ -8,54 +8,37 @@
 #include "uart.h"
 #include "kdebug.h"
 #include "mp.h"
+#include "pmm.h"
 //#define g(x) #x
-
-struct e820map{
-    int nr_map;
-    struct{
-        long long addr;
-        long long size;
-        long type;
-
-    }map[30];
-} *emap;
-void g()
-{
-    assert(1 == 2);
-}
-void f()
-{
-    g();
-}
 int main()
 {
-    int i; 
     extern char data[],edata[],end[];
-    /*
-    extern char __STABSTR_BEGIN__[],__STAB_BEGIN__[],__STAB_END__[];
-    struct stab *sts,*ste;
-    int left,right;
-    */
     console_clear();
     uartinit();
     cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
     //cprintf("%x\n",(int)__STABSTR_BEGIN__);
     cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
-    emap = (struct e820map*)P2V(0x8000);
-    if(emap->nr_map == 12345)
-        cprintf("error!");
-    else
-    {
-        for(i = 0 ; i < emap->nr_map ; i ++) { 
-            cprintf("start : %8x ,size : %8x, flag : %x\n",(int)emap->map[i].addr,(int)emap->map[i].size,(int)emap->map[i].type);
-        }
+    init_pmm();
 
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     mpinit();
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
 //    *(int*)(0x80109010 - 4) = 0x12345678;
-    f();
+    
 
     /*
     sts = (struct stab*)__STAB_BEGIN__; 

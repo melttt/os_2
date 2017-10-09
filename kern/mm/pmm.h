@@ -4,6 +4,9 @@
 #include "memlayout.h"
 
 
+void 
+init_pmm(void);
+#if 0
 // convert list entry to page
 #define le2page(le, member)                 \
     to_struct((le), struct Page, member)
@@ -17,6 +20,6 @@ static inline void
 set_page_ref(struct Page *page, int val) {
     page->ref = val;
 }
-
+#endif
 
 #endif

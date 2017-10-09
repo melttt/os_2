@@ -1,8 +1,5 @@
 #ifndef _LIBS_MEMLAYOUT_H_
 #define _LIBS_MEMLAYOUT_H_
-#include "list.h"
-#include "defs.h"
-#include "x86.h"
 // Memory layout
 
 
@@ -14,6 +11,8 @@
 #define KERNBASE 0x80000000         // First kernel virtual address
 #define KERNLINK (KERNBASE+EXTMEM)  // Address where kernel is linked
 
+
+#define KMEMSIZE            0x38000000 
 #define V2P(a) (((unsigned int) (a)) - KERNBASE)
 #define P2V(a) (((void *) (a)) + KERNBASE)
 
@@ -22,6 +21,9 @@
 
 
 #ifndef __ASSEMBLER__
+#include "defs.h"
+#include "list.h"
+#include "x86.h"
 struct Page {
     int ref;                        // page frame's reference counter
     uint32_t flags;                 // array of flags that describe the status of the page frame

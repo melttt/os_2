@@ -1,3 +1,4 @@
+#if 0
 #include "memlayout.h"
 #include "list.h"
 #include "kdebug.h"
@@ -127,3 +128,4 @@ default_nr_free_pages(void) {
 }
 
 
+#endif
