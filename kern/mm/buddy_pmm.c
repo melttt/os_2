@@ -4,8 +4,11 @@
 #include "stdio.h"
 #include "kdebug.h"
 #define IS_POWER_OF_2(x) (!((x)&((x)-1)))
-#define INVALIED 7
-
+#define INVALID 7
+#define LEFT_SON(INDEX) ((INDEX) * 2 + 1)
+#define RIGHT_SON(INDEX) ((INDEX) * 2 + 2)
+#define BUDDY_VAL(x) (buddy->val[x])
+#define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
 // 
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 
@@ -58,17 +61,125 @@ calc(uintptr_t p_start, uint32_t pg_size)
 }
 
 //return the offset of the i'th page
-static inline uint32_t i2page_off(uint32_t i, uint32_t size)
+static inline
+uint32_t i2page_off(uint32_t i, uint32_t size)
 {
     return (i + 1) * size - buddy->size ;
 }
 
 //return the real val
-static inline uint32_t ret_val32(uint8_t val)
+static inline
+uint32_t ret_val32(uint8_t val)
 {
     return 1 << ((val & 0x7f) - 1);
 }
+static inline
+bool IsValid(uint8_t i)
+{
+    return (i & 0x80) ? false : true;
+}
+//adjust by son node
+static inline void adjust_i(uint32_t i ,uint8_t power)
+{
+    uint32_t left_son_i = BUDDY_VAL(LEFT_SON(i)), right_son_i = BUDDY_VAL(RIGHT_SON(i)) ;
+    if(IsValid(left_son_i) && IsValid(right_son_i))
+    {
+        if((left_son_i == right_son_i)  && (right_son_i == power - 1))
+        {
+            BUDDY_VAL(i) = left_son_i + 1;
+        }else{
+            BUDDY_VAL(i) = MAX(left_son_i, right_son_i);               
+        }
 
+    }else if(!IsValid(left_son_i) && IsValid(right_son_i))
+    {
+        BUDDY_VAL(i) = right_son_i; 
+    }else if(IsValid(left_son_i) && !IsValid(right_son_i))
+    {
+        BUDDY_VAL(i) = left_son_i; 
+    }else{
+        BUDDY_VAL(i) = 0x80;
+    }
+}
+uint32_t 
+buddy_pmm_alloc(uint32_t size)
+{
+    if(size <= 0)
+        return -1;
+    
+    if(buddy == NULL)
+        return -1;
+    if(!IS_POWER_OF_2(size))
+        size = fix_size(size);
+    size = fastlog2(size) + 1;
+    uint32_t i = 0;
+    uint32_t node_size = fastlog2(buddy->size) + 1;
+    uint32_t offset;
+    uint32_t offsize;
+    //no enough space
+    if((BUDDY_VAL(i) & 0x7f) < size)
+        return -1;
+       
+    for(; size != node_size ; node_size --)
+    {
+       if((BUDDY_VAL(LEFT_SON(i)) & 0x7f) >= size)
+       {
+           i = LEFT_SON(i);
+       }else{
+           i = RIGHT_SON(i);
+       }
+    }
+
+    assert(IsValid(BUDDY_VAL(i)) == true);
+    BUDDY_VAL(i) = 0;
+    offsize = ret_val32(node_size);
+    cprintf("node_size : %d , i : %d, size : %d\n",node_size, i, size);
+    offset = i2page_off(i,offsize );
+
+    while(i)
+    {
+       adjust_i(i = PARENT(i), ++node_size); 
+    }
+
+    cprintf("offset : %x offsize : %x \n", offset, offsize);      
+    return offset;
+}
+
+bool
+buddy_pmm_free(uint32_t offset)
+{
+    assert(offset < buddy->size);
+
+    uint32_t i = buddy->size - 1 + offset;
+    uint32_t node_size = 1;
+    while(BUDDY_VAL(i) != 0)
+    {
+        i = PARENT(i);    
+        node_size ++;
+    }
+
+    BUDDY_VAL(i) = node_size;         
+
+    while(i)
+    {
+        adjust_i(i = PARENT(i), ++node_size); 
+    }
+    return true;
+}
+
+void 
+buddy_pmm_test()
+{
+    int z,x;
+    z = buddy_pmm_alloc(0x2);
+    x = buddy_pmm_alloc(0x2);
+    buddy_pmm_free(z);
+    buddy_pmm_alloc(0x2);
+    buddy_pmm_alloc(0x7);
+    buddy_pmm_alloc(0x2);
+    buddy_pmm_free(x);
+    buddy_pmm_alloc(0x2);
+}
 //init pmm in buddy system
 bool 
 init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
@@ -79,34 +190,41 @@ init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
     assert(buddy->size > 0);
     assert(buddy->beginning_addr - p_start >= (buddy->size + 12));
 
-    
-    uint32_t i;
-    uint8_t node_size = fastlog2(buddy->size * 2);
+    int32_t i; 
+    uint8_t node_size = 1 ; // fastlog2(buddy->size * 2);
     assert((node_size & 0x80) == 0);
-    for(i = 0 ; i < buddy->size * 2 - 1 ; i ++)
+    for( i = buddy->size * 2 - 2 ; i >= 0 ; i --)
     {
         uint32_t page_off;
+         
+
+        if(i < buddy->size - 1)
+        {
+            adjust_i(i, node_size);
+        }else{
+
+            BUDDY_VAL(i) = (node_size & 0x7f);
+            page_off = i2page_off(i,1);
+            if(page_off  >= buddy->pgsize)
+            {
+                BUDDY_VAL(i) |= 1 << INVALID;
+            }
+        }
+
+
         if(IS_POWER_OF_2(i + 1))
         {
-            assert(node_size != 0);
-            node_size -= 1;
-        }
-         
-        buddy->val[i] = (node_size & 0x7f) + 1;
-        page_off = i2page_off(i,ret_val32(buddy->val[i]) );
-        if(i == 1)
-            cprintf("page_off : %x add : %x\n" ,page_off,page_off + ret_val32(buddy->val[i]) );
-        if(page_off + ret_val32(buddy->val[i]) > buddy->pgsize)
-        {
-            buddy->val[i] |= 1 << INVALIED;
+            node_size += 1;
         }
     }
+
+    assert(node_size == fastlog2(buddy->size * 2) + 1);
     
     int starnum = 0;
     int plusnum = 0;
-    for(i =(buddy->size - 1); i <  buddy->size * 2 - 1 ; i ++ )
+    for(i = (buddy->size - 1); i <  buddy->size * 2 - 1 ; i ++ )
     {
-        if(buddy->val[i] & 0x80)
+        if(!IsValid(BUDDY_VAL(i)))
         {
     //        cprintf("*");
             starnum ++;
@@ -117,8 +235,8 @@ init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
     }
     cprintf("\nstarnum : %x , plusnum : %x\n", starnum, plusnum);
     
-
-         
+        
+    buddy_pmm_test();
     
     return 1;
 }
