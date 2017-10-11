@@ -43,10 +43,10 @@ ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
 
-xv6.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel
-	dd if=/dev/zero of=xv6.img count=10000
-	dd if=$(BOOTLOADER_DIR)/bootblock of=xv6.img conv=notrunc
-	dd if=$(KERN_DIR)/kernel of=xv6.img seek=1 conv=notrunc
+os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel
+	dd if=/dev/zero of=os.img count=10000
+	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
+	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc
 
 $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootmain.c
 	$(CC) $(CFLAGS) -fno-pic -O  -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootmain.c -o $(BOOTLOADER_DIR)/bootmain.o 
@@ -65,20 +65,20 @@ ifndef CPUS
 CPUS := 4
 endif
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-QEMUOPTS =  -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 
-qemu: xv6.img 
+qemu: os.img 
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)  
 
-qemu-gdb:  xv6.img  $(TOOLS_DIR)/.gdbinit
+qemu-gdb:  os.img  $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 clean: 
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
-	rm -f xv6.img
+	rm -f os.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
 test :

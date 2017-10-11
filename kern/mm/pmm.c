@@ -5,9 +5,6 @@
 #include "stdio.h"
 #include "buddy_pmm.h"
 /**************************E820MAP***************************/
-// define in kernel.ld
-extern char end[];
-// describe info of pmm
 struct {
     uintptr_t start;
     uintptr_t end;
@@ -15,6 +12,9 @@ struct {
 }pmm_info = {
     .size = 0,
 };
+// define in kernel.ld
+extern char end[];
+// describe info of pmm
 
 //init in bootloader
 static struct e820map{
@@ -83,15 +83,58 @@ print_pmm_info()
 }
 
 /********************************PMM*****************************************/
+static inline void*
+page2kva(uint32_t n)
+{
+    return (void*)P2V_WO(pmm_info.start + PGSIZE * (n));
+}
+static inline uint32_t
+kpa2page(uint32_t addr)
+{
+    return ((uint32_t)addr - pmm_info.start) / PGSIZE;
+}
+static inline uint32_t
+kva2page(void *va)
+{
+    return kpa2page(V2P_WO((uint32_t)va)); 
+}
+const struct pmm_manager *pmm_manager;
+
+void*
+alloc_pages(size_t n)
+{
+   uint32_t offset = pmm_manager->alloc_pages(n);
+   return page2kva(offset);  
+}
+
+void
+free_pages(void *n)
+{
+    assert((uint32_t)n >= KERNBASE);
+    uint32_t offset = kva2page(n);    
+    pmm_manager->free_pages(offset);
+}
 void 
 init_pmm(void)
 {
+    void* i,*j;
     print_e280map();
     init_pmm_info();
     print_pmm_info();
+    
+    pmm_manager = &buddy_pmm_manager;
+    pmm_manager->init(&pmm_info.start, &pmm_info.size);
 
-    init_buddy_pmm(pmm_info.start, pmm_info.size);
+    assert(pmm_info.size != 0 );
 
+    i = alloc_pages(1);
+    free_pages(i);
+    i = alloc_pages(2);
+    j = alloc_pages(1);
+    cprintf("%x j : %x\n", (uint32_t)i, (uintptr_t)j);
+
+    
+    
 }
 
 

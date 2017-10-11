@@ -3,16 +3,19 @@
 #include "mmu.h"
 #include "stdio.h"
 #include "kdebug.h"
+#include "pmm.h"
 #define IS_POWER_OF_2(x) (!((x)&((x)-1)))
 #define INVALID 7
 #define LEFT_SON(INDEX) ((INDEX) * 2 + 1)
 #define RIGHT_SON(INDEX) ((INDEX) * 2 + 2)
 #define BUDDY_VAL(x) (buddy->val[x])
 #define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
-// 
+#define ALLOC_FALSE -1
+#define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(uint8_t))
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 
-    uint32_t pgsize;             //the num of page(4096) 
+    uint32_t free_pg;            //the num of free page
+    uint32_t pg_size;             //the num of page(4096) 
     uint32_t size;               //the num of page,but in power of 2
     uint8_t val[1];              //a val describe a page
 }*buddy;
@@ -49,15 +52,15 @@ static void
 calc(uintptr_t p_start, uint32_t pg_size)
 {
      uint32_t tmp; 
-     tmp  = ROUNDUP(fix_size(pg_size) * 2 - 1 + 12 + p_start  , PGSIZE); 
+     tmp  = ROUNDUP(fix_size(pg_size) * 2 - 1 + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); 
      buddy =  (struct buddy*)p_start;
      buddy->beginning_addr = tmp;
      assert(buddy->beginning_addr > p_start);
      assert((buddy->beginning_addr - p_start) % PGSIZE == 0);
-     buddy->pgsize = pg_size -  (buddy->beginning_addr - p_start) / PGSIZE;
+     buddy->pg_size = pg_size -  (buddy->beginning_addr - p_start) / PGSIZE;
 
-     buddy->size  = fix_size(buddy->pgsize);
-
+     buddy->size  = fix_size(buddy->pg_size);
+     buddy->free_pg = buddy->pg_size;
 }
 
 //return the offset of the i'th page
@@ -105,10 +108,10 @@ uint32_t
 buddy_pmm_alloc(uint32_t size)
 {
     if(size <= 0)
-        return -1;
+        return ALLOC_FALSE;
     
     if(buddy == NULL)
-        return -1;
+        return ALLOC_FALSE;
     if(!IS_POWER_OF_2(size))
         size = fix_size(size);
     size = fastlog2(size) + 1;
@@ -118,7 +121,7 @@ buddy_pmm_alloc(uint32_t size)
     uint32_t offsize;
     //no enough space
     if((BUDDY_VAL(i) & 0x7f) < size)
-        return -1;
+        return ALLOC_FALSE;
        
     for(; size != node_size ; node_size --)
     {
@@ -133,19 +136,18 @@ buddy_pmm_alloc(uint32_t size)
     assert(IsValid(BUDDY_VAL(i)) == true);
     BUDDY_VAL(i) = 0;
     offsize = ret_val32(node_size);
-    cprintf("node_size : %d , i : %d, size : %d\n",node_size, i, size);
     offset = i2page_off(i,offsize );
 
     while(i)
     {
        adjust_i(i = PARENT(i), ++node_size); 
     }
-
-    cprintf("offset : %x offsize : %x \n", offset, offsize);      
+    buddy->free_pg -= offsize;
+    //cprintf("offset : %x offsize : %x \n", offset, offsize);      
     return offset;
 }
 
-bool
+void 
 buddy_pmm_free(uint32_t offset)
 {
     assert(offset < buddy->size);
@@ -159,36 +161,127 @@ buddy_pmm_free(uint32_t offset)
     }
 
     BUDDY_VAL(i) = node_size;         
+//    cprintf("add pg: %x\n",node_size);
+    buddy->free_pg += ret_val32(node_size); 
 
     while(i)
     {
         adjust_i(i = PARENT(i), ++node_size); 
     }
-    return true;
+
 }
 
 void 
-buddy_pmm_test()
+buddy_pmm_test(uintptr_t p_start)
 {
-    int z,x;
-    z = buddy_pmm_alloc(0x2);
-    x = buddy_pmm_alloc(0x2);
-    buddy_pmm_free(z);
-    buddy_pmm_alloc(0x2);
-    buddy_pmm_alloc(0x7);
-    buddy_pmm_alloc(0x2);
-    buddy_pmm_free(x);
-    buddy_pmm_alloc(0x2);
+    uint32_t i,free_num = 0;
+    assert((buddy->beginning_addr - p_start) >= (buddy->size + BUDDY_SIZE_EXCEPT_VAL));
+    for(i = (buddy->size - 1) ; i < 2 * buddy->size - 1 ; i  ++)
+    {
+       free_num ++; 
+    }
+    assert(free_num == buddy->size);
+    //test 1
+    uint32_t a,b,c;
+    a = buddy_pmm_alloc(1); 
+    b = buddy_pmm_alloc(1);
+    c = buddy_pmm_alloc(1);
+    
+    assert(a != ALLOC_FALSE && b != ALLOC_FALSE && c != ALLOC_FALSE);
+    assert(a == 0 && b == 1 && c == 2);
+    
+    buddy_pmm_free(b);
+    b = buddy_pmm_alloc(2);
+    assert(b == 4);
+
+    buddy_pmm_free(c);
+    c = buddy_pmm_alloc(2);
+    assert(c == 2);
+
+    buddy_pmm_free(a);
+    a = buddy_pmm_alloc(2);
+    assert(a == 0);
+
+    buddy_pmm_free(a); 
+    buddy_pmm_free(b); 
+    buddy_pmm_free(c); 
+    
+    assert(buddy->free_pg == buddy->pg_size);
+
+    //test 2
+    a = buddy_pmm_alloc(3); 
+    assert(a == 0);
+    b = buddy_pmm_alloc(5);
+    assert(b == 8);
+    c = buddy_pmm_alloc(7);
+    assert(c == 16);
+
+    buddy_pmm_free(b);
+    b = buddy_pmm_alloc(3);
+    assert(b == 4);
+    buddy_pmm_free(a);
+    a = buddy_pmm_alloc(9);
+    assert(a == 32);
+    
+    buddy_pmm_free(a);
+    buddy_pmm_free(b); 
+    buddy_pmm_free(c); 
+
+
+    assert(buddy->free_pg == buddy->pg_size);
+    //test 3
+    uint32_t d,e;
+    a = buddy_pmm_alloc(0x990);   
+    b = buddy_pmm_alloc(0x2000);
+    assert(b == a + b && b == 0x2000);
+    c = buddy_pmm_alloc(0x2990);
+    assert(c == 0x4000);
+    d = buddy_pmm_alloc(940);
+    assert(d == 0x1000);
+    e = buddy_pmm_alloc(buddy->size);
+    assert(e == ALLOC_FALSE);
+    buddy_pmm_free(d); 
+    d = buddy_pmm_alloc(0x39);
+    assert(d == 0x1000);
+    assert((buddy->pg_size - buddy->free_pg) == (0x1000 + 0x2000 + 0x4000+ 0x40));
+    buddy_pmm_free(a);
+    buddy_pmm_free(b); 
+    buddy_pmm_free(c); 
+    buddy_pmm_free(d); 
+    
+    assert(buddy->free_pg == buddy->pg_size);
+
+    //test 4
+    b = 0;
+    for(a = buddy->size / 2 ; (a != 0) && ((c = buddy_pmm_alloc(a)) != ALLOC_FALSE) ; b += a, a /= 2 )
+    {
+       assert(b == c); 
+    }
+    assert(a > buddy->free_pg);
+    for(d = buddy->size / 2 , b = 0 ; d != a ; b += d, d /= 2 )
+    {
+        buddy_pmm_free(b);
+    }
+    assert(buddy->free_pg == buddy->pg_size);
+
+
+
+    free_num = 0;
+    for(i = (buddy->size - 1) ; i < 2 * buddy->size - 1 ; i  ++)
+    {
+       free_num ++; 
+    }
+    assert(free_num == buddy->size);
 }
 //init pmm in buddy system
-bool 
-init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
+void
+init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
 {
     //
-    calc(p_start,pg_size);
-    cprintf("buddy_start: %8x, buddy_pgsize: %8x, buddy_size: %8x\n",buddy->beginning_addr, buddy->pgsize, buddy->size); 
+    calc(*p_start,*pg_size);
+    cprintf("buddy_start: %8x, buddy_pg_size: %8x, buddy_size: %8x\n",buddy->beginning_addr, buddy->pg_size, buddy->size); 
     assert(buddy->size > 0);
-    assert(buddy->beginning_addr - p_start >= (buddy->size + 12));
+    assert(buddy->beginning_addr - *p_start >= (buddy->size + 12));
 
     int32_t i; 
     uint8_t node_size = 1 ; // fastlog2(buddy->size * 2);
@@ -205,7 +298,7 @@ init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
 
             BUDDY_VAL(i) = (node_size & 0x7f);
             page_off = i2page_off(i,1);
-            if(page_off  >= buddy->pgsize)
+            if(page_off  >= buddy->pg_size)
             {
                 BUDDY_VAL(i) |= 1 << INVALID;
             }
@@ -219,25 +312,21 @@ init_buddy_pmm(uintptr_t p_start, uint32_t pg_size)
     }
 
     assert(node_size == fastlog2(buddy->size * 2) + 1);
-    
-    int starnum = 0;
-    int plusnum = 0;
-    for(i = (buddy->size - 1); i <  buddy->size * 2 - 1 ; i ++ )
-    {
-        if(!IsValid(BUDDY_VAL(i)))
-        {
-    //        cprintf("*");
-            starnum ++;
-        }else{
-     //       cprintf("_");
-            plusnum ++;
-        }
-    }
-    cprintf("\nstarnum : %x , plusnum : %x\n", starnum, plusnum);
-    
-        
-    buddy_pmm_test();
-    
-    return 1;
+    buddy_pmm_test(*p_start);
+         
+    *p_start = buddy->beginning_addr;
+    *pg_size = buddy->pg_size;
+
 }
 
+size_t buddy_pmm_free_pages()
+{
+    return buddy->free_pg;
+}
+const struct pmm_manager buddy_pmm_manager = {
+    .name = "Buddy_System_Pmm_Manager",
+    .init = init_buddy_pmm,
+    .alloc_pages = buddy_pmm_alloc,
+    .free_pages = buddy_pmm_free,
+    .nr_free_pages = buddy_pmm_free_pages,
+};
