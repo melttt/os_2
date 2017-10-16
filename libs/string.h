@@ -1,6 +1,7 @@
 #ifndef _LIBS_STRING_H_
 #define _LIBS_STRING_H_
 #include "defs.h"
+#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 size_t strlen(const char *s);
 size_t strnlen(const char *s, size_t len);
 

@@ -3,6 +3,7 @@
 #include "mmu.h"
 #include "stdio.h"
 #include "kdebug.h"
+#include "buddy_pmm.h"
 #include "pmm.h"
 #define IS_POWER_OF_2(x) (!((x)&((x)-1)))
 #define INVALID 7
@@ -10,7 +11,6 @@
 #define RIGHT_SON(INDEX) ((INDEX) * 2 + 2)
 #define BUDDY_VAL(x) (buddy->val[x])
 #define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
-#define ALLOC_FALSE -1
 #define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(uint8_t))
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 

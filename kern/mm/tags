@@ -4,9 +4,20 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALLOC_FALSE	../mm/pmm.h	7;"	d
+BUDDY_SIZE_EXCEPT_VAL	../mm/buddy_pmm.c	14;"	d	file:
+BUDDY_VAL	../mm/buddy_pmm.c	12;"	d	file:
+CH_MAX	../kernel.asm	/^#define CH_MAX 15$/;"	d
 COM1	../driver/uart.c	5;"	d	file:
-E820MAP_ADD	../mm/pmm.c	29;"	d	file:
-E820MAP_AVA	../mm/pmm.c	30;"	d	file:
+Disassembly	../kernel.asm	/^Disassembly of section .text:$/;"	l
+E820MAP_ADD	../kernel.asm	/^#define E820MAP_ADD 0x8000$/;"	d
+E820MAP_ADD	../mm/pmm.c	25;"	d	file:
+E820MAP_AVA	../kernel.asm	/^#define E820MAP_AVA 0x1$/;"	d
+E820MAP_AVA	../mm/pmm.c	26;"	d	file:
+INVALID	../mm/buddy_pmm.c	9;"	d	file:
+IS_POWER_OF_2	../mm/buddy_pmm.c	8;"	d	file:
+IsValid	../mm/buddy_pmm.c	/^bool IsValid(uint8_t i)$/;"	f	file:
+LEFT_SON	../mm/buddy_pmm.c	10;"	d	file:
 MAX_FN_NAME	../debug/kdebug.c	93;"	d	file:
 MPBOOT	../smp/mp.h	37;"	d
 MPBUS	../smp/mp.h	66;"	d
@@ -40,64 +51,182 @@ N_SO	../debug/stabs.h	29;"	d
 N_SOL	../debug/stabs.h	32;"	d
 N_SSYM	../debug/stabs.h	28;"	d
 N_STSYM	../debug/stabs.h	20;"	d
+PARENT	../mm/buddy_pmm.c	13;"	d	file:
+RIGHT_SON	../mm/buddy_pmm.c	11;"	d	file:
 _CONSOLE_H_	../driver/console.h	2;"	d
 _KERN_DEBUG_KDEBUG_H_	../debug/kdebug.h	2;"	d
 _KERN_DERIVER_UART_H_	../driver/uart.h	2;"	d
+_KERN_MM_BUDDY_PMM_H_	../mm/buddy_pmm.h	2;"	d
 _KERN_MM_PMM_H_	../mm/pmm.h	2;"	d
+_KERN_MM_VM_H_	../mm/vm.h	2;"	d
 _KERN_SMP_MP_H_	../smp/mp.h	2;"	d
 __KERN_DEBUG_STAB_H__	../debug/stabs.h	2;"	d
 __panic	../debug/kdebug.c	/^__panic(const char *file, int line, const char *fmt, ...)$/;"	f
 __panic	../debug/kdebug.h	/^void  __panic(const char *file, int line, const char *fmt, ...);$/;"	p
 _start	../init/entry.S	/^_start = V2P_WO(entry)$/;"	d
-addr	../mm/pmm.c	/^        long long addr;$/;"	m	struct:e820map::__anon2	file:
+a	../kernel.asm	/^    a = buddy_pmm_alloc(0x990);   $/;"	d
+a	../kernel.asm	/^    a = buddy_pmm_alloc(1); $/;"	d
+a	../kernel.asm	/^    a = buddy_pmm_alloc(2);$/;"	d
+a	../kernel.asm	/^    a = buddy_pmm_alloc(3); $/;"	d
+a	../kernel.asm	/^    a = buddy_pmm_alloc(9);$/;"	d
+addr	../kernel.asm	/^  addr = P2V(a);$/;"	d
+addr	../mm/pmm.c	/^        long long addr;$/;"	m	struct:e820map::__anon1	file:
 addr	../smp/mp.h	/^  uint *addr;                  \/\/ I\/O APIC address$/;"	m	struct:mpioapic
+adjust_i	../mm/buddy_pmm.c	/^static inline void adjust_i(uint32_t i ,uint8_t power)$/;"	f	file:
+alloc_pages	../mm/pmm.c	/^alloc_pages(size_t n)$/;"	f
+alloc_pages	../mm/pmm.h	/^    uint32_t (*alloc_pages)(size_t n); \/\/ allocate >=n pages, depend on the allocation algorithm $/;"	m	struct:pmm_manager
+alloc_pages	../mm/pmm.h	/^alloc_pages(size_t n);$/;"	p
 apicid	../smp/mp.h	/^  uchar apicid;                 \/\/ local APIC id$/;"	m	struct:mpproc
 apicid	../smp/mp.h	/^  uchar apicid;                \/\/ Local APIC ID$/;"	m	struct:cpu
 apicno	../smp/mp.h	/^  uchar apicno;                 \/\/ I\/O APIC id$/;"	m	struct:mpioapic
 assert	../debug/kdebug.h	13;"	d
+b	../kernel.asm	/^    b = 0;$/;"	d
+b	../kernel.asm	/^    b = buddy_pmm_alloc(0x2000);$/;"	d
+b	../kernel.asm	/^    b = buddy_pmm_alloc(1);$/;"	d
+b	../kernel.asm	/^    b = buddy_pmm_alloc(2);$/;"	d
+b	../kernel.asm	/^    b = buddy_pmm_alloc(3);$/;"	d
+b	../kernel.asm	/^    b = buddy_pmm_alloc(5);$/;"	d
+base	../kernel.asm	/^        base = 10;$/;"	d
+bda	../kernel.asm	/^  bda = (uchar *) P2V(0x400);$/;"	d
+beginning_addr	../mm/buddy_pmm.c	/^    uintptr_t beginning_addr;    \/\/the beginning address of buddy $/;"	m	struct:buddy	file:
+bool	../kernel.asm	/^bool IsValid(uint8_t i)$/;"	l
+buddy	../kernel.asm	/^     buddy =  (struct buddy*)p_start;$/;"	d
+buddy	../mm/buddy_pmm.c	/^struct buddy{$/;"	s	file:
+buddy	../mm/buddy_pmm.c	/^}*buddy;$/;"	v	typeref:struct:buddy
+buddy_pmm_alloc	../mm/buddy_pmm.c	/^buddy_pmm_alloc(uint32_t size)$/;"	f
+buddy_pmm_free	../mm/buddy_pmm.c	/^buddy_pmm_free(uint32_t offset)$/;"	f
+buddy_pmm_free_pages	../mm/buddy_pmm.c	/^size_t buddy_pmm_free_pages()$/;"	f
+buddy_pmm_manager	../mm/buddy_pmm.c	/^const struct pmm_manager buddy_pmm_manager = {$/;"	v	typeref:struct:pmm_manager
+buddy_pmm_test	../mm/buddy_pmm.c	/^buddy_pmm_test(uintptr_t p_start)$/;"	f
+c	../kernel.asm	/^    c = buddy_pmm_alloc(0x2990);$/;"	d
+c	../kernel.asm	/^    c = buddy_pmm_alloc(1);$/;"	d
+c	../kernel.asm	/^    c = buddy_pmm_alloc(2);$/;"	d
+c	../kernel.asm	/^    c = buddy_pmm_alloc(7);$/;"	d
+calc	../mm/buddy_pmm.c	/^calc(uintptr_t p_start, uint32_t pg_size)$/;"	f	file:
+ch	../kernel.asm	/^           ch = *(++fmt);$/;"	d
 checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp
 checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mpconf
+cnt	../kernel.asm	/^    cnt = vprintfmt(putch,fmt,ap);$/;"	d
+conf	../kernel.asm	/^  conf = (struct mpconf*) P2V((uint) mp->physaddr);$/;"	d
 console_clear	../driver/console.c	/^void console_clear()$/;"	f
 console_clear	../driver/console.h	/^void console_clear();$/;"	p
 console_putc	../driver/console.c	/^void console_putc(char cstr)$/;"	f
 console_putc	../driver/console.h	/^void console_putc(char cstr);$/;"	p
 console_putc_color	../driver/console.c	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	f
 console_putc_color	../driver/console.h	/^void console_putc_color(char c, real_color_t back, real_color_t fore);$/;"	p
+const	../kernel.asm	/^const struct pmm_manager *pmm_manager;$/;"	t
 cprintf	../libs/stdio.c	/^int cprintf(const char *fmt, ...)$/;"	f
 cpu	../smp/mp.h	/^  struct cpu *cpu;$/;"	m	struct:cpu	typeref:struct:cpu::cpu
 cpu	../smp/mp.h	/^struct cpu {$/;"	s
 cpus	../smp/mp.c	/^struct cpu cpus[NCPU];$/;"	v	typeref:struct:cpu
 cursor_x	../driver/console.c	/^static uint8_t cursor_x = 0;$/;"	v	file:
+cursor_x	../kernel.asm	/^        cursor_x = (cursor_x + 8) & ~ (8 - 1);$/;"	d
+cursor_x	../kernel.asm	/^        cursor_x = 0; $/;"	d
+cursor_x	../kernel.asm	/^        cursor_x = 0;$/;"	d
+cursor_x	../kernel.asm	/^    cursor_x = 0;$/;"	d
 cursor_y	../driver/console.c	/^static uint8_t cursor_y = 0;$/;"	v	file:
+cursor_y	../kernel.asm	/^        cursor_y = 24;$/;"	d
+cursor_y	../kernel.asm	/^    cursor_y = 0;$/;"	d
+d	../kernel.asm	/^    d = buddy_pmm_alloc(0x39);$/;"	d
+d	../kernel.asm	/^    d = buddy_pmm_alloc(940);$/;"	d
 debuginfo_eip	../debug/kdebug.c	/^debuginfo_eip(uintptr_t addr, struct eipdebuginfo *info) {$/;"	f	file:
+default	../kernel.asm	/^               default:$/;"	l
+default	../kernel.asm	/^    default:$/;"	l
 delay	../driver/uart.c	/^delay(void) {$/;"	f	file:
+dig	../kernel.asm	/^            dig = *s - '0';$/;"	d
+dig	../kernel.asm	/^            dig = *s - 'A' + 10;$/;"	d
+dig	../kernel.asm	/^            dig = *s - 'a' + 10;$/;"	d
+e	../kernel.asm	/^    e = buddy_pmm_alloc(buddy->size);$/;"	d
+e	../kernel.asm	/^  e = addr+len;$/;"	d
+e820map	../kernel.asm	/^    e820map = (struct e820map*)P2V(E820MAP_ADD);  $/;"	d
 e820map	../mm/pmm.c	/^static struct e820map{$/;"	s	file:
 e820map	../mm/pmm.c	/^}* e820map;$/;"	v	typeref:struct:e820map	file:
+ebp	../kernel.asm	/^        ebp = (uint32_t*)(*ebp);$/;"	d
+eip	../kernel.asm	/^        eip = ebp + 1;$/;"	d
 eip_file	../debug/kdebug.c	/^    const char *eip_file;                   \/\/ source code filename for eip$/;"	m	struct:eipdebuginfo	file:
 eip_fn_name	../debug/kdebug.c	/^    char eip_fn_name[MAX_FN_NAME];                \/\/ name of function containing eip$/;"	m	struct:eipdebuginfo	file:
 eipdebuginfo	../debug/kdebug.c	/^struct eipdebuginfo {$/;"	s	file:
-end	../mm/pmm.c	/^    uintptr_t end;$/;"	m	struct:__anon1	file:
+end	../mm/pmm.h	/^    uintptr_t end;$/;"	m	struct:pmm_info
 entry	../init/entry.S	/^entry:$/;"	l
+entry	../kernel.asm	/^entry:$/;"	l
 entry	../smp/mp.h	/^  ushort entry;                 \/\/ entry count$/;"	m	struct:mpconf
 entrypgdir	../init/init.c	/^pde_t entrypgdir[NPDENTRIES] = {$/;"	v
+exp	../kernel.asm	/^    exp = (ix >> 23) & 0xff;$/;"	d
+fastlog2	../mm/buddy_pmm.c	/^uint8_t fastlog2(int x)$/;"	f
 feature	../smp/mp.h	/^  uint feature;                 \/\/ feature flags from CPUID instruction$/;"	m	struct:mpproc
+first	../kernel.asm	/^                        first = 1;$/;"	d
+first	../kernel.asm	/^                    first = 0;$/;"	d
+first	../kernel.asm	/^            first = 0;$/;"	d
+fix_size	../mm/buddy_pmm.c	/^fix_size(uint32_t size)$/;"	f	file:
 flags	../smp/mp.h	/^  uchar flags;                  \/\/ CPU flags$/;"	m	struct:mpproc
 flags	../smp/mp.h	/^  uchar flags;                  \/\/ I\/O APIC flags$/;"	m	struct:mpioapic
 free_area	../mm/default_pmm.c	/^free_area_t free_area;$/;"	v
+free_num	../kernel.asm	/^    free_num = 0;$/;"	d
+free_pages	../mm/pmm.c	/^free_pages(void *n)$/;"	f
+free_pages	../mm/pmm.h	/^    void (*free_pages)(size_t n);  \/\/ free >=n pages with "base" addr of Page descriptor structures(memlayout.h)$/;"	m	struct:pmm_manager
+free_pages	../mm/pmm.h	/^free_pages(void *n);$/;"	p
+free_pg	../mm/buddy_pmm.c	/^    uint32_t free_pg;            \/\/the num of free page$/;"	m	struct:buddy	file:
+fx	../kernel.asm	/^    fx = (float)x;$/;"	d
+have_matches	../kernel.asm	/^        have_matches = 1;$/;"	d
+i	../kernel.asm	/^           i = LEFT_SON(i);$/;"	d
+i	../kernel.asm	/^           i = RIGHT_SON(i);$/;"	d
+i	../kernel.asm	/^        i = PARENT(i);    $/;"	d
+i	../kernel.asm	/^    i = alloc_pages(1);$/;"	d
+i	../kernel.asm	/^    i = alloc_pages(2);$/;"	d
+i2page_off	../mm/buddy_pmm.c	/^uint32_t i2page_off(uint32_t i, uint32_t size)$/;"	f	file:
 imcrp	../smp/mp.h	/^  uchar imcrp;$/;"	m	struct:mp
+init	../mm/pmm.h	/^    void (*init)(uintptr_t *n, uint32_t *pg_size); \/\/init the pmm $/;"	m	struct:pmm_manager
+init_buddy_pmm	../mm/buddy_pmm.c	/^init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)$/;"	f
+init_kvm	../mm/vm.c	/^init_kvm(void)$/;"	f
+init_kvm	../mm/vm.h	/^init_kvm(void);$/;"	p
 init_pmm	../mm/pmm.c	/^init_pmm(void)$/;"	f
 init_pmm	../mm/pmm.h	/^init_pmm(void);$/;"	p
 init_pmm_info	../mm/pmm.c	/^init_pmm_info()$/;"	f	file:
+int	../kernel.asm	/^int $/;"	l
+int	../kernel.asm	/^int cprintf(const char *fmt, ...)$/;"	l
+int	../kernel.asm	/^int main()$/;"	l
+int	../kernel.asm	/^int vcprintf(const char *fmt, va_list ap)$/;"	l
+int	../kernel.asm	/^int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)$/;"	l
+int	../kernel.asm	/^int$/;"	l
+int32_t	../kernel.asm	/^int32_t $/;"	l
 intena	../smp/mp.h	/^  int intena;                  \/\/ Were interrupts enabled before pushcli?$/;"	m	struct:cpu
+ioapic	../kernel.asm	/^      ioapic = (struct mpioapic*)p;$/;"	d
+ioapicid	../kernel.asm	/^      ioapicid = ioapic->apicno;$/;"	d
+ioapicid	../kernel.asm	/^    ioapicid = 0;$/;"	d
 ioapicid	../smp/mp.c	/^uchar ioapicid;$/;"	v
 is_panic	../debug/kdebug.c	/^static bool is_panic = 0;$/;"	v	file:
+is_panic	../kernel.asm	/^   is_panic = 1;$/;"	d
+ismp	../kernel.asm	/^      ismp = 0;$/;"	d
+ismp	../kernel.asm	/^  ismp = 1;$/;"	d
 ismp	../smp/mp.c	/^int ismp;$/;"	v
+ix	../kernel.asm	/^    ix = *(unsigned long*)&fx;$/;"	d
+j	../kernel.asm	/^    j = alloc_pages(1);$/;"	d
+kmap	../mm/vm.c	/^static struct kmap {$/;"	s	file:
+kmap	../mm/vm.c	/^} kmap[] = {$/;"	v	typeref:struct:kmap	file:
+kpa2page	../mm/pmm.c	/^kpa2page(uint32_t addr)$/;"	f	file:
+kpgdir	../kernel.asm	/^    kpgdir = setup_kvm();$/;"	d
+kpgdir	../mm/vm.c	/^pte_t *kpgdir;$/;"	v
+kva2page	../mm/pmm.c	/^kva2page(void *va)$/;"	f	file:
+kvm_test	../mm/vm.c	/^kvm_test(pde_t* pgdir)$/;"	f
+l	../kernel.asm	/^            l = m;$/;"	d
+l	../kernel.asm	/^            l = true_m + 1;$/;"	d
+lapic	../kernel.asm	/^    lapic = 0;$/;"	d
+lapic	../kernel.asm	/^  lapic = (uint*)conf->lapicaddr;$/;"	d
 lapic	../smp/mp.c	/^volatile uint *lapic;$/;"	v
 lapicaddr	../smp/mp.h	/^  uint *lapicaddr;              \/\/ address of local APIC$/;"	m	struct:mpconf
+lcr3	../mm/vm.c	/^lcr3(uint32_t val)$/;"	f	file:
+left	../kernel.asm	/^    left = 0;$/;"	d
+len	../kernel.asm	/^                   len = strlen(str);$/;"	d
+len	../kernel.asm	/^    len = strlen(str);$/;"	d
 length	../smp/mp.h	/^  uchar length;                 \/\/ 1$/;"	m	struct:mp
 length	../smp/mp.h	/^  ushort length;                \/\/ total table length$/;"	m	struct:mpconf
+long	../kernel.asm	/^long$/;"	l
+m	../kernel.asm	/^        m = true_m;$/;"	d
 main	../init/init.c	/^int main()$/;"	f
-map	../mm/pmm.c	/^    }map[30];$/;"	m	struct:e820map	typeref:struct:e820map::__anon2	file:
+map	../mm/pmm.c	/^    }map[30];$/;"	m	struct:e820map	typeref:struct:e820map::__anon1	file:
+map_pages	../mm/vm.c	/^map_pages(pde_t *pgdir, uintptr_t va_st, uintptr_t size, uintptr_t pa, int32_t perm)$/;"	f	file:
+mm_size	../kernel.asm	/^                mm_size = KMEMSIZE;$/;"	d
+mm_size	../kernel.asm	/^            mm_size = pmm_info.end - pmm_info.start; $/;"	d
 move_cursor	../driver/console.c	/^static void move_cursor()$/;"	f	file:
 mp	../smp/mp.h	/^struct mp {             \/\/ floating pointer$/;"	s
 mpconf	../smp/mp.h	/^struct mpconf {         \/\/ configuration table header$/;"	s
@@ -113,22 +242,47 @@ n_other	../debug/stabs.h	/^    uint8_t n_other;        \/\/ misc info (usually e
 n_strx	../debug/stabs.h	/^    uint32_t n_strx;        \/\/ index into string table of name$/;"	m	struct:stab
 n_type	../debug/stabs.h	/^    uint8_t n_type;         \/\/ type of symbol$/;"	m	struct:stab
 n_value	../debug/stabs.h	/^    uintptr_t n_value;      \/\/ value of symbol$/;"	m	struct:stab
+name	../mm/pmm.h	/^    const char *name;                                 \/\/ XXX_pmm_manager's name$/;"	m	struct:pmm_manager
 ncli	../smp/mp.h	/^  int ncli;                    \/\/ Depth of pushcli nesting.$/;"	m	struct:cpu
+ncpu	../kernel.asm	/^    ncpu = 1;$/;"	d
 ncpu	../smp/mp.c	/^int ncpu;$/;"	v
+nr_free_pages	../mm/pmm.h	/^    size_t (*nr_free_pages)(void);      \/\/ return the number of free pages $/;"	m	struct:pmm_manager
 nr_map	../mm/pmm.c	/^    int nr_map;$/;"	m	struct:e820map	file:
 oemlength	../smp/mp.h	/^  ushort oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf
 oemtable	../smp/mp.h	/^  uint *oemtable;               \/\/ OEM table pointer$/;"	m	struct:mpconf
+offset	../kernel.asm	/^    offset = i2page_off(i,offsize );$/;"	d
+offsize	../kernel.asm	/^    offsize = ret_val32(node_size);$/;"	d
+p	../kernel.asm	/^    p = ((bda[0x14]<<8)|bda[0x13])*1024;$/;"	d
+pa	../kernel.asm	/^    pa = PGROUNDDOWN(pa);$/;"	d
+page2kva	../mm/pmm.c	/^page2kva(uint32_t n)$/;"	f	file:
+page_off	../kernel.asm	/^            page_off = i2page_off(i,1);$/;"	d
 panic	../debug/kdebug.h	10;"	d
+panic_dead	../kernel.asm	/^panic_dead:$/;"	l
+pde	../kernel.asm	/^        pde = &pgdir[i]; $/;"	d
+perm	../kernel.asm	/^                        perm = PTE_FLAGS(pte[j]);$/;"	d
+perm	../mm/vm.c	/^    int32_t perm;$/;"	m	struct:kmap	file:
+pg_size	../mm/buddy_pmm.c	/^    uint32_t pg_size;             \/\/the num of page(4096) $/;"	m	struct:buddy	file:
+phys_end	../mm/vm.c	/^    uintptr_t phys_end;$/;"	m	struct:kmap	file:
+phys_start	../mm/vm.c	/^    uintptr_t phys_start;$/;"	m	struct:kmap	file:
 physaddr	../smp/mp.h	/^  void *physaddr;               \/\/ phys addr of MP config table$/;"	m	struct:mp
-pmm_info	../mm/pmm.c	/^}pmm_info = {$/;"	v	typeref:struct:__anon1
+pmm_info	../mm/pmm.c	/^struct pmm_info pmm_info = {$/;"	v	typeref:struct:pmm_info
+pmm_info	../mm/pmm.h	/^struct pmm_info{$/;"	s
+pmm_manager	../kernel.asm	/^    pmm_manager = &buddy_pmm_manager;$/;"	d
+pmm_manager	../mm/pmm.c	/^const struct pmm_manager *pmm_manager;$/;"	v	typeref:struct:pmm_manager
+pmm_manager	../mm/pmm.h	/^struct pmm_manager {$/;"	s
 print_cur_status	../debug/kdebug.c	/^print_cur_status()$/;"	f
 print_cur_status	../debug/kdebug.h	/^void print_cur_status();$/;"	p
 print_e280map	../mm/pmm.c	/^print_e280map()$/;"	f	file:
 print_pmm_info	../mm/pmm.c	/^print_pmm_info()$/;"	f	file:
 print_stack_trace	../debug/kdebug.c	/^print_stack_trace()$/;"	f
 print_stack_trace	../debug/kdebug.h	/^void print_stack_trace();$/;"	p
+proc	../kernel.asm	/^      proc = (struct mpproc*)p;$/;"	d
 product	../smp/mp.h	/^  uchar product[20];            \/\/ product id$/;"	m	struct:mpconf
+pte	../kernel.asm	/^            pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); $/;"	d
+pte	../kernel.asm	/^       pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); $/;"	d
+pte_t	../kernel.asm	/^pte_t *kpgdir;$/;"	l
 putch	../libs/stdio.c	/^static void putch(char ch)$/;"	f	file:
+r	../kernel.asm	/^            r = m - 1;$/;"	d
 rc_black	../driver/console.h	/^    rc_black,$/;"	e	enum:real_color
 rc_blue	../driver/console.h	/^    rc_blue,$/;"	e	enum:real_color
 rc_brown	../driver/console.h	/^    rc_brown,$/;"	e	enum:real_color
@@ -146,36 +300,100 @@ rc_magenta	../driver/console.h	/^    rc_magenta,$/;"	e	enum:real_color
 rc_red	../driver/console.h	/^    rc_red,$/;"	e	enum:real_color
 rc_white	../driver/console.h	/^    rc_white,$/;"	e	enum:real_color
 rc_xxxx	../driver/console.h	/^    rc_xxxx$/;"	e	enum:real_color
+read_pte_addr	../mm/vm.c	/^read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)$/;"	f	file:
 real_color	../driver/console.h	/^enum real_color{$/;"	g
 real_color_t	../driver/console.h	/^}real_color_t;$/;"	t	typeref:enum:real_color
 reserved	../smp/mp.h	/^  uchar reserved;$/;"	m	struct:mpconf
 reserved	../smp/mp.h	/^  uchar reserved[3];$/;"	m	struct:mp
 reserved	../smp/mp.h	/^  uchar reserved[8];$/;"	m	struct:mpproc
+ret_val32	../mm/buddy_pmm.c	/^uint32_t ret_val32(uint8_t val)$/;"	f	file:
+right	../kernel.asm	/^    right = (stab_end - stab_begin) - 1;$/;"	d
 scroll	../driver/console.c	/^static void scroll()$/;"	f	file:
+setup_kvm	../mm/vm.c	/^setup_kvm(void)$/;"	f
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "_MP_"$/;"	m	struct:mp
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ CPU signature$/;"	m	struct:mpproc
-size	../mm/pmm.c	/^        long long size;$/;"	m	struct:e820map::__anon2	file:
-size	../mm/pmm.c	/^    uint32_t size; \/\/ num of PGSIZE$/;"	m	struct:__anon1	file:
+size	../kernel.asm	/^                        size = 0;$/;"	d
+size	../kernel.asm	/^                size = 0;$/;"	d
+size	../kernel.asm	/^        size = fix_size(size);$/;"	d
+size	../kernel.asm	/^    size = PGROUNDUP(size);           $/;"	d
+size	../kernel.asm	/^    size = fastlog2(size) + 1;$/;"	d
+size	../mm/buddy_pmm.c	/^    uint32_t size;               \/\/the num of page,but in power of 2$/;"	m	struct:buddy	file:
+size	../mm/pmm.c	/^        long long size;$/;"	m	struct:e820map::__anon1	file:
+size	../mm/pmm.h	/^    uint32_t size; \/\/ num of PGSIZE$/;"	m	struct:pmm_info
+size_t	../kernel.asm	/^size_t $/;"	l
+size_t	../kernel.asm	/^size_t buddy_pmm_free_pages()$/;"	l
+size_t	../kernel.asm	/^size_t$/;"	l
 specrev	../smp/mp.h	/^  uchar specrev;                \/\/ [14]$/;"	m	struct:mp
 stab	../debug/stabs.h	/^struct stab {$/;"	s
 stab_binsearch	../debug/kdebug.c	/^stab_binsearch(struct stab *stabs, int *region_left, int *region_right,$/;"	f	file:
-start	../mm/pmm.c	/^    uintptr_t start;$/;"	m	struct:__anon1	file:
+start	../kernel.asm	/^                        start = PTE_ADDR(pte[j]);$/;"	d
+start	../mm/pmm.h	/^    uintptr_t start;$/;"	m	struct:pmm_info
 started	../smp/mp.h	/^  volatile uint started;       \/\/ Has the CPU started?$/;"	m	struct:cpu
+static	../kernel.asm	/^static bool is_panic = 0;$/;"	l
+static	../kernel.asm	/^static inline uint32_t$/;"	l
+static	../kernel.asm	/^static inline uint8_t$/;"	l
+static	../kernel.asm	/^static inline void $/;"	l
+static	../kernel.asm	/^static inline void adjust_i(uint32_t i ,uint8_t power)$/;"	l
+static	../kernel.asm	/^static inline void$/;"	l
+static	../kernel.asm	/^static inline void*$/;"	l
+static	../kernel.asm	/^static inline$/;"	l
+static	../kernel.asm	/^static int uart;    \/\/ is there a uart?$/;"	l
+static	../kernel.asm	/^static int$/;"	l
+static	../kernel.asm	/^static pte_t*$/;"	l
+static	../kernel.asm	/^static struct mp*$/;"	t
+static	../kernel.asm	/^static struct mpconf*$/;"	t
+static	../kernel.asm	/^static uchar$/;"	l
+static	../kernel.asm	/^static uint32_t$/;"	l
+static	../kernel.asm	/^static uint8_t cursor_x = 0;$/;"	l
+static	../kernel.asm	/^static uint8_t cursor_y = 0;$/;"	l
+static	../kernel.asm	/^static void $/;"	l
+static	../kernel.asm	/^static void move_cursor()$/;"	l
+static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base, int width)$/;"	l
+static	../kernel.asm	/^static void putch(char ch)$/;"	l
+static	../kernel.asm	/^static void scroll()$/;"	l
+static	../kernel.asm	/^static void$/;"	l
+str	../kernel.asm	/^                   str = va_arg(ap, char*);$/;"	d
+sum	../kernel.asm	/^  sum = 0;$/;"	d
 sum	../smp/mp.c	/^sum(uchar *addr, int len)$/;"	f	file:
-type	../mm/pmm.c	/^        long type;$/;"	m	struct:e820map::__anon2	file:
+switchkvm	../mm/vm.c	/^switchkvm(void)$/;"	f
+tmp	../kernel.asm	/^       tmp = n[i];$/;"	d
+tmp	../kernel.asm	/^     tmp  = ROUNDUP(fix_size(pg_size) * 2 - 1 + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); $/;"	d
+tmp	../kernel.asm	/^    tmp = stab_begin[left].n_strx + strst_begin;$/;"	d
+tmplen	../kernel.asm	/^    tmplen = strfind(tmp,':') - tmp;$/;"	d
+true_m	../kernel.asm	/^        true_m = (l + r) \/ 2;$/;"	d
+type	../mm/pmm.c	/^        long type;$/;"	m	struct:e820map::__anon1	file:
 type	../smp/mp.h	/^  uchar type;                   \/\/ MP system config type$/;"	m	struct:mp
 type	../smp/mp.h	/^  uchar type;                   \/\/ entry type (0)$/;"	m	struct:mpproc
 type	../smp/mp.h	/^  uchar type;                   \/\/ entry type (2)$/;"	m	struct:mpioapic
 uart	../driver/uart.c	/^static int uart;    \/\/ is there a uart?$/;"	v	file:
+uart	../kernel.asm	/^  uart = 1;$/;"	d
 uartinit	../driver/uart.c	/^uartinit(void)$/;"	f
 uartinit	../driver/uart.h	/^uartinit(void);$/;"	p
 uartputc	../driver/uart.c	/^uartputc(int c)$/;"	f
 uartputc	../driver/uart.h	/^uartputc(int c);$/;"	p
+uint32_t	../kernel.asm	/^uint32_t $/;"	l
+uint32_t	../kernel.asm	/^uint32_t i2page_off(uint32_t i, uint32_t size)$/;"	l
+uint32_t	../kernel.asm	/^uint32_t ret_val32(uint8_t val)$/;"	l
+uint8_t	../kernel.asm	/^uint8_t fastlog2(int x)$/;"	l
+unum	../kernel.asm	/^        unum = -num;$/;"	d
+unum	../kernel.asm	/^        unum = num; $/;"	d
+va_ed	../kernel.asm	/^    va_ed = va_st + size;$/;"	d
+val	../mm/buddy_pmm.c	/^    uint8_t val[1];              \/\/a val describe a page$/;"	m	struct:buddy	file:
 vcprintf	../libs/stdio.c	/^int vcprintf(const char *fmt, va_list ap)$/;"	f
 version	../smp/mp.h	/^  uchar version;                \/\/ I\/O APIC version$/;"	m	struct:mpioapic
 version	../smp/mp.h	/^  uchar version;                \/\/ [14]$/;"	m	struct:mpconf
 version	../smp/mp.h	/^  uchar version;                \/\/ local APIC verison$/;"	m	struct:mpproc
 video_memory	../driver/console.c	/^static uint16_t *video_memory = (uint16_t*)P2V(0xB8000);$/;"	v	file:
+virt	../mm/vm.c	/^    uintptr_t virt;$/;"	m	struct:kmap	file:
+void	../kernel.asm	/^void  $/;"	l
+void	../kernel.asm	/^void $/;"	l
+void	../kernel.asm	/^void console_clear()$/;"	l
+void	../kernel.asm	/^void console_putc(char cstr)$/;"	l
+void	../kernel.asm	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	l
+void	../kernel.asm	/^void swap(void *a,void *b,int sz)$/;"	l
+void	../kernel.asm	/^void$/;"	l
+width	../kernel.asm	/^                   width = 0;$/;"	d
+width	../kernel.asm	/^                   width = width * 10 +  ch - '0';$/;"	d
 xchecksum	../smp/mp.h	/^  uchar xchecksum;              \/\/ extended table checksum$/;"	m	struct:mpconf
 xlength	../smp/mp.h	/^  ushort xlength;               \/\/ extended table length$/;"	m	struct:mpconf

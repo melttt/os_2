@@ -5,11 +5,7 @@
 #include "stdio.h"
 #include "buddy_pmm.h"
 /**************************E820MAP***************************/
-struct {
-    uintptr_t start;
-    uintptr_t end;
-    uint32_t size; // num of PGSIZE
-}pmm_info = {
+struct pmm_info pmm_info = {
     .size = 0,
 };
 // define in kernel.ld
@@ -104,7 +100,10 @@ void*
 alloc_pages(size_t n)
 {
    uint32_t offset = pmm_manager->alloc_pages(n);
-   return page2kva(offset);  
+   if(offset != ALLOC_FALSE)
+       return page2kva(offset);  
+   else
+       return NULL;
 }
 
 void
@@ -132,7 +131,9 @@ init_pmm(void)
     i = alloc_pages(2);
     j = alloc_pages(1);
     cprintf("%x j : %x\n", (uint32_t)i, (uintptr_t)j);
-
+    cprintf("pmm_end : %x\n",pmm_info.end);
+    init_kvm();
+    
     
     
 }

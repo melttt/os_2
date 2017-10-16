@@ -2,7 +2,9 @@
 #define _KERN_MM_PMM_H_
 #include "defs.h"
 #include "memlayout.h"
+#include "vm.h"
 
+#define ALLOC_FALSE -1
 struct pmm_manager {
     const char *name;                                 // XXX_pmm_manager's name
     void (*init)(uintptr_t *n, uint32_t *pg_size); //init the pmm 
@@ -11,6 +13,13 @@ struct pmm_manager {
     size_t (*nr_free_pages)(void);      // return the number of free pages 
 };
 
+struct pmm_info{
+    uintptr_t start;
+    uintptr_t end;
+    uint32_t size; // num of PGSIZE
+};
+
+extern struct pmm_info pmm_info;
 void 
 init_pmm(void);
 void*
