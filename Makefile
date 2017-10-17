@@ -5,11 +5,12 @@ LIBS_DIR := ./libs
 KERN_LD := ./tools/kernel.ld
 INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs -I./boot
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
-S_OBJS = $(shell find $(KERN_DIR) -name "*.S")
+S_OBJS := $(shell find $(KERN_DIR) -name "*.S")
 LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
 OBJS := $(patsubst %.c,%.o,$(C_OBJS))
 OBJS += $(patsubst %.S,%.o,$(S_OBJS))
 OBJS += $(patsubst %.c,%.o,$(LIBS_OBJS))
+OBJS_EXTRA := ./kern/trap/vectors.o
 D_OBJS := $(patsubst %o,%d,$(OBJS))
 
 
@@ -48,7 +49,7 @@ os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel
 	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
 	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc
 
-$(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootmain.c
+$(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootmain.c 
 	$(CC) $(CFLAGS) -fno-pic -O  -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootmain.c -o $(BOOTLOADER_DIR)/bootmain.o 
 	$(CC) $(CFLAGS) -fno-pic -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootasm.S -o $(BOOTLOADER_DIR)/bootasm.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootasm.o $(BOOTLOADER_DIR)/bootmain.o
@@ -61,6 +62,11 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)
 	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS) 
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
+
+
+./kern/trap/vectors.S: $(TOOLS_DIR)/vectors.pl
+	perl $< > $@
+
 ifndef CPUS
 CPUS := 4
 endif
@@ -81,5 +87,6 @@ clean:
 	rm -f os.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
+	rm -f ./kern/trap/vectors.*
 test :
 	@echo $(CFLAGS)

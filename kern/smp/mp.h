@@ -47,11 +47,12 @@ struct mpioapic {       // I/O APIC table entry
   uchar flags;                  // I/O APIC flags
   uint *addr;                  // I/O APIC address
 };
+#include "mmu.h"
 struct cpu {
   uchar apicid;                // Local APIC ID
 //  struct context *scheduler;   // swtch() here to enter scheduler
 //  struct taskstate ts;         // Used by x86 to find stack for interrupt
-//  struct segdesc gdt[NSEGS];   // x86 global descriptor table
+  struct segdesc gdt[NSEGS];   // x86 global descriptor table
   volatile uint started;       // Has the CPU started?
   int ncli;                    // Depth of pushcli nesting.
   int intena;                  // Were interrupts enabled before pushcli?
@@ -72,7 +73,7 @@ extern volatile uint *lapic;  // Initialized in mp.c
 void            mpinit(void);
 extern int   ismp;
 extern uchar ioapicid;
-extern struct cpu cpu[NCPU];
+extern struct cpu cpus[NCPU];
 extern int ncpu;
 
 #endif

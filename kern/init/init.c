@@ -9,6 +9,9 @@
 #include "kdebug.h"
 #include "mp.h"
 #include "pmm.h"
+#include "lapic.h"
+#include "ioapic.h"
+#include "trap.h"
 //#define g(x) #x
 int main()
 {
@@ -18,23 +21,18 @@ int main()
     cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
     //cprintf("%x\n",(int)__STABSTR_BEGIN__);
     cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
+
     init_pmm();
+
+    mpinit();
+    lapicinit();
+    ioapicinit();
+    tvinit();
+    idtinit();
+    asm volatile ("sti");
     
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    mpinit();
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
 //    *(int*)(0x80109010 - 4) = 0x12345678;

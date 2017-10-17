@@ -133,9 +133,7 @@ init_pmm(void)
     cprintf("%x j : %x\n", (uint32_t)i, (uintptr_t)j);
     cprintf("pmm_end : %x\n",pmm_info.end);
     init_kvm();
-    
-    
-    
+    seginit();
 }
 
 

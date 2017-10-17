@@ -3,6 +3,8 @@
 
 int32_t
 init_kvm(void);
+void
+seginit(void);
 
 
 #endif
