@@ -63,11 +63,11 @@ MINS	../smp/lapic.c	195;"	d	file:
 MONTH	../kernel.asm	/^#define MONTH   0x08$/;"	d
 MONTH	../smp/lapic.c	198;"	d	file:
 MPBOOT	../smp/mp.h	37;"	d
-MPBUS	../smp/mp.h	66;"	d
-MPIOAPIC	../smp/mp.h	67;"	d
-MPIOINTR	../smp/mp.h	68;"	d
-MPLINTR	../smp/mp.h	69;"	d
-MPPROC	../smp/mp.h	65;"	d
+MPBUS	../smp/mp.h	67;"	d
+MPIOAPIC	../smp/mp.h	68;"	d
+MPIOINTR	../smp/mp.h	69;"	d
+MPLINTR	../smp/mp.h	70;"	d
+MPPROC	../smp/mp.h	66;"	d
 N_BCOMM	../debug/stabs.h	39;"	d
 N_BINCL	../debug/stabs.h	31;"	d
 N_BSLINE	../debug/stabs.h	27;"	d
@@ -192,6 +192,7 @@ c	../kernel.asm	/^    c = buddy_pmm_alloc(0x2990);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(1);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(2);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(7);$/;"	d
+c	../kernel.asm	/^  c = &cpus[cpunum()];$/;"	d
 calc	../mm/buddy_pmm.c	/^calc(uintptr_t p_start, uint32_t pg_size)$/;"	f	file:
 ch	../kernel.asm	/^           ch = *(++fmt);$/;"	d
 checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp
@@ -264,6 +265,7 @@ free_pages	../mm/pmm.h	/^    void (*free_pages)(size_t n);  \/\/ free >=n pages 
 free_pages	../mm/pmm.h	/^free_pages(void *n);$/;"	p
 free_pg	../mm/buddy_pmm.c	/^    uint32_t free_pg;            \/\/the num of free page$/;"	m	struct:buddy	file:
 fx	../kernel.asm	/^    fx = (float)x;$/;"	d
+gdt	../smp/mp.h	/^  struct segdesc gdt[NSEGS];   \/\/ x86 global descriptor table$/;"	m	struct:cpu	typeref:struct:cpu::segdesc
 have_matches	../kernel.asm	/^        have_matches = 1;$/;"	d
 hour	../smp/lapic.c	/^  uint hour;$/;"	m	struct:rtcdate	file:
 i	../kernel.asm	/^           i = LEFT_SON(i);$/;"	d
@@ -437,6 +439,8 @@ rtcdate	../smp/lapic.c	/^struct rtcdate {$/;"	s	file:
 sb	../kernel.asm	/^  sb = cmos_read(CMOS_STATB);$/;"	d
 scroll	../driver/console.c	/^static void scroll()$/;"	f	file:
 second	../smp/lapic.c	/^  uint second;$/;"	m	struct:rtcdate	file:
+seginit	../mm/vm.c	/^seginit(void)$/;"	f
+seginit	../mm/vm.h	/^seginit(void);$/;"	p
 setup_kvm	../mm/vm.c	/^setup_kvm(void)$/;"	f
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "_MP_"$/;"	m	struct:mp

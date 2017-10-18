@@ -14,6 +14,7 @@ uint ticks;
 
 
 
+
 void
 tvinit(void)
 {
@@ -39,7 +40,6 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
-    cprintf("in\n");
   if(tf->trapno == T_SYSCALL){
       /*
     if(proc->killed)

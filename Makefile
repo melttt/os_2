@@ -11,8 +11,11 @@ OBJS := $(patsubst %.c,%.o,$(C_OBJS))
 OBJS += $(patsubst %.S,%.o,$(S_OBJS))
 OBJS += $(patsubst %.c,%.o,$(LIBS_OBJS))
 OBJS_EXTRA := ./kern/trap/vectors.o
-D_OBJS := $(patsubst %o,%d,$(OBJS))
 
+ifeq ($(findstring $(OBJS_EXTRA),$(OBJS)),)
+OBJS += $(OBJS_EXTRA)	
+endif
+D_OBJS := $(patsubst %o,%d,$(OBJS))
 
 ifndef QEMU
 QEMU = $(shell if which qemu > /dev/null; \
@@ -89,4 +92,4 @@ clean:
 	rm -f $(OBJS) $(D_OBJS)
 	rm -f ./kern/trap/vectors.*
 test :
-	@echo $(CFLAGS)
+	@echo $(OBJS)

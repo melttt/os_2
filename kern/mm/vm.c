@@ -180,6 +180,7 @@ init_kvm(void)
 
 
 
+
 void
 seginit(void)
 {
@@ -192,13 +193,14 @@ seginit(void)
   c = &cpus[cpunum()];
   c->gdt[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0);
   c->gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
-  c->gdt[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER);
-  c->gdt[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
+//  c->gdt[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER);
+//  c->gdt[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
 
   // Map cpu and proc -- these are private per cpu.
-  c->gdt[SEG_KCPU] = SEG(0, 0, 0, 0);
-//  c->gdt[SEG_KCPU].p = 0;
-  lgdt(c->gdt, sizeof(c->gdt));
+//  c->gdt[SEG_KCPU] = SEG(1, 0xffffffff, 0, DPL_USER);
+  ///c->gdt[SEG_KCPU].p = 0;
+
+  lgdt(c->gdt, sizeof(c->gdt) );
 //  loadgs(SEG_KCPU << 3);
 
   // Initialize cpu-local storage.
