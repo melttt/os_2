@@ -5,6 +5,7 @@
 #include "stdio.h"
 #include "x86.h"
 #include "lapic.h"
+#include "kbd.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -60,7 +61,7 @@ trap(struct trapframe *tf)
         case T_IRQ0 + IRQ_TIMER:
             if(cpunum() == 0){
                 ticks ++;
-                cprintf("ticks: %d\n",ticks);
+//                cprintf("ticks: %d\n",ticks);
                 /*
                    acquire(&tickslock);
                    ticks++;
@@ -81,8 +82,7 @@ trap(struct trapframe *tf)
             // Bochs generates spurious IDE1 interrupts.
             break;
         case T_IRQ0 + IRQ_KBD:
-            cprintf("cpu : %d\n",cpunum());
-            //    kbdintr();
+            kbd_intr();
             lapiceoi();
             break;
         case T_IRQ0 + IRQ_COM1:

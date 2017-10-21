@@ -12,6 +12,7 @@
 #include "lapic.h"
 #include "ioapic.h"
 #include "trap.h"
+#include "kbd.h"
 //#define g(x) #x
 int main()
 {
@@ -29,7 +30,8 @@ int main()
     ioapicinit();
     tvinit();
     idtinit();
- //   asm volatile ("sti");
+    kbd_init();
+    asm volatile ("sti");
     
 
 
