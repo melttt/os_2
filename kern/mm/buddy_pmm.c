@@ -9,19 +9,26 @@
 #define INVALID 7
 #define LEFT_SON(INDEX) ((INDEX) * 2 + 1)
 #define RIGHT_SON(INDEX) ((INDEX) * 2 + 2)
-#define BUDDY_VAL(x) (buddy->val[x])
+#define BUDDY_VAL(x) (buddy->page[x].val)
+#define BUDDY_REF(x) (buddy->page[x].ref)
 #define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
-#define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(uint8_t))
+#define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(struct page))
+struct page{
+    uint8_t val;
+    uint8_t ref;
+}__attribute__((packed));
+
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 
     uint32_t free_pg;            //the num of free page
     uint32_t pg_size;             //the num of page(4096) 
     uint32_t size;               //the num of page,but in power of 2
-    uint8_t val[1];              //a val describe a page
-}*buddy;
+    struct page page[1];
+}__attribute__((packed))*buddy;
 
 //return log2(x)
-uint8_t fastlog2(int x)
+static uint8_t
+fastlog2(int x)
 {
     float fx;
     unsigned long ix, exp;
@@ -52,12 +59,15 @@ static void
 calc(uintptr_t p_start, uint32_t pg_size)
 {
      uint32_t tmp; 
-     tmp  = ROUNDUP(fix_size(pg_size) * 2 - 1 + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); 
+     //calc new beginning
+     tmp  = ROUNDUP((fix_size(pg_size) * 2 - 1) * sizeof(struct page) + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); 
      buddy =  (struct buddy*)p_start;
      buddy->beginning_addr = tmp;
      assert(buddy->beginning_addr > p_start);
      assert((buddy->beginning_addr - p_start) % PGSIZE == 0);
-     buddy->pg_size = pg_size -  (buddy->beginning_addr - p_start) / PGSIZE;
+
+     //
+     buddy->pg_size = pg_size -  (buddy->beginning_addr - p_start) / PGSIZE - 1;
 
      buddy->size  = fix_size(buddy->pg_size);
      buddy->free_pg = buddy->pg_size;
@@ -81,8 +91,10 @@ bool IsValid(uint8_t i)
 {
     return (i & 0x80) ? false : true;
 }
+
 //adjust by son node
-static inline void adjust_i(uint32_t i ,uint8_t power)
+static inline void
+adjust_i(uint32_t i ,uint8_t power)
 {
     uint32_t left_son_i = BUDDY_VAL(LEFT_SON(i)), right_son_i = BUDDY_VAL(RIGHT_SON(i)) ;
     if(IsValid(left_son_i) && IsValid(right_son_i))
@@ -104,7 +116,22 @@ static inline void adjust_i(uint32_t i ,uint8_t power)
         BUDDY_VAL(i) = 0x80;
     }
 }
-uint32_t 
+
+static inline uint32_t 
+offset2i(uint32_t offset, int32_t* node_size)
+{
+    uint32_t i = buddy->size - 1 + offset;
+    assert(*node_size == 1);
+    while(BUDDY_VAL(i) != 0)
+    {
+        i = PARENT(i);    
+        (*node_size) ++;
+    }
+    return i;
+}
+
+
+static uint32_t 
 buddy_pmm_alloc(uint32_t size)
 {
     if(size <= 0)
@@ -135,6 +162,7 @@ buddy_pmm_alloc(uint32_t size)
 
     assert(IsValid(BUDDY_VAL(i)) == true);
     BUDDY_VAL(i) = 0;
+    BUDDY_REF(i) ++;
     offsize = ret_val32(node_size);
     offset = i2page_off(i,offsize );
 
@@ -147,20 +175,17 @@ buddy_pmm_alloc(uint32_t size)
     return offset;
 }
 
-void 
+static void 
 buddy_pmm_free(uint32_t offset)
 {
     assert(offset < buddy->size);
 
-    uint32_t i = buddy->size - 1 + offset;
-    uint32_t node_size = 1;
-    while(BUDDY_VAL(i) != 0)
-    {
-        i = PARENT(i);    
-        node_size ++;
-    }
+    int32_t node_size = 1;
+    uint32_t i = offset2i(offset,&node_size);
 
     BUDDY_VAL(i) = node_size;         
+    assert(BUDDY_REF(i) != 0);
+    BUDDY_REF(i) --;
 //    cprintf("add pg: %x\n",node_size);
     buddy->free_pg += ret_val32(node_size); 
 
@@ -171,7 +196,19 @@ buddy_pmm_free(uint32_t offset)
 
 }
 
-void 
+
+static uint8_t
+buddy_change_page_ref(uint32_t offset, int8_t ch)
+{
+    assert(offset < buddy->size);
+
+    int32_t node_size = 1;
+    uint32_t i = offset2i(offset,&node_size);
+    assert((BUDDY_REF(i) + ch) >= 1);
+    return BUDDY_REF(i) += ch;
+}
+
+static void 
 buddy_pmm_test(uintptr_t p_start)
 {
     uint32_t i,free_num = 0;
@@ -202,8 +239,12 @@ buddy_pmm_test(uintptr_t p_start)
     a = buddy_pmm_alloc(2);
     assert(a == 0);
 
+    assert(buddy_change_page_ref(a,0) == 1); 
     buddy_pmm_free(a); 
     buddy_pmm_free(b); 
+    assert(buddy_change_page_ref(c,0) == 1);
+    assert(buddy_change_page_ref(c,4) == 5);
+    assert(buddy_change_page_ref(c,-4) == 1);
     buddy_pmm_free(c); 
     
     assert(buddy->free_pg == buddy->pg_size);
@@ -274,7 +315,7 @@ buddy_pmm_test(uintptr_t p_start)
     assert(free_num == buddy->size);
 }
 //init pmm in buddy system
-void
+static void
 init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
 {
     //
@@ -291,6 +332,7 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
         uint32_t page_off;
          
 
+        BUDDY_REF(i) = 0;
         if(i < buddy->size - 1)
         {
             adjust_i(i, node_size);
@@ -319,14 +361,19 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
 
 }
 
-size_t buddy_pmm_free_pages()
+static size_t
+buddy_pmm_free_pages()
 {
     return buddy->free_pg;
 }
+
+
+
 const struct pmm_manager buddy_pmm_manager = {
     .name = "Buddy_System_Pmm_Manager",
     .init = init_buddy_pmm,
     .alloc_pages = buddy_pmm_alloc,
     .free_pages = buddy_pmm_free,
     .nr_free_pages = buddy_pmm_free_pages,
+    .change_page_ref = buddy_change_page_ref,
 };

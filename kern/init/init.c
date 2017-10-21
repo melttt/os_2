@@ -29,12 +29,13 @@ int main()
     ioapicinit();
     tvinit();
     idtinit();
-    asm volatile ("sti");
+ //   asm volatile ("sti");
     
 
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
+//    cprintf("%x\n",*(int*)(0x70000000));
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     
 

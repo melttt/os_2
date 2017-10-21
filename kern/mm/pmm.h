@@ -2,7 +2,7 @@
 #define _KERN_MM_PMM_H_
 #include "defs.h"
 #include "memlayout.h"
-#include "vm.h"
+#include "vmm.h"
 
 #define ALLOC_FALSE -1
 struct pmm_manager {
@@ -11,6 +11,7 @@ struct pmm_manager {
     uint32_t (*alloc_pages)(size_t n); // allocate >=n pages, depend on the allocation algorithm 
     void (*free_pages)(size_t n);  // free >=n pages with "base" addr of Page descriptor structures(memlayout.h)
     size_t (*nr_free_pages)(void);      // return the number of free pages 
+    uint8_t (*change_page_ref)(uint32_t offset, int8_t ch);
 };
 
 struct pmm_info{
