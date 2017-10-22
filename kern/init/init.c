@@ -13,10 +13,13 @@
 #include "ioapic.h"
 #include "trap.h"
 #include "kbd.h"
+#include "ide.h"
 //#define g(x) #x
 int main()
 {
     extern char data[],edata[],end[];
+    char test[513];
+    int i;
     console_clear();
     uartinit();
     cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
@@ -31,8 +34,16 @@ int main()
     tvinit();
     idtinit();
     kbd_init();
+    ide_init();
+    ide_read_secs(0,0,test,1);
+    test[512] = 0;
+    for(i = 0 ; i < 512 ; i ++)
+    {
+        cprintf("%2x",((int)test[i] & 0xff));
+    }
+    cprintf("\n");
     asm volatile ("sti");
-    
+         
 
 
     cprintf("cpunum : %d\n", ncpu);
