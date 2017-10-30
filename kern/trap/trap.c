@@ -56,7 +56,7 @@ trap(struct trapframe *tf)
     switch(tf->trapno){
         case T_PGFLT:
             cprintf("PAGE FAULT!");
-
+            while(1);
             break;
         case T_IRQ0 + IRQ_TIMER:
             if(cpunum() == 0){

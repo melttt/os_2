@@ -11,12 +11,9 @@
 #define RIGHT_SON(INDEX) ((INDEX) * 2 + 2)
 #define BUDDY_VAL(x) (buddy->page[x].val)
 #define BUDDY_REF(x) (buddy->page[x].ref)
+#define BUDDY_PAGE_ADDR(x) (&(buddy->page[x]))
 #define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
 #define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(struct page))
-struct page{
-    uint8_t val;
-    uint8_t ref;
-}__attribute__((packed));
 
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 
@@ -25,6 +22,7 @@ struct buddy{
     uint32_t size;               //the num of page,but in power of 2
     struct page page[1];
 }__attribute__((packed))*buddy;
+
 
 //return log2(x)
 static uint8_t
@@ -61,7 +59,7 @@ calc(uintptr_t p_start, uint32_t pg_size)
      uint32_t tmp; 
      //calc new beginning
      tmp  = ROUNDUP((fix_size(pg_size) * 2 - 1) * sizeof(struct page) + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); 
-     buddy =  (struct buddy*)p_start;
+     buddy =  (struct buddy*)P2V(p_start);
      buddy->beginning_addr = tmp;
      assert(buddy->beginning_addr > p_start);
      assert((buddy->beginning_addr - p_start) % PGSIZE == 0);
@@ -212,6 +210,8 @@ static void
 buddy_pmm_test(uintptr_t p_start)
 {
     uint32_t i,free_num = 0;
+    uint32_t free_store = buddy->free_pg;
+
     assert((buddy->beginning_addr - p_start) >= (buddy->size + BUDDY_SIZE_EXCEPT_VAL));
     for(i = (buddy->size - 1) ; i < 2 * buddy->size - 1 ; i  ++)
     {
@@ -313,6 +313,7 @@ buddy_pmm_test(uintptr_t p_start)
        free_num ++; 
     }
     assert(free_num == buddy->size);
+    assert(free_store = buddy->free_pg);
 }
 //init pmm in buddy system
 static void
@@ -367,6 +368,12 @@ buddy_pmm_free_pages()
     return buddy->free_pg;
 }
 
+static struct page*
+buddy_pmm_ret_page_addr(size_t offset)
+{
+    assert(offset <= (buddy->size / 2)); 
+    return BUDDY_PAGE_ADDR(buddy->size / 2 + offset);
+}
 
 
 const struct pmm_manager buddy_pmm_manager = {
@@ -376,4 +383,5 @@ const struct pmm_manager buddy_pmm_manager = {
     .free_pages = buddy_pmm_free,
     .nr_free_pages = buddy_pmm_free_pages,
     .change_page_ref = buddy_change_page_ref,
+    .ret_page_addr = buddy_pmm_ret_page_addr,
 };

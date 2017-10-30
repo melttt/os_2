@@ -18,8 +18,8 @@
 int main()
 {
     extern char data[],edata[],end[];
-    char test[513];
-    int i;
+    //char test[513];
+    //int i;
     console_clear();
     uartinit();
     cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
@@ -35,6 +35,7 @@ int main()
     idtinit();
     kbd_init();
     ide_init();
+    /*
     ide_read_secs(0,0,test,1);
     test[512] = 0;
     for(i = 0 ; i < 512 ; i ++)
@@ -42,27 +43,34 @@ int main()
         cprintf("%2x",((int)test[i] & 0xff));
     }
     cprintf("\n");
+    */
     asm volatile ("sti");
          
 
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
+    /*****test ****/
+    void *i,*j;
+    i = alloc_pages(1); 
+    j = alloc_page();
+
+    cprintf("i : %x, j : %x\n",(uint32_t)(i), (uint32_t)(j));
+    free_pages(i);
+    free_page(j);
+        alloc_page();
+        alloc_page();
+        alloc_page();
+        alloc_page();
+        alloc_page();
+        i = page2kva(alloc_page());
+    j = alloc_pages(1);
+    cprintf("i : %x, j : %x\n",(uint32_t)(i), (uint32_t)(j));
+
 //    cprintf("%x\n",*(int*)(0x70000000));
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     
 
-    /*
-    sts = (struct stab*)__STAB_BEGIN__; 
-    sts += 1;
-    ste = (struct stab*)__STAB_END__;
-    left = 0;
-    right = (ste - sts) - 1;
-    cprintf("total : %d\n", right);
-    stab_binsearch(sts,&left,&right,N_SO,0x80100007);
-    stab_binsearch(sts,&left,&right,N_FUN,0x80100007);
-    cprintf("left : %d , right : %d",left, right); 
-    */
     while(1);
     return 0;
 }

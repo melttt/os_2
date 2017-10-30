@@ -24,23 +24,6 @@
 #include "defs.h"
 #include "list.h"
 #include "x86.h"
-struct Page {
-    int ref;                        // page frame's reference counter
-    uint32_t flags;                 // array of flags that describe the status of the page frame
-    unsigned int property;          // the num of free block, used in first fit pm manager
-    list_entry_t page_link;         // free list link
-};
-
-/* Flags describing the status of a page frame */
-#define PG_reserved                 0       // the page descriptor is reserved for kernel or unusable
-#define PG_property                 1       // the member 'property' is valid
-
-#define SetPageReserved(page)       set_bit(PG_reserved, &((page)->flags))
-#define ClearPageReserved(page)     clear_bit(PG_reserved, &((page)->flags))
-#define PageReserved(page)          test_bit(PG_reserved, &((page)->flags))
-#define SetPageProperty(page)       set_bit(PG_property, &((page)->flags))
-#define ClearPageProperty(page)     clear_bit(PG_property, &((page)->flags))
-#define PageProperty(page)          test_bit(PG_property, &((page)->flags))
 
 typedef struct {
     list_entry_t free_list;         // the list header

@@ -80,28 +80,29 @@ print_pmm_info()
 
 /********************************PMM*****************************************/
 static inline void*
-page2kva(uint32_t n)
+offset2kva(uint32_t n)
 {
     return (void*)P2V_WO(pmm_info.start + PGSIZE * (n));
 }
 static inline uint32_t
-kpa2page(uint32_t addr)
+kpa2offset(uint32_t addr)
 {
     return ((uint32_t)addr - pmm_info.start) / PGSIZE;
 }
 static inline uint32_t
-kva2page(void *va)
+kva2offset(void *va)
 {
-    return kpa2page(V2P_WO((uint32_t)va)); 
+    return kpa2offset(V2P_WO((uint32_t)va)); 
 }
 const struct pmm_manager *pmm_manager;
+
 
 void*
 alloc_pages(size_t n)
 {
    uint32_t offset = pmm_manager->alloc_pages(n);
    if(offset != ALLOC_FALSE)
-       return page2kva(offset);  
+       return offset2kva(offset);  
    else
        return NULL;
 }
@@ -110,13 +111,71 @@ void
 free_pages(void *n)
 {
     assert((uint32_t)n >= KERNBASE);
-    uint32_t offset = kva2page(n);    
+    uint32_t offset = kva2offset(n);    
     pmm_manager->free_pages(offset);
+}
+
+void*
+kmalloc(size_t n)
+{
+    return alloc_pages( (PGSIZE + n - 1) / PGSIZE );
+}
+
+void
+kfree(void *n)
+{
+    free_pages(n);
+}
+
+// function for one page
+//alloc one page
+struct page*
+alloc_page()
+{
+   uint32_t offset = pmm_manager->alloc_pages(1);
+   if(offset != ALLOC_FALSE)
+       return pmm_manager->ret_page_addr(offset);  
+   else
+       return NULL;
+}
+//free one page
+void
+free_page(struct page* page)
+{
+    assert(page >= pmm_manager->ret_page_addr(0));
+    uint32_t offset = page - pmm_manager->ret_page_addr(0);
+    pmm_manager->free_pages(offset);
+}
+void*
+page2kva(struct page* page)
+{
+    assert(page >= pmm_manager->ret_page_addr(0));
+    uint32_t offset = page - pmm_manager->ret_page_addr(0);
+    return offset2kva(offset);
+}
+
+struct page*
+kva2page(void *va)
+{
+    uint32_t offset = kva2offset(va);
+    return pmm_manager->ret_page_addr(offset);
+}
+
+
+
+size_t
+nr_free_pages(void){
+    size_t ret;
+    //local_intr_save(intr_flag);
+    {
+        ret = pmm_manager->nr_free_pages();
+    }
+    //local_intr_restore(intr_flag);
+    return ret;
 }
 void 
 init_pmm(void)
 {
-    void* i,*j;
     print_e280map();
     init_pmm_info();
     print_pmm_info();
@@ -125,15 +184,7 @@ init_pmm(void)
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
 
     assert(pmm_info.size != 0 );
-
-    i = alloc_pages(1);
-    free_pages(i);
-    i = alloc_pages(2);
-    j = alloc_pages(1);
-    cprintf("%x j : %x\n", (uint32_t)i, (uintptr_t)j);
-    cprintf("pmm_end : %x\n",pmm_info.end);
-    init_kvm();
-    seginit();
+    vmm_init();
 }
 
 

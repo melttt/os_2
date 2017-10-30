@@ -27,6 +27,7 @@ typedef int32_t intptr_t;
 typedef uint32_t uintptr_t;
 typedef unsigned int pde_t;
 typedef unsigned int pte_t;
+typedef pte_t swap_entry_t;
 /* size_t is used for memory object sizes */
 typedef uintptr_t size_t;
 

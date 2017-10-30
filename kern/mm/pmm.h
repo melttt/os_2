@@ -5,6 +5,7 @@
 #include "vmm.h"
 
 #define ALLOC_FALSE -1
+struct page;
 struct pmm_manager {
     const char *name;                                 // XXX_pmm_manager's name
     void (*init)(uintptr_t *n, uint32_t *pg_size); //init the pmm 
@@ -12,6 +13,7 @@ struct pmm_manager {
     void (*free_pages)(size_t n);  // free >=n pages with "base" addr of Page descriptor structures(memlayout.h)
     size_t (*nr_free_pages)(void);      // return the number of free pages 
     uint8_t (*change_page_ref)(uint32_t offset, int8_t ch);
+    struct page* (*ret_page_addr)(size_t offset); 
 };
 
 struct pmm_info{
@@ -20,6 +22,13 @@ struct pmm_info{
     uint32_t size; // num of PGSIZE
 };
 
+
+struct page{
+    uint8_t val;
+    uint8_t ref;
+}__attribute__((packed));
+
+
 extern struct pmm_info pmm_info;
 void 
 init_pmm(void);
@@ -27,6 +36,25 @@ void*
 alloc_pages(size_t n);
 void
 free_pages(void *n);
+void*
+kmalloc(size_t n);
+void
+kfree(void *n);
+
+size_t
+nr_free_pages(void);
+
+struct page*
+kva2page(void *va);
+
+void*
+page2kva(struct page* page);
+
+void
+free_page(struct page* page);
+
+struct page*
+alloc_page();
 
 #if 0
 // convert list entry to page
