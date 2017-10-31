@@ -73,21 +73,25 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)
 ifndef CPUS
 CPUS := 4
 endif
+
+
+swap.img : 
+	dd if=/dev/zero of=$@ bs=1M count=512
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=swap.img,media=disk,cache=writeback
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 
-qemu: os.img 
+qemu: os.img swap.img
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)  
 
-qemu-gdb:  os.img  $(TOOLS_DIR)/.gdbinit
+qemu-gdb:  os.img swap.img $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 clean: 
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
-	rm -f os.img
+	rm -f os.img swap.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
 	rm -f ./kern/trap/vectors.*

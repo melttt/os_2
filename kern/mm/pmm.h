@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "memlayout.h"
 #include "vmm.h"
+#include "list.h"
 
 #define ALLOC_FALSE -1
 struct page;
@@ -26,6 +27,8 @@ struct pmm_info{
 struct page{
     uint8_t val;
     uint8_t ref;
+    uint32_t pra_vaddr;
+    list_entry_t pra_page_link;
 }__attribute__((packed));
 
 
@@ -43,6 +46,9 @@ kfree(void *n);
 
 size_t
 nr_free_pages(void);
+
+uint32_t
+get_page_offset(struct page* page):
 
 struct page*
 kva2page(void *va);

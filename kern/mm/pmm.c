@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "pmm.h"
+#include "x86.h"
 #include "mmu.h"
 #include "kdebug.h"
 #include "stdio.h"
@@ -95,7 +96,12 @@ kva2offset(void *va)
     return kpa2offset(V2P_WO((uint32_t)va)); 
 }
 const struct pmm_manager *pmm_manager;
-
+uint32_t
+get_page_offset(struct page* page)
+{
+    assert(page >= pmm_manager->ret_page_addr(0));
+    return  page - pmm_manager->ret_page_addr(0);
+}
 
 void*
 alloc_pages(size_t n)
@@ -188,3 +194,11 @@ init_pmm(void)
 }
 
 
+// invalidate a TLB entry, but only if the page tables being
+// edited are the ones currently in use by the processor.
+void
+tlb_invalidate(pde_t *pgdir, uintptr_t la) {
+    if (rcr3() == V2P(pgdir)) {
+        invlpg((void *)la);
+    }
+}

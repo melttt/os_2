@@ -157,6 +157,17 @@ test_bit(int nr, volatile void *addr) {
     return oldbit != 0;
 }
 
+static inline uintptr_t
+rcr3(void) {
+    uintptr_t cr3;
+    asm volatile ("mov %%cr3, %0" : "=r" (cr3) :: "memory");
+    return cr3;
+}
+
+static inline void
+invlpg(void *addr) {
+    asm volatile ("invlpg (%0)" :: "r" (addr) : "memory");
+}
 struct trapframe {
   // registers as pushed by pusha
   uint edi;

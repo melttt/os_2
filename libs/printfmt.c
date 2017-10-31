@@ -2,7 +2,7 @@
 #include "stdarg.h"
 #include "string.h"
 #define CH_MAX 15
-static void print_int(void (*putch)(char),int num, int base, int width)
+static void print_int(void (*putch)(char),int num, int base, int width, char epch)
 {
     char strr[CH_MAX];
     char *str = strr;
@@ -11,7 +11,7 @@ static void print_int(void (*putch)(char),int num, int base, int width)
     len = strlen(str);
     while(width > len)
     {
-        putch(' ');
+        putch(epch);
         width --;
     }
     while(*str != '\0')
@@ -27,12 +27,15 @@ int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)
     int len = 0;
     int num = 0;
     int width = 0;
+    char epch = ' ';
     while((ch = *fmt) != '\0')
     {
-       if(ch == '%' || width != 0)
+       if(ch == '%' || width != 0 || epch != ' ')
        {
-           if(width == 0)
-           ch = *(++fmt);
+           if(width == 0 && epch == ' ')
+           {
+               ch = *(++fmt);
+           }
            if(ch == '\0')
            {
                break;
@@ -40,19 +43,28 @@ int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)
 
            switch(ch)
            {
+               case '0':
+                   if(width == 0)
+                   {
+                       epch = '0';
+                   }else{
+                       width = width * 10 +  ch - '0';
+                   }
+                   break;
                case '1' ... '9':
                    width = width * 10 +  ch - '0';
                    break;
                case 'd' :
-                   print_int(putch, va_arg(ap, int),10, width);
+                   print_int(putch, va_arg(ap, int),10, width, epch);
                    width = 0;
+                   epch = ' ';
                    break;
                case 's' :
                    str = va_arg(ap, char*);
                    len = strlen(str);
                    while(width > len)
                    {
-                       putch(' ');
+                       putch(epch);
                        width --;
                    }
                    while(*str != '\0') 
@@ -60,18 +72,21 @@ int vprintfmt(void (*putch)(char), const char *fmt, va_list ap)
                        putch(*str ++);
                    }
                    width = 0;
+                   epch = ' ';
                    break;
                case 'x' :
-                   print_int(putch, va_arg(ap,int), 16, width);
+                   print_int(putch, va_arg(ap,int), 16, width, epch);
                    width = 0;
+                   epch = ' ';
                    break;
                case 'c' :
                    while(width-- > 1)
                    {
-                       putch(' ');
+                       putch(epch);
                    }
                    putch(va_arg(ap,int));
                    width = 0;
+                   epch = ' ';
                    break;
                case '%' :
                    putch('%');

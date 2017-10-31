@@ -18,14 +18,13 @@
 int main()
 {
     extern char data[],edata[],end[];
-    //char test[513];
-    //int i;
     console_clear();
     uartinit();
-    cprintf("data : %x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
+    cprintf("data : %08x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
     //cprintf("%x\n",(int)__STABSTR_BEGIN__);
     cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
 
+    cprintf("%04d\n",5);
     init_pmm();
 
     mpinit();
@@ -35,15 +34,19 @@ int main()
     idtinit();
     kbd_init();
     ide_init();
-    /*
-    ide_read_secs(0,0,test,1);
+    
+    char test[513];
+    int i;
+    ide_read_secs(1,0,test,1);
     test[512] = 0;
     for(i = 0 ; i < 512 ; i ++)
     {
         cprintf("%2x",((int)test[i] & 0xff));
     }
+    test[0] = 'B';
+    ide_write_secs(1,0,test,1);
     cprintf("\n");
-    */
+    
     asm volatile ("sti");
          
 
@@ -51,22 +54,7 @@ int main()
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
     /*****test ****/
-    void *i,*j;
-    i = alloc_pages(1); 
-    j = alloc_page();
-
-    cprintf("i : %x, j : %x\n",(uint32_t)(i), (uint32_t)(j));
-    free_pages(i);
-    free_page(j);
-        alloc_page();
-        alloc_page();
-        alloc_page();
-        alloc_page();
-        alloc_page();
-        i = page2kva(alloc_page());
-    j = alloc_pages(1);
-    cprintf("i : %x, j : %x\n",(uint32_t)(i), (uint32_t)(j));
-
+    
 //    cprintf("%x\n",*(int*)(0x70000000));
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     

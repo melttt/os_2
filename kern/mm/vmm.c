@@ -334,6 +334,9 @@ void
 vmm_init(void) {
     init_kvm();
     seginit();
+
+
+    //should after ide_init()
     check_vmm();
 }
 // check_vmm - check correctness of vmm
