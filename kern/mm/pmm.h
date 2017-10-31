@@ -31,6 +31,10 @@ struct page{
     list_entry_t pra_page_link;
 }__attribute__((packed));
 
+// convert list entry to page
+#define le2page(le, member)                 \
+    to_struct((le), struct Page, member)
+
 
 extern struct pmm_info pmm_info;
 void 
