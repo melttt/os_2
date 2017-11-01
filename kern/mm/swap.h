@@ -1,6 +1,8 @@
 #ifndef _KERN_MM_SWAP_H_
 #define _KERN_MM_SWAP_H_
 #include "defs.h"
+#include "vmm.h"
+#include "pmm.h"
 
 
 /* *
@@ -33,18 +35,18 @@ struct swap_manager
 {
      const char *name;
      /* Global initialization for the swap manager */
-     int (*init)            (void);
+     bool (*init)            (void);
      /* Initialize the priv data inside mm_struct */
      int (*init_mm)         (struct mm_struct *mm);
      /* Called when tick interrupt occured */
      int (*tick_event)      (struct mm_struct *mm);
      /* Called when map a swappable page into the mm_struct */
-     int (*map_swappable)   (struct mm_struct *mm, uintptr_t addr, struct Page *page, int swap_in);
+     bool (*map_swappable)   (struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in);
      /* When a page is marked as shared, this routine is called to
       * delete the addr entry from the swap manager */
-     int (*set_unswappable) (struct mm_struct *mm, uintptr_t addr);
+     bool (*set_unswappable) (struct mm_struct *mm, uintptr_t addr);
      /* Try to swap out a page, return then victim */
-     int (*swap_out_victim) (struct mm_struct *mm, struct Page **ptr_page, int in_tick);
+     bool (*swap_out_victim) (struct mm_struct *mm, struct page **ptr_page, int in_tick);
      /* check the page relpacement algorithm */
      int (*check_swap)(void);
 };
@@ -54,9 +56,9 @@ extern volatile bool swap_init_ok;
 bool swap_init(void);
 int swap_init_mm(struct mm_struct *mm);
 int swap_tick_event(struct mm_struct *mm);
-int swap_map_swappable(struct mm_struct *mm, uintptr_t addr, struct Page *page, int swap_in);
+int swap_map_swappable(struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in);
 int swap_set_unswappable(struct mm_struct *mm, uintptr_t addr);
 int swap_out(struct mm_struct *mm, int n, int in_tick);
-int swap_in(struct mm_struct *mm, uintptr_t addr, struct Page **ptr_result);
+int swap_in(struct mm_struct *mm, uintptr_t addr, struct page **ptr_result);
 
 #endif

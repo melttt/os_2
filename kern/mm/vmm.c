@@ -11,6 +11,8 @@
 #include "swap.h"
 
 extern char data[];  // defined by kernel.ld
+
+struct mm_struct *check_mm_struct;
 static struct kmap {
     uintptr_t virt;
     uintptr_t phys_start;
@@ -24,8 +26,88 @@ static struct kmap {
 };
 pte_t *kpgdir;
 
+static inline struct page *
+pte2page(pte_t pte) {
+    if (!(pte & PTE_P)) {
+        panic("pte2page called with invalid pte");
+    }
+    return pa2page((pte) & ~0xFFF);
+}
+
+
+static inline struct page *
+pde2page(pte_t pte) {
+    if (!(pte & PTE_P)) {
+        panic("pte2page called with invalid pte");
+    }
+    return pa2page((pte) & ~0xFFF);
+}
+
+static inline void
+page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
+    if (*ptep & PTE_P) {
+        struct page *page = pte2page(*ptep);
+        free_page(page);
+        *ptep = 0;
+        tlb_invalidate(pgdir, la);
+    }
+}
+
+//page_remove - free an Page which is related linear address la and has an validated pte
+void
+page_remove(pde_t *pgdir, uintptr_t la) {
+    pte_t *ptep = read_pte_addr(pgdir, la, 0);
+    if (ptep != NULL) {
+        page_remove_pte(pgdir, la, ptep);
+    }
+}
+
+int
+page_insert(pde_t *pgdir, struct page *page, uintptr_t la, uint32_t perm) {
+    pte_t *ptep = read_pte_addr(pgdir, la, 1);
+    if (ptep == NULL) {
+        return -1;
+    }
+//    page_ref_inc(page);
+    if (*ptep & PTE_P) {
+        struct page *p = pte2page(*ptep);
+        if (p == page) {
+ //           page_ref_dec(page);
+           ;
+        }
+        else {
+            page_remove_pte(pgdir, la, ptep);
+        }
+    }
+    *ptep = page2pa(page) | PTE_P | perm;
+    tlb_invalidate(pgdir, la);
+    return 0;
+}
+
+
+static struct page *
+pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
+    struct page *page = alloc_page();
+    if (page != NULL) {
+        if (page_insert(pgdir, page, la, perm) != 0) {
+            free_page(page);
+            return NULL;
+        }
+        
+        if (swap_init_ok){
+            page->pra_vaddr=la;
+            page->pgdir = pgdir;
+            swap_map_swappable(check_mm_struct, la, page, 0);
+            //assert(page_ref(page) == 1);
+            //cprintf("get No. %d  page: pra_vaddr %x, pra_link.prev %x, pra_link_next %x in pgdir_alloc_page\n", (page-pages), page->pra_vaddr,page->pra_page_link.prev, page->pra_page_link.next);
+        }
+
+    }
+
+    return page;
+}
 //
-static pte_t*
+pte_t*
 read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)
 {
     pde_t* pde = &pgdir[PDX(va)];
@@ -306,7 +388,7 @@ mm_create(void) {
         mm->pgdir = NULL;
         mm->map_count = 0;
 
-        if (swap_init_ok) /*swap_init_mm(mm)*/;
+        if (swap_init_ok) swap_init_mm(mm);
         else mm->sm_priv = NULL;
     }
     return mm;
@@ -328,7 +410,7 @@ mm_destroy(struct mm_struct *mm) {
 static void
 check_vma_struct(void);
 static void
-check_vmm(void);
+check_pgfault(void);
 
 void
 vmm_init(void) {
@@ -337,14 +419,15 @@ vmm_init(void) {
 
 
     //should after ide_init()
-    check_vmm();
+//    check_vmm();
 }
 // check_vmm - check correctness of vmm
-static void
+void
 check_vmm(void) {
+    swap_init();
     size_t nr_free_pages_store = nr_free_pages();
     check_vma_struct();
-    //check_pgfault();
+    check_pgfault();
 
     assert(nr_free_pages_store == nr_free_pages());
 
@@ -415,7 +498,6 @@ check_vma_struct(void) {
     cprintf("check_vma_struct() succeeded!\n");
 }
 
-/*
 // check_pgfault - check correctness of pgfault handler
 static void
 check_pgfault(void) {
@@ -425,10 +507,10 @@ check_pgfault(void) {
     assert(check_mm_struct != NULL);
 
     struct mm_struct *mm = check_mm_struct;
-    pde_t *pgdir = mm->pgdir = boot_pgdir;
+    pde_t *pgdir = mm->pgdir = kpgdir;
     assert(pgdir[0] == 0);
 
-    struct vma_struct *vma = vma_create(0, PTSIZE, VM_WRITE);
+    struct vma_struct *vma = vma_create(0, PGSIZE * 1024, VM_WRITE);
     assert(vma != NULL);
 
     insert_vma_struct(mm, vma);
@@ -444,6 +526,7 @@ check_pgfault(void) {
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
     }
+
     assert(sum == 0);
 
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
@@ -458,4 +541,86 @@ check_pgfault(void) {
 
     cprintf("check_pgfault() succeeded!\n");
 }
-*/
+
+volatile unsigned int pgfault_num=0;
+int
+do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
+    int ret = -1;
+    //try to find a vma which include addr
+    struct vma_struct *vma = find_vma(mm, addr);
+
+    pgfault_num++;
+    //If the addr is in the range of a mm's vma?
+    if (vma == NULL || vma->vm_start > addr) {
+        cprintf("not valid addr %x, and  can not find it in vma\n", addr);
+        goto failed;
+    }
+    //check the error_code
+    switch (error_code & 3) {
+    default:
+            /* error code flag : default is 3 ( W/R=1, P=1): write, present */
+    case 2: /* error code flag : (W/R=1, P=0): write, not present */
+        if (!(vma->vm_flags & VM_WRITE)) {
+            cprintf("do_pgfault failed: error code flag = write AND not present, but the addr's vma cannot write\n");
+            goto failed;
+        }
+        break;
+    case 1: /* error code flag : (W/R=0, P=1): read, present */
+        cprintf("do_pgfault failed: error code flag = read AND present\n");
+        goto failed;
+    case 0: /* error code flag : (W/R=0, P=0): read, not present */
+        if (!(vma->vm_flags & (VM_READ | VM_EXEC))) {
+            cprintf("do_pgfault failed: error code flag = read AND not present, but the addr's vma cannot read or exec\n");
+            goto failed;
+        }
+    }
+    /* IF (write an existed addr ) OR
+     *    (write an non_existed addr && addr is writable) OR
+     *    (read  an non_existed addr && addr is readable)
+     * THEN
+     *    continue process
+     */
+    uint32_t perm = PTE_U;
+    if (vma->vm_flags & VM_WRITE) {
+        perm |= PTE_W;
+    }
+    addr = ROUNDDOWN(addr, PGSIZE);
+
+    ret = -1;
+
+    pte_t *ptep=NULL;
+    // try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
+    // (notice the 3th parameter '1')
+    if ((ptep = read_pte_addr(mm->pgdir, addr, 1)) == NULL) {
+        cprintf("get_pte in do_pgfault failed\n");
+        goto failed;
+    }
+
+    if (*ptep == 0) { // if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
+        if (pgdir_alloc_page(mm->pgdir, addr, perm) == NULL) {
+            cprintf("pgdir_alloc_page in do_pgfault failed\n");
+            goto failed;
+        }
+    }
+    else { // if this pte is a swap entry, then load data from disk to a page with phy addr
+           // and call page_insert to map the phy addr with logical addr
+        if(swap_init_ok) {
+            struct page *page=NULL;
+            if ((ret = swap_in(mm, addr, &page)) == false) {
+                cprintf("swap_in in do_pgfault failed\n");
+                goto failed;
+            }
+            page_insert(mm->pgdir, page, addr, perm);
+            swap_map_swappable(mm, addr, page, 1);
+            page->pra_vaddr = addr;
+            page->pgdir = mm->pgdir;
+        }
+        else {
+            cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
+            goto failed;
+        }
+   }
+   ret = 0;
+failed:
+    return ret;
+}

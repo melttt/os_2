@@ -35,6 +35,7 @@ typedef uintptr_t size_t;
 typedef size_t ppn_t;
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 /* *
  * Rounding operations (efficient when n is a power of 2)
  * Round down to the nearest multiple of n

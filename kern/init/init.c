@@ -34,7 +34,7 @@ int main()
     idtinit();
     kbd_init();
     ide_init();
-    
+   /* 
     char test[513];
     int i;
     ide_read_secs(1,0,test,1);
@@ -46,10 +46,10 @@ int main()
     test[0] = 'B';
     ide_write_secs(1,0,test,1);
     cprintf("\n");
-    
+   */ 
     asm volatile ("sti");
          
-
+    check_vmm();
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
@@ -72,7 +72,9 @@ __attribute__((__aligned__(PGSIZE)))
 pde_t entrypgdir[NPDENTRIES] = {
   // Map VA's [0, 4MB) to PA's [0, 4MB)
   [0] = (0) | PTE_P | PTE_W | PTE_PS,
+  [1] = (0x400000) | PTE_P | PTE_W | PTE_PS, 
   // Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)
   [KERNBASE>>PDXSHIFT] = (0) | PTE_P | PTE_W | PTE_PS,
+  [(KERNBASE>>PDXSHIFT) + 1] = (0x400000) | PTE_P | PTE_W | PTE_PS,
 };
 

@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "lapic.h"
 #include "kbd.h"
+#include "vmm.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -37,9 +38,32 @@ idtinit(void)
 }
 
 
+static inline void
+print_pgfault(struct trapframe *tf) {
+    /* error_code:
+     * bit 0 == 0 means no page found, 1 means protection fault
+     * bit 1 == 0 means read, 1 means write
+     * bit 2 == 0 means kernel, 1 means user
+     * */
+    cprintf("page fault at 0x%08x: %c/%c [%s].\n", rcr2(),
+            (tf->err & 4) ? 'U' : 'K',
+            (tf->err & 2) ? 'W' : 'R',
+            (tf->err & 1) ? "protection fault" : "no page found");
+}
+
+extern struct mm_struct *check_mm_struct;
+static int
+pgfault_handler(struct trapframe *tf) {
+    print_pgfault(tf);
+    if (check_mm_struct != NULL) {
+        return do_pgfault(check_mm_struct, tf->err, rcr2());
+    }
+    panic("unhandled page fault.\n");
+    return 0;
+}
 
 
-    void
+void
 trap(struct trapframe *tf)
 {
     if(tf->trapno == T_SYSCALL){
@@ -55,8 +79,7 @@ trap(struct trapframe *tf)
     }
     switch(tf->trapno){
         case T_PGFLT:
-            cprintf("PAGE FAULT!");
-            while(1);
+             pgfault_handler(tf);
             break;
         case T_IRQ0 + IRQ_TIMER:
             if(cpunum() == 0){

@@ -27,13 +27,14 @@ struct pmm_info{
 struct page{
     uint8_t val;
     uint8_t ref;
+    pde_t *pgdir;                  
     uint32_t pra_vaddr;
     list_entry_t pra_page_link;
 }__attribute__((packed));
 
 // convert list entry to page
 #define le2page(le, member)                 \
-    to_struct((le), struct Page, member)
+    to_struct((le), struct page, member)
 
 
 extern struct pmm_info pmm_info;
@@ -52,7 +53,7 @@ size_t
 nr_free_pages(void);
 
 uint32_t
-get_page_offset(struct page* page):
+get_page_offset(struct page* page);
 
 struct page*
 kva2page(void *va);
@@ -60,9 +61,16 @@ kva2page(void *va);
 void*
 page2kva(struct page* page);
 
+uintptr_t
+page2pa(struct page* page);
+
+struct page*
+pa2page(uintptr_t pa);
 void
 free_page(struct page* page);
 
+void
+tlb_invalidate(pde_t *pgdir, uintptr_t la);
 struct page*
 alloc_page();
 

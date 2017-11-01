@@ -4,13 +4,24 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-ALLOC_FALSE	../mm/pmm.h	7;"	d
+ALLOC_FALSE	../mm/pmm.h	8;"	d
+ALT	../driver/kbd.c	94;"	d	file:
 ASSERT	../smp/lapic.c	23;"	d	file:
 BCAST	../smp/lapic.c	26;"	d	file:
-BUDDY_SIZE_EXCEPT_VAL	../mm/buddy_pmm.c	14;"	d	file:
+BEING_CHECK_VALID_VADDR	../mm/swap.c	17;"	d	file:
+BS_OCMD	../driver/kbd.c	28;"	d	file:
+BUDDY_PAGE_ADDR	../mm/buddy_pmm.c	14;"	d	file:
+BUDDY_REF	../mm/buddy_pmm.c	13;"	d	file:
+BUDDY_SIZE_EXCEPT_VAL	../mm/buddy_pmm.c	16;"	d	file:
 BUDDY_VAL	../mm/buddy_pmm.c	12;"	d	file:
 BUSY	../smp/lapic.c	27;"	d	file:
+C	../driver/kbd.c	157;"	d	file:
+CAPSLOCK	../driver/kbd.c	96;"	d	file:
+CHECK_VALID_PHY_PAGE_NUM	../mm/swap.c	20;"	d	file:
+CHECK_VALID_VADDR	../mm/swap.c	18;"	d	file:
+CHECK_VALID_VIR_PAGE_NUM	../mm/swap.c	16;"	d	file:
 CH_MAX	../kernel.asm	/^#define CH_MAX 15$/;"	d
+CMDBYTE	../driver/kbd.c	65;"	d	file:
 CMOS_PORT	../smp/lapic.c	150;"	d	file:
 CMOS_RETURN	../smp/lapic.c	151;"	d	file:
 CMOS_STATA	../smp/lapic.c	190;"	d	file:
@@ -20,15 +31,17 @@ COM1	../driver/uart.c	5;"	d	file:
 CONV	../kernel.asm	/^#define    CONV(x)     (t1.x = ((t1.x >> 4) * 10) + (t1.x & 0xf))$/;"	d
 CONV	../smp/lapic.c	240;"	d	file:
 CONV	../smp/lapic.c	247;"	d	file:
+CTL	../driver/kbd.c	93;"	d	file:
 DAY	../kernel.asm	/^#define DAY     0x07$/;"	d
 DAY	../smp/lapic.c	197;"	d	file:
 DEASSERT	../smp/lapic.c	24;"	d	file:
 DELIVS	../smp/lapic.c	22;"	d	file:
 Disassembly	../kernel.asm	/^Disassembly of section .text:$/;"	l
+E0ESC	../driver/kbd.c	100;"	d	file:
 E820MAP_ADD	../kernel.asm	/^#define E820MAP_ADD 0x8000$/;"	d
-E820MAP_ADD	../mm/pmm.c	25;"	d	file:
+E820MAP_ADD	../mm/pmm.c	28;"	d	file:
 E820MAP_AVA	../kernel.asm	/^#define E820MAP_AVA 0x1$/;"	d
-E820MAP_AVA	../mm/pmm.c	26;"	d	file:
+E820MAP_AVA	../mm/pmm.c	29;"	d	file:
 ENABLE	../smp/lapic.c	17;"	d	file:
 EOI	../smp/lapic.c	15;"	d	file:
 ERROR	../smp/lapic.c	36;"	d	file:
@@ -38,6 +51,20 @@ HOURS	../smp/lapic.c	196;"	d	file:
 ICRHI	../smp/lapic.c	29;"	d	file:
 ICRLO	../smp/lapic.c	19;"	d	file:
 ID	../smp/lapic.c	12;"	d	file:
+IDE_BSY	../driver/ide.c	22;"	d	file:
+IDE_CMD_IDENTIFY	../driver/ide.c	30;"	d	file:
+IDE_CMD_READ	../driver/ide.c	28;"	d	file:
+IDE_CMD_WRITE	../driver/ide.c	29;"	d	file:
+IDE_DF	../driver/ide.c	24;"	d	file:
+IDE_DRDY	../driver/ide.c	23;"	d	file:
+IDE_DRQ	../driver/ide.c	25;"	d	file:
+IDE_ERR	../driver/ide.c	26;"	d	file:
+IDE_IDENT_CAPABILITIES	../driver/ide.c	34;"	d	file:
+IDE_IDENT_CMDSETS	../driver/ide.c	35;"	d	file:
+IDE_IDENT_MAX_LBA	../driver/ide.c	36;"	d	file:
+IDE_IDENT_MAX_LBA_EXT	../driver/ide.c	37;"	d	file:
+IDE_IDENT_MODEL	../driver/ide.c	33;"	d	file:
+IDE_IDENT_SECTORS	../driver/ide.c	32;"	d	file:
 INIT	../smp/lapic.c	20;"	d	file:
 INT_ACTIVELOW	../trap/ioapic.c	25;"	d	file:
 INT_DISABLED	../trap/ioapic.c	23;"	d	file:
@@ -45,29 +72,118 @@ INT_LEVEL	../trap/ioapic.c	24;"	d	file:
 INT_LOGICAL	../trap/ioapic.c	26;"	d	file:
 INVALID	../mm/buddy_pmm.c	9;"	d	file:
 IOAPIC	../trap/ioapic.c	12;"	d	file:
+IO_BASE	../driver/ide.c	57;"	d	file:
+IO_BASE0	../driver/ide.c	39;"	d	file:
+IO_BASE1	../driver/ide.c	40;"	d	file:
+IO_CTRL	../driver/ide.c	58;"	d	file:
+IO_CTRL0	../driver/ide.c	41;"	d	file:
+IO_CTRL1	../driver/ide.c	42;"	d	file:
 IRQ_COM1	../trap/trap.h	35;"	d
-IRQ_ERROR	../trap/trap.h	37;"	d
-IRQ_IDE	../trap/trap.h	36;"	d
+IRQ_ERROR	../trap/trap.h	38;"	d
+IRQ_IDE0	../trap/trap.h	36;"	d
+IRQ_IDE1	../trap/trap.h	37;"	d
 IRQ_KBD	../trap/trap.h	34;"	d
-IRQ_SPURIOUS	../trap/trap.h	38;"	d
+IRQ_SPURIOUS	../trap/trap.h	39;"	d
 IRQ_TIMER	../trap/trap.h	33;"	d
+ISA_COMMAND	../driver/ide.c	19;"	d	file:
+ISA_CTRL	../driver/ide.c	13;"	d	file:
+ISA_CYL_HI	../driver/ide.c	17;"	d	file:
+ISA_CYL_LO	../driver/ide.c	16;"	d	file:
+ISA_DATA	../driver/ide.c	10;"	d	file:
+ISA_ERROR	../driver/ide.c	11;"	d	file:
+ISA_PRECOMP	../driver/ide.c	12;"	d	file:
+ISA_SDH	../driver/ide.c	18;"	d	file:
+ISA_SECCNT	../driver/ide.c	14;"	d	file:
+ISA_SECTOR	../driver/ide.c	15;"	d	file:
+ISA_STATUS	../driver/ide.c	20;"	d	file:
 IS_POWER_OF_2	../mm/buddy_pmm.c	8;"	d	file:
 IsValid	../mm/buddy_pmm.c	/^bool IsValid(uint8_t i)$/;"	f	file:
+KBCMDP	../driver/kbd.c	34;"	d	file:
+KBC_AUXDISABLE	../driver/kbd.c	37;"	d	file:
+KBC_AUXECHO	../driver/kbd.c	41;"	d	file:
+KBC_AUXENABLE	../driver/kbd.c	38;"	d	file:
+KBC_AUXTEST	../driver/kbd.c	39;"	d	file:
+KBC_AUXWRITE	../driver/kbd.c	42;"	d	file:
+KBC_DISABLE	../driver/kbd.c	71;"	d	file:
+KBC_ECHO	../driver/kbd.c	76;"	d	file:
+KBC_ENABLE	../driver/kbd.c	72;"	d	file:
+KBC_KBDDISABLE	../driver/kbd.c	45;"	d	file:
+KBC_KBDECHO	../driver/kbd.c	40;"	d	file:
+KBC_KBDENABLE	../driver/kbd.c	46;"	d	file:
+KBC_KBDTEST	../driver/kbd.c	44;"	d	file:
+KBC_MODEIND	../driver/kbd.c	75;"	d	file:
+KBC_PULSE0	../driver/kbd.c	47;"	d	file:
+KBC_PULSE1	../driver/kbd.c	48;"	d	file:
+KBC_PULSE2	../driver/kbd.c	49;"	d	file:
+KBC_PULSE3	../driver/kbd.c	50;"	d	file:
+KBC_RAMREAD	../driver/kbd.c	35;"	d	file:
+KBC_RAMWRITE	../driver/kbd.c	36;"	d	file:
+KBC_RESEND	../driver/kbd.c	69;"	d	file:
+KBC_RESET	../driver/kbd.c	68;"	d	file:
+KBC_SELFTEST	../driver/kbd.c	43;"	d	file:
+KBC_SETDEFAULT	../driver/kbd.c	70;"	d	file:
+KBC_SETTABLE	../driver/kbd.c	74;"	d	file:
+KBC_TYPEMATIC	../driver/kbd.c	73;"	d	file:
+KBDATAP	../driver/kbd.c	52;"	d	file:
+KBOUTP	../driver/kbd.c	53;"	d	file:
+KBR_ACK	../driver/kbd.c	81;"	d	file:
+KBR_BREAK	../driver/kbd.c	84;"	d	file:
+KBR_ECHO	../driver/kbd.c	86;"	d	file:
+KBR_EXTENDED	../driver/kbd.c	79;"	d	file:
+KBR_FAILURE	../driver/kbd.c	83;"	d	file:
+KBR_OVERRUN	../driver/kbd.c	82;"	d	file:
+KBR_RESEND	../driver/kbd.c	80;"	d	file:
+KBR_RSTDONE	../driver/kbd.c	85;"	d	file:
+KBSTATP	../driver/kbd.c	24;"	d	file:
+KBS_DIB	../driver/kbd.c	25;"	d	file:
+KBS_IBF	../driver/kbd.c	26;"	d	file:
+KBS_NOSEC	../driver/kbd.c	29;"	d	file:
+KBS_PERR	../driver/kbd.c	32;"	d	file:
+KBS_RERR	../driver/kbd.c	31;"	d	file:
+KBS_TERR	../driver/kbd.c	30;"	d	file:
+KBS_WARM	../driver/kbd.c	27;"	d	file:
+KC8_CPU	../driver/kbd.c	62;"	d	file:
+KC8_IGNSEC	../driver/kbd.c	61;"	d	file:
+KC8_KDISABLE	../driver/kbd.c	60;"	d	file:
+KC8_KENABLE	../driver/kbd.c	64;"	d	file:
+KC8_MDISABLE	../driver/kbd.c	59;"	d	file:
+KC8_MENABLE	../driver/kbd.c	63;"	d	file:
+KC8_TRANS	../driver/kbd.c	58;"	d	file:
+KEY_DEL	../driver/kbd.c	19;"	d	file:
+KEY_DN	../driver/kbd.c	13;"	d	file:
+KEY_END	../driver/kbd.c	11;"	d	file:
+KEY_HOME	../driver/kbd.c	10;"	d	file:
+KEY_INS	../driver/kbd.c	18;"	d	file:
+KEY_LF	../driver/kbd.c	14;"	d	file:
+KEY_PGDN	../driver/kbd.c	17;"	d	file:
+KEY_PGUP	../driver/kbd.c	16;"	d	file:
+KEY_RT	../driver/kbd.c	15;"	d	file:
+KEY_UP	../driver/kbd.c	12;"	d	file:
+K_LDCMDBYTE	../driver/kbd.c	56;"	d	file:
+K_RDCMDBYTE	../driver/kbd.c	55;"	d	file:
 LEFT_SON	../mm/buddy_pmm.c	10;"	d	file:
+LEN	../mm/swap_lru.c	17;"	d	file:
 LEVEL	../smp/lapic.c	25;"	d	file:
 LINT0	../smp/lapic.c	34;"	d	file:
 LINT1	../smp/lapic.c	35;"	d	file:
 MASKED	../smp/lapic.c	37;"	d	file:
+MAX_DISK_NSECS	../driver/ide.c	46;"	d	file:
 MAX_FN_NAME	../debug/kdebug.c	93;"	d	file:
+MAX_IDE	../driver/ide.c	44;"	d	file:
+MAX_NSECS	../driver/ide.c	45;"	d	file:
+MAX_SEQ_NO	../mm/swap.c	22;"	d	file:
+MAX_SWAP_OFFSET_LIMIT	../mm/swap.h	16;"	d
 MINS	../smp/lapic.c	195;"	d	file:
 MONTH	../kernel.asm	/^#define MONTH   0x08$/;"	d
 MONTH	../smp/lapic.c	198;"	d	file:
 MPBOOT	../smp/mp.h	37;"	d
-MPBUS	../smp/mp.h	66;"	d
-MPIOAPIC	../smp/mp.h	67;"	d
-MPIOINTR	../smp/mp.h	68;"	d
-MPLINTR	../smp/mp.h	69;"	d
-MPPROC	../smp/mp.h	65;"	d
+MPBUS	../smp/mp.h	67;"	d
+MPIOAPIC	../smp/mp.h	68;"	d
+MPIOINTR	../smp/mp.h	69;"	d
+MPLINTR	../smp/mp.h	70;"	d
+MPPROC	../smp/mp.h	66;"	d
+NO	../driver/kbd.c	90;"	d	file:
+NUMLOCK	../driver/kbd.c	97;"	d	file:
 N_BCOMM	../debug/stabs.h	39;"	d
 N_BINCL	../debug/stabs.h	31;"	d
 N_BSLINE	../debug/stabs.h	27;"	d
@@ -94,16 +210,21 @@ N_SO	../debug/stabs.h	29;"	d
 N_SOL	../debug/stabs.h	32;"	d
 N_SSYM	../debug/stabs.h	28;"	d
 N_STSYM	../debug/stabs.h	20;"	d
-PARENT	../mm/buddy_pmm.c	13;"	d	file:
+PAGE_NSECT	../fs/fs.h	7;"	d
+PARENT	../mm/buddy_pmm.c	15;"	d	file:
 PCINT	../smp/lapic.c	33;"	d	file:
 PERIODIC	../smp/lapic.c	32;"	d	file:
 REG_ID	../trap/ioapic.c	14;"	d	file:
 REG_TABLE	../trap/ioapic.c	16;"	d	file:
 REG_VER	../trap/ioapic.c	15;"	d	file:
 RIGHT_SON	../mm/buddy_pmm.c	11;"	d	file:
+SCROLLLOCK	../driver/kbd.c	98;"	d	file:
 SECS	../smp/lapic.c	194;"	d	file:
+SECTSIZE	../fs/fs.h	6;"	d
+SHIFT	../driver/kbd.c	92;"	d	file:
 STARTUP	../smp/lapic.c	21;"	d	file:
 SVR	../smp/lapic.c	16;"	d	file:
+SWAP_DEV_NO	../fs/fs.h	9;"	d
 TCCR	../kernel.asm	/^#define TCCR    (0x0390\/4)   \/\/ Timer Current Count$/;"	d
 TCCR	../smp/lapic.c	39;"	d	file:
 TDCR	../kernel.asm	/^#define TDCR    (0x03E0\/4)   \/\/ Timer Divide Configuration$/;"	d
@@ -132,33 +253,55 @@ T_SIMDERR	../trap/trap.h	24;"	d
 T_STACK	../trap/trap.h	17;"	d
 T_SYSCALL	../trap/trap.h	28;"	d
 T_TSS	../trap/trap.h	15;"	d
+VALID_IDE	../driver/ide.c	47;"	d	file:
 VER	../smp/lapic.c	13;"	d	file:
+VM_EXEC	../mm/vmm.h	34;"	d
+VM_READ	../mm/vmm.h	32;"	d
+VM_WRITE	../mm/vmm.h	33;"	d
 X1	../smp/lapic.c	31;"	d	file:
 YEAR	../kernel.asm	/^#define YEAR    0x09$/;"	d
 YEAR	../smp/lapic.c	199;"	d	file:
 _CONSOLE_H_	../driver/console.h	2;"	d
 _KERN_DEBUG_KDEBUG_H_	../debug/kdebug.h	2;"	d
 _KERN_DERIVER_UART_H_	../driver/uart.h	2;"	d
+_KERN_DRIVER_KBD_H_	../driver/kbd.h	2;"	d
 _KERN_MM_BUDDY_PMM_H_	../mm/buddy_pmm.h	2;"	d
 _KERN_MM_PMM_H_	../mm/pmm.h	2;"	d
-_KERN_MM_VM_H_	../mm/vm.h	2;"	d
+_KERN_MM_SWAP_H_	../mm/swap.h	2;"	d
+_KERN_MM_SWAP_LRU_H_	../mm/swap_lru.h	2;"	d
+_KERN_MM_VM_H_	../mm/vmm.h	2;"	d
 _KERN_SMP_LAPIC_H_	../smp/lapic.h	2;"	d
 _KERN_SMP_MP_H_	../smp/mp.h	2;"	d
 _KERN_TRAP_IOAPIC_H_	../trap/ioapic.h	2;"	d
 _KERN_TRAP_TRAP_H_	../trap/trap.h	2;"	d
 __KERN_DEBUG_STAB_H__	../debug/stabs.h	2;"	d
+__KERN_DRIVER_IDE_H__	../driver/ide.h	2;"	d
+__KERN_FS_FS_H__	../fs/fs.h	2;"	d
+__KERN_FS_SWAPFS_H__	../fs/swapfs.h	2;"	d
 __panic	../debug/kdebug.c	/^__panic(const char *file, int line, const char *fmt, ...)$/;"	f
 __panic	../debug/kdebug.h	/^void  __panic(const char *file, int line, const char *fmt, ...);$/;"	p
+_lru_check_swap	../mm/swap_lru.c	/^_lru_check_swap(void) {$/;"	f	file:
+_lru_init	../mm/swap_lru.c	/^_lru_init(void)$/;"	f	file:
+_lru_init_mm	../mm/swap_lru.c	/^_lru_init_mm(struct mm_struct *mm)$/;"	f	file:
+_lru_map_swappable	../mm/swap_lru.c	/^_lru_map_swappable(struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in)$/;"	f	file:
+_lru_set_unswappable	../mm/swap_lru.c	/^_lru_set_unswappable(struct mm_struct *mm, uintptr_t addr)$/;"	f	file:
+_lru_swap_cleanup	../mm/swap_lru.c	/^_lru_swap_cleanup(struct mm_struct *mm, int32_t cleanup_len)$/;"	f	file:
+_lru_swap_out_victim	../mm/swap_lru.c	/^_lru_swap_out_victim(struct mm_struct *mm, struct page ** ptr_page, int in_tick)$/;"	f	file:
+_lru_tick_event	../mm/swap_lru.c	/^_lru_tick_event(struct mm_struct *mm)$/;"	f	file:
+_pra_list_manager	../mm/swap_lru.c	/^}_pra_list_manager;$/;"	v	typeref:struct:pra_list_manager
 _start	../init/entry.S	/^_start = V2P_WO(entry)$/;"	d
 a	../kernel.asm	/^    a = buddy_pmm_alloc(0x990);   $/;"	d
 a	../kernel.asm	/^    a = buddy_pmm_alloc(1); $/;"	d
 a	../kernel.asm	/^    a = buddy_pmm_alloc(2);$/;"	d
 a	../kernel.asm	/^    a = buddy_pmm_alloc(3); $/;"	d
 a	../kernel.asm	/^    a = buddy_pmm_alloc(9);$/;"	d
+addr	../kernel.asm	/^    addr = ROUNDDOWN(addr, PGSIZE);$/;"	d
 addr	../kernel.asm	/^  addr = P2V(a);$/;"	d
 addr	../mm/pmm.c	/^        long long addr;$/;"	m	struct:e820map::__anon1	file:
 addr	../smp/mp.h	/^  uint *addr;                  \/\/ I\/O APIC address$/;"	m	struct:mpioapic
-adjust_i	../mm/buddy_pmm.c	/^static inline void adjust_i(uint32_t i ,uint8_t power)$/;"	f	file:
+adjust_i	../mm/buddy_pmm.c	/^adjust_i(uint32_t i ,uint8_t power)$/;"	f	file:
+alloc_page	../mm/pmm.c	/^alloc_page()$/;"	f
+alloc_page	../mm/pmm.h	/^alloc_page();$/;"	p
 alloc_pages	../mm/pmm.c	/^alloc_pages(size_t n)$/;"	f
 alloc_pages	../mm/pmm.h	/^    uint32_t (*alloc_pages)(size_t n); \/\/ allocate >=n pages, depend on the allocation algorithm $/;"	m	struct:pmm_manager
 alloc_pages	../mm/pmm.h	/^alloc_pages(size_t n);$/;"	p
@@ -175,25 +318,51 @@ b	../kernel.asm	/^    b = buddy_pmm_alloc(1);$/;"	d
 b	../kernel.asm	/^    b = buddy_pmm_alloc(2);$/;"	d
 b	../kernel.asm	/^    b = buddy_pmm_alloc(3);$/;"	d
 b	../kernel.asm	/^    b = buddy_pmm_alloc(5);$/;"	d
+base	../driver/ide.c	/^    unsigned short base;        \/\/ I\/O Base$/;"	m	struct:__anon2	file:
 base	../kernel.asm	/^        base = 10;$/;"	d
 bcd	../kernel.asm	/^  bcd = (sb & (1 << 2)) == 0;$/;"	d
 bda	../kernel.asm	/^  bda = (uchar *) P2V(0x400);$/;"	d
 beginning_addr	../mm/buddy_pmm.c	/^    uintptr_t beginning_addr;    \/\/the beginning address of buddy $/;"	m	struct:buddy	file:
 bool	../kernel.asm	/^bool IsValid(uint8_t i)$/;"	l
-buddy	../kernel.asm	/^     buddy =  (struct buddy*)p_start;$/;"	d
+bool	../kernel.asm	/^bool$/;"	l
+buddy	../kernel.asm	/^     buddy =  (struct buddy*)P2V(p_start);$/;"	d
 buddy	../mm/buddy_pmm.c	/^struct buddy{$/;"	s	file:
-buddy	../mm/buddy_pmm.c	/^}*buddy;$/;"	v	typeref:struct:buddy
-buddy_pmm_alloc	../mm/buddy_pmm.c	/^buddy_pmm_alloc(uint32_t size)$/;"	f
-buddy_pmm_free	../mm/buddy_pmm.c	/^buddy_pmm_free(uint32_t offset)$/;"	f
-buddy_pmm_free_pages	../mm/buddy_pmm.c	/^size_t buddy_pmm_free_pages()$/;"	f
+buddy	../mm/buddy_pmm.c	/^}__attribute__((packed))*buddy;$/;"	v	typeref:struct:buddy
+buddy_change_page_ref	../mm/buddy_pmm.c	/^buddy_change_page_ref(uint32_t offset, int8_t ch)$/;"	f	file:
+buddy_pmm_alloc	../mm/buddy_pmm.c	/^buddy_pmm_alloc(uint32_t size)$/;"	f	file:
+buddy_pmm_free	../mm/buddy_pmm.c	/^buddy_pmm_free(uint32_t offset)$/;"	f	file:
+buddy_pmm_free_pages	../mm/buddy_pmm.c	/^buddy_pmm_free_pages()$/;"	f	file:
 buddy_pmm_manager	../mm/buddy_pmm.c	/^const struct pmm_manager buddy_pmm_manager = {$/;"	v	typeref:struct:pmm_manager
-buddy_pmm_test	../mm/buddy_pmm.c	/^buddy_pmm_test(uintptr_t p_start)$/;"	f
+buddy_pmm_ret_page_addr	../mm/buddy_pmm.c	/^buddy_pmm_ret_page_addr(size_t offset)$/;"	f	file:
+buddy_pmm_test	../mm/buddy_pmm.c	/^buddy_pmm_test(uintptr_t p_start)$/;"	f	file:
+busy_count	../mm/swap_lru.c	/^    uint32_t busy_count;$/;"	m	struct:pra_list_manager	file:
+busy_list	../mm/swap_lru.c	/^    list_entry_t busy_list;$/;"	m	struct:pra_list_manager	file:
 c	../kernel.asm	/^    c = buddy_pmm_alloc(0x2990);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(1);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(2);$/;"	d
 c	../kernel.asm	/^    c = buddy_pmm_alloc(7);$/;"	d
+c	../kernel.asm	/^    c = charcode[shift & (CTL | SHIFT)][data];$/;"	d
+c	../kernel.asm	/^  c = &cpus[cpunum()];$/;"	d
 calc	../mm/buddy_pmm.c	/^calc(uintptr_t p_start, uint32_t pg_size)$/;"	f	file:
-ch	../kernel.asm	/^           ch = *(++fmt);$/;"	d
+ch	../kernel.asm	/^               ch = *(++fmt);$/;"	d
+change_page_ref	../mm/pmm.h	/^    uint8_t (*change_page_ref)(uint32_t offset, int8_t ch);$/;"	m	struct:pmm_manager
+channels	../driver/ide.c	/^} channels[2] = {$/;"	v	typeref:struct:__anon2	file:
+charcode	../driver/kbd.c	/^static uint8_t *charcode[4] = {$/;"	v	file:
+check_content_access	../mm/swap.c	/^check_content_access(void)$/;"	f	file:
+check_content_set	../mm/swap.c	/^check_content_set(void)$/;"	f	file:
+check_mm_struct	../kernel.asm	/^    check_mm_struct = NULL;$/;"	d
+check_mm_struct	../kernel.asm	/^    check_mm_struct = mm_create();$/;"	d
+check_mm_struct	../mm/vmm.c	/^struct mm_struct *check_mm_struct;$/;"	v	typeref:struct:mm_struct
+check_pgfault	../mm/vmm.c	/^check_pgfault(void) {$/;"	f	file:
+check_pgfault	../mm/vmm.c	/^check_pgfault(void);$/;"	p	file:
+check_swap	../mm/swap.c	/^check_swap(void)$/;"	f	file:
+check_swap	../mm/swap.c	/^static void check_swap(void);$/;"	p	file:
+check_swap	../mm/swap.h	/^     int (*check_swap)(void);$/;"	m	struct:swap_manager
+check_vma_overlap	../mm/vmm.c	/^check_vma_overlap(struct vma_struct *prev, struct vma_struct *next) {$/;"	f	file:
+check_vma_struct	../mm/vmm.c	/^check_vma_struct(void) {$/;"	f	file:
+check_vma_struct	../mm/vmm.c	/^check_vma_struct(void);$/;"	p	file:
+check_vmm	../mm/vmm.c	/^check_vmm(void) {$/;"	f
+check_vmm	../mm/vmm.h	/^check_vmm(void);$/;"	p
 checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp
 checksum	../smp/mp.h	/^  uchar checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mpconf
 cmos_read	../smp/lapic.c	/^static uint cmos_read(uint reg)$/;"	f	file:
@@ -213,6 +382,8 @@ cpu	../smp/mp.h	/^struct cpu {$/;"	s
 cpunum	../smp/lapic.c	/^cpunum(void)$/;"	f
 cpunum	../smp/lapic.h	/^cpunum(void);$/;"	p
 cpus	../smp/mp.c	/^struct cpu cpus[NCPU];$/;"	v	typeref:struct:cpu
+ctlmap	../driver/kbd.c	/^static uint8_t ctlmap[256] = {$/;"	v	file:
+ctrl	../driver/ide.c	/^    unsigned short ctrl;        \/\/ Control Base$/;"	m	struct:__anon2	file:
 cursor_x	../driver/console.c	/^static uint8_t cursor_x = 0;$/;"	v	file:
 cursor_x	../kernel.asm	/^        cursor_x = (cursor_x + 8) & ~ (8 - 1);$/;"	d
 cursor_x	../kernel.asm	/^        cursor_x = 0; $/;"	d
@@ -223,6 +394,8 @@ cursor_y	../kernel.asm	/^        cursor_y = 24;$/;"	d
 cursor_y	../kernel.asm	/^    cursor_y = 0;$/;"	d
 d	../kernel.asm	/^    d = buddy_pmm_alloc(0x39);$/;"	d
 d	../kernel.asm	/^    d = buddy_pmm_alloc(940);$/;"	d
+data	../kernel.asm	/^        data = (shift & E0ESC ? data : data & 0x7F);$/;"	d
+data	../kernel.asm	/^    data = inb(KBDATAP);$/;"	d
 data	../trap/ioapic.c	/^  uint data;$/;"	m	struct:ioapic	file:
 day	../smp/lapic.c	/^  uint day;$/;"	m	struct:rtcdate	file:
 debuginfo_eip	../debug/kdebug.c	/^debuginfo_eip(uintptr_t addr, struct eipdebuginfo *info) {$/;"	f	file:
@@ -232,6 +405,8 @@ delay	../driver/uart.c	/^delay(void) {$/;"	f	file:
 dig	../kernel.asm	/^            dig = *s - '0';$/;"	d
 dig	../kernel.asm	/^            dig = *s - 'A' + 10;$/;"	d
 dig	../kernel.asm	/^            dig = *s - 'a' + 10;$/;"	d
+do_pgfault	../mm/vmm.c	/^do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {$/;"	f
+do_pgfault	../mm/vmm.h	/^do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);$/;"	p
 e	../kernel.asm	/^    e = buddy_pmm_alloc(buddy->size);$/;"	d
 e	../kernel.asm	/^  e = addr+len;$/;"	d
 e820map	../kernel.asm	/^    e820map = (struct e820map*)P2V(E820MAP_ADD);  $/;"	d
@@ -247,43 +422,79 @@ entry	../init/entry.S	/^entry:$/;"	l
 entry	../kernel.asm	/^entry:$/;"	l
 entry	../smp/mp.h	/^  ushort entry;                 \/\/ entry count$/;"	m	struct:mpconf
 entrypgdir	../init/init.c	/^pde_t entrypgdir[NPDENTRIES] = {$/;"	v
+epch	../kernel.asm	/^                       epch = '0';$/;"	d
+epch	../kernel.asm	/^                   epch = ' ';$/;"	d
 exp	../kernel.asm	/^    exp = (ix >> 23) & 0xff;$/;"	d
-fastlog2	../mm/buddy_pmm.c	/^uint8_t fastlog2(int x)$/;"	f
+extern	../kernel.asm	/^       extern struct mm_struct *check_mm_struct;$/;"	t
+extern	../kernel.asm	/^extern struct mm_struct *check_mm_struct;$/;"	t
+failed	../kernel.asm	/^failed:$/;"	l
+fastlog2	../mm/buddy_pmm.c	/^fastlog2(int x)$/;"	f	file:
 feature	../smp/mp.h	/^  uint feature;                 \/\/ feature flags from CPUID instruction$/;"	m	struct:mpproc
 fill_rtcdate	../smp/lapic.c	/^static void fill_rtcdate(struct rtcdate *r)$/;"	f	file:
+find_vma	../mm/vmm.c	/^find_vma(struct mm_struct *mm, uintptr_t addr) {$/;"	f
+find_vma	../mm/vmm.h	/^struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);$/;"	p
 first	../kernel.asm	/^                        first = 1;$/;"	d
 first	../kernel.asm	/^                    first = 0;$/;"	d
 first	../kernel.asm	/^            first = 0;$/;"	d
 fix_size	../mm/buddy_pmm.c	/^fix_size(uint32_t size)$/;"	f	file:
 flags	../smp/mp.h	/^  uchar flags;                  \/\/ CPU flags$/;"	m	struct:mpproc
 flags	../smp/mp.h	/^  uchar flags;                  \/\/ I\/O APIC flags$/;"	m	struct:mpioapic
-free_area	../mm/default_pmm.c	/^free_area_t free_area;$/;"	v
+found	../kernel.asm	/^                        found = 1;$/;"	d
+found	../kernel.asm	/^               found = le; $/;"	d
+found	../kernel.asm	/^            found = free_head->next;$/;"	d
+found	../kernel.asm	/^           found = busy_head->next; $/;"	d
+found	../kernel.asm	/^    found = _lru_swap_cleanup(mm, LEN);$/;"	d
+free_count	../mm/swap_lru.c	/^    int32_t free_count;$/;"	m	struct:pra_list_manager	file:
+free_list	../mm/swap_lru.c	/^    list_entry_t free_list;$/;"	m	struct:pra_list_manager	file:
 free_num	../kernel.asm	/^    free_num = 0;$/;"	d
+free_page	../mm/pmm.c	/^free_page(struct page* page)$/;"	f
+free_page	../mm/pmm.h	/^free_page(struct page* page);$/;"	p
 free_pages	../mm/pmm.c	/^free_pages(void *n)$/;"	f
 free_pages	../mm/pmm.h	/^    void (*free_pages)(size_t n);  \/\/ free >=n pages with "base" addr of Page descriptor structures(memlayout.h)$/;"	m	struct:pmm_manager
 free_pages	../mm/pmm.h	/^free_pages(void *n);$/;"	p
 free_pg	../mm/buddy_pmm.c	/^    uint32_t free_pg;            \/\/the num of free page$/;"	m	struct:buddy	file:
 fx	../kernel.asm	/^    fx = (float)x;$/;"	d
+gdt	../smp/mp.h	/^  struct segdesc gdt[NSEGS];   \/\/ x86 global descriptor table$/;"	m	struct:cpu	typeref:struct:cpu::segdesc
+get_page_offset	../mm/pmm.c	/^get_page_offset(struct page* page)$/;"	f
+get_page_offset	../mm/pmm.h	/^get_page_offset(struct page* page);$/;"	p
 have_matches	../kernel.asm	/^        have_matches = 1;$/;"	d
 hour	../smp/lapic.c	/^  uint hour;$/;"	m	struct:rtcdate	file:
 i	../kernel.asm	/^           i = LEFT_SON(i);$/;"	d
 i	../kernel.asm	/^           i = RIGHT_SON(i);$/;"	d
 i	../kernel.asm	/^        i = PARENT(i);    $/;"	d
-i	../kernel.asm	/^    i = alloc_pages(1);$/;"	d
-i	../kernel.asm	/^    i = alloc_pages(2);$/;"	d
 i2page_off	../mm/buddy_pmm.c	/^uint32_t i2page_off(uint32_t i, uint32_t size)$/;"	f	file:
 id	../kernel.asm	/^  id = ioapicread(REG_ID) >> 24;$/;"	d
+ide_device	../driver/ide.c	/^static struct ide_device {$/;"	s	file:
+ide_device_size	../driver/ide.c	/^ide_device_size(unsigned short ideno) {$/;"	f
+ide_device_size	../driver/ide.h	/^size_t ide_device_size(unsigned short ideno);$/;"	p
+ide_device_valid	../driver/ide.c	/^ide_device_valid(unsigned short ideno) {$/;"	f
+ide_device_valid	../driver/ide.h	/^bool ide_device_valid(unsigned short ideno);$/;"	p
+ide_devices	../driver/ide.c	/^} ide_devices[MAX_IDE];$/;"	v	typeref:struct:ide_device	file:
+ide_init	../driver/ide.c	/^ide_init(void) {$/;"	f
+ide_init	../driver/ide.h	/^void ide_init(void);$/;"	p
+ide_read_secs	../driver/ide.c	/^ide_read_secs(unsigned short ideno, uint32_t secno, void *dst, size_t nsecs) {$/;"	f
+ide_read_secs	../driver/ide.h	/^int ide_read_secs(unsigned short ideno, uint32_t secno, void *dst, size_t nsecs);$/;"	p
+ide_wait_ready	../driver/ide.c	/^ide_wait_ready(unsigned short iobase, bool check_error) {$/;"	f	file:
+ide_write_secs	../driver/ide.c	/^ide_write_secs(unsigned short ideno, uint32_t secno, const void *src, size_t nsecs) {$/;"	f
+ide_write_secs	../driver/ide.h	/^int ide_write_secs(unsigned short ideno, uint32_t secno, const void *src, size_t nsecs);$/;"	p
 idt	../trap/trap.c	/^struct gatedesc idt[256];$/;"	v	typeref:struct:gatedesc
 idtinit	../trap/trap.c	/^idtinit(void)$/;"	f
 idtinit	../trap/trap.h	/^idtinit(void);$/;"	p
 imcrp	../smp/mp.h	/^  uchar imcrp;$/;"	m	struct:mp
 init	../mm/pmm.h	/^    void (*init)(uintptr_t *n, uint32_t *pg_size); \/\/init the pmm $/;"	m	struct:pmm_manager
-init_buddy_pmm	../mm/buddy_pmm.c	/^init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)$/;"	f
-init_kvm	../mm/vm.c	/^init_kvm(void)$/;"	f
-init_kvm	../mm/vm.h	/^init_kvm(void);$/;"	p
+init	../mm/swap.h	/^     bool (*init)            (void);$/;"	m	struct:swap_manager
+init_buddy_pmm	../mm/buddy_pmm.c	/^init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)$/;"	f	file:
+init_kvm	../mm/vmm.c	/^init_kvm(void)$/;"	f
+init_kvm	../mm/vmm.h	/^init_kvm(void);$/;"	p
+init_mm	../mm/swap.h	/^     int (*init_mm)         (struct mm_struct *mm);$/;"	m	struct:swap_manager
 init_pmm	../mm/pmm.c	/^init_pmm(void)$/;"	f
 init_pmm	../mm/pmm.h	/^init_pmm(void);$/;"	p
 init_pmm_info	../mm/pmm.c	/^init_pmm_info()$/;"	f	file:
+init_pra_list_manager	../mm/swap_lru.c	/^init_pra_list_manager(struct pra_list_manager *p)$/;"	f	file:
+inline	../kernel.asm	/^inline struct page*$/;"	t
+inline	../kernel.asm	/^inline void*$/;"	l
+insert_vma_struct	../mm/vmm.c	/^insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma) {$/;"	f
+insert_vma_struct	../mm/vmm.h	/^void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);$/;"	p
 int	../kernel.asm	/^int $/;"	l
 int	../kernel.asm	/^int cprintf(const char *fmt, ...)$/;"	l
 int	../kernel.asm	/^int main()$/;"	l
@@ -305,20 +516,31 @@ ioapicinit	../trap/ioapic.c	/^ioapicinit(void)$/;"	f
 ioapicinit	../trap/ioapic.h	/^void            ioapicinit(void);$/;"	p
 ioapicread	../trap/ioapic.c	/^ioapicread(int reg)$/;"	f	file:
 ioapicwrite	../trap/ioapic.c	/^ioapicwrite(int reg, uint data)$/;"	f	file:
+iobase	../kernel.asm	/^        iobase = IO_BASE(ideno);$/;"	d
 is_panic	../debug/kdebug.c	/^static bool is_panic = 0;$/;"	v	file:
 is_panic	../kernel.asm	/^   is_panic = 1;$/;"	d
 ismp	../kernel.asm	/^      ismp = 0;$/;"	d
 ismp	../kernel.asm	/^  ismp = 1;$/;"	d
 ismp	../smp/mp.c	/^int ismp;$/;"	v
 ix	../kernel.asm	/^    ix = *(unsigned long*)&fx;$/;"	d
-j	../kernel.asm	/^    j = alloc_pages(1);$/;"	d
-kmap	../mm/vm.c	/^static struct kmap {$/;"	s	file:
-kmap	../mm/vm.c	/^} kmap[] = {$/;"	v	typeref:struct:kmap	file:
-kpa2page	../mm/pmm.c	/^kpa2page(uint32_t addr)$/;"	f	file:
+kbd_init	../driver/kbd.c	/^kbd_init(void)$/;"	f
+kbd_init	../driver/kbd.h	/^kbd_init(void);$/;"	p
+kbd_intr	../driver/kbd.c	/^kbd_intr(void) {$/;"	f
+kbd_intr	../driver/kbd.h	/^kbd_intr(void);$/;"	p
+kbd_proc_data	../driver/kbd.c	/^kbd_proc_data(void) {$/;"	f	file:
+kfree	../mm/pmm.c	/^kfree(void *n)$/;"	f
+kfree	../mm/pmm.h	/^kfree(void *n);$/;"	p
+kmalloc	../mm/pmm.c	/^kmalloc(size_t n)$/;"	f
+kmalloc	../mm/pmm.h	/^kmalloc(size_t n);$/;"	p
+kmap	../mm/vmm.c	/^static struct kmap {$/;"	s	file:
+kmap	../mm/vmm.c	/^} kmap[] = {$/;"	v	typeref:struct:kmap	file:
+kpa2offset	../mm/pmm.c	/^kpa2offset(uint32_t addr)$/;"	f	file:
 kpgdir	../kernel.asm	/^    kpgdir = setup_kvm();$/;"	d
-kpgdir	../mm/vm.c	/^pte_t *kpgdir;$/;"	v
-kva2page	../mm/pmm.c	/^kva2page(void *va)$/;"	f	file:
-kvm_test	../mm/vm.c	/^kvm_test(pde_t* pgdir)$/;"	f
+kpgdir	../mm/vmm.c	/^pte_t *kpgdir;$/;"	v
+kva2offset	../mm/pmm.c	/^kva2offset(void *va)$/;"	f	file:
+kva2page	../mm/pmm.c	/^kva2page(void *va)$/;"	f
+kva2page	../mm/pmm.h	/^kva2page(void *va);$/;"	p
+kvm_test	../mm/vmm.c	/^kvm_test(pde_t* pgdir)$/;"	f
 l	../kernel.asm	/^            l = m;$/;"	d
 l	../kernel.asm	/^            l = true_m + 1;$/;"	d
 lapic	../kernel.asm	/^    lapic = 0;$/;"	d
@@ -333,22 +555,41 @@ lapicinit	../smp/lapic.h	/^lapicinit(void);$/;"	p
 lapicstartap	../smp/lapic.c	/^lapicstartap(uchar apicid, uint addr)$/;"	f
 lapicstartap	../smp/lapic.h	/^lapicstartap(uint8_t, uint32_t);$/;"	p
 lapicw	../smp/lapic.c	/^lapicw(int index, int value)$/;"	f	file:
-lcr3	../mm/vm.c	/^lcr3(uint32_t val)$/;"	f	file:
+lcr3	../mm/vmm.c	/^lcr3(uint32_t val)$/;"	f	file:
+le	../kernel.asm	/^        le = list_next(le);$/;"	d
+le	../kernel.asm	/^    le = free_head->next;$/;"	d
+le2page	../mm/pmm.h	36;"	d
+le2vma	../mm/vmm.h	29;"	d
+le_next	../kernel.asm	/^    le_next = list_next(le_prev);$/;"	d
+le_prev	../kernel.asm	/^        le_prev = le;$/;"	d
 left	../kernel.asm	/^    left = 0;$/;"	d
 len	../kernel.asm	/^                   len = strlen(str);$/;"	d
 len	../kernel.asm	/^    len = strlen(str);$/;"	d
 length	../smp/mp.h	/^  uchar length;                 \/\/ 1$/;"	m	struct:mp
 length	../smp/mp.h	/^  ushort length;                \/\/ total table length$/;"	m	struct:mpconf
+list_link	../mm/vmm.h	/^    list_entry_t list_link;  \/\/ linear list link which sorted by start addr of vma$/;"	m	struct:vma_struct
 long	../kernel.asm	/^long$/;"	l
 m	../kernel.asm	/^        m = true_m;$/;"	d
 main	../init/init.c	/^int main()$/;"	f
 map	../mm/pmm.c	/^    }map[30];$/;"	m	struct:e820map	typeref:struct:e820map::__anon1	file:
-map_pages	../mm/vm.c	/^map_pages(pde_t *pgdir, uintptr_t va_st, uintptr_t size, uintptr_t pa, int32_t perm)$/;"	f	file:
+map_count	../mm/vmm.h	/^    int map_count;                 \/\/ the count of these vma$/;"	m	struct:mm_struct
+map_pages	../mm/vmm.c	/^map_pages(pde_t *pgdir, uintptr_t va_st, uintptr_t size, uintptr_t pa, int32_t perm)$/;"	f	file:
+map_swappable	../mm/swap.h	/^     bool (*map_swappable)   (struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in);$/;"	m	struct:swap_manager
+max_swap_offset	../kernel.asm	/^    max_swap_offset = ide_device_size(SWAP_DEV_NO) \/ (PGSIZE \/ SECTSIZE);$/;"	d
+max_swap_offset	../mm/swap.c	/^size_t max_swap_offset;$/;"	v
 maxintr	../kernel.asm	/^  maxintr = (ioapicread(REG_VER) >> 16) & 0xFF;$/;"	d
 microdelay	../smp/lapic.c	/^microdelay(int us)$/;"	f
 minute	../smp/lapic.c	/^  uint minute;$/;"	m	struct:rtcdate	file:
+mm_create	../mm/vmm.c	/^mm_create(void) {$/;"	f
+mm_create	../mm/vmm.h	/^struct mm_struct *mm_create(void);$/;"	p
+mm_destroy	../mm/vmm.c	/^mm_destroy(struct mm_struct *mm) {$/;"	f
+mm_destroy	../mm/vmm.h	/^void mm_destroy(struct mm_struct *mm);$/;"	p
 mm_size	../kernel.asm	/^                mm_size = KMEMSIZE;$/;"	d
 mm_size	../kernel.asm	/^            mm_size = pmm_info.end - pmm_info.start; $/;"	d
+mm_struct	../mm/vmm.h	/^struct mm_struct {$/;"	s
+mmap_cache	../mm/vmm.h	/^    struct vma_struct *mmap_cache; \/\/ current accessed vma, used for speed purpose$/;"	m	struct:mm_struct	typeref:struct:mm_struct::vma_struct
+mmap_list	../mm/vmm.h	/^    list_entry_t mmap_list;        \/\/ linear list link which sorted by start addr of vma$/;"	m	struct:mm_struct
+model	../driver/ide.c	/^    unsigned char model[41];    \/\/ Model in String$/;"	m	struct:ide_device	file:
 month	../smp/lapic.c	/^  uint month;$/;"	m	struct:rtcdate	file:
 move_cursor	../driver/console.c	/^static void move_cursor()$/;"	f	file:
 mp	../smp/mp.h	/^struct mp {             \/\/ floating pointer$/;"	s
@@ -366,37 +607,66 @@ n_strx	../debug/stabs.h	/^    uint32_t n_strx;        \/\/ index into string tab
 n_type	../debug/stabs.h	/^    uint8_t n_type;         \/\/ type of symbol$/;"	m	struct:stab
 n_value	../debug/stabs.h	/^    uintptr_t n_value;      \/\/ value of symbol$/;"	m	struct:stab
 name	../mm/pmm.h	/^    const char *name;                                 \/\/ XXX_pmm_manager's name$/;"	m	struct:pmm_manager
+name	../mm/swap.h	/^     const char *name;$/;"	m	struct:swap_manager
 ncli	../smp/mp.h	/^  int ncli;                    \/\/ Depth of pushcli nesting.$/;"	m	struct:cpu
 ncpu	../kernel.asm	/^    ncpu = 1;$/;"	d
 ncpu	../smp/mp.c	/^int ncpu;$/;"	v
+normalmap	../driver/kbd.c	/^static uint8_t normalmap[256] = {$/;"	v	file:
+nr_free_pages	../mm/pmm.c	/^nr_free_pages(void){$/;"	f
 nr_free_pages	../mm/pmm.h	/^    size_t (*nr_free_pages)(void);      \/\/ return the number of free pages $/;"	m	struct:pmm_manager
+nr_free_pages	../mm/pmm.h	/^nr_free_pages(void);$/;"	p
 nr_map	../mm/pmm.c	/^    int nr_map;$/;"	m	struct:e820map	file:
 oemlength	../smp/mp.h	/^  ushort oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf
 oemtable	../smp/mp.h	/^  uint *oemtable;               \/\/ OEM table pointer$/;"	m	struct:mpconf
+offset	../kernel.asm	/^       offset = pmm_manager->alloc_pages(1);$/;"	d
 offset	../kernel.asm	/^    offset = i2page_off(i,offsize );$/;"	d
+offset2i	../mm/buddy_pmm.c	/^offset2i(uint32_t offset, int32_t* node_size)$/;"	f	file:
+offset2kva	../mm/pmm.c	/^offset2kva(uint32_t n)$/;"	f	file:
 offsize	../kernel.asm	/^    offsize = ret_val32(node_size);$/;"	d
+out	../kernel.asm	/^out:$/;"	l
 p	../kernel.asm	/^    p = ((bda[0x14]<<8)|bda[0x13])*1024;$/;"	d
 pa	../kernel.asm	/^    pa = PGROUNDDOWN(pa);$/;"	d
+pa2page	../mm/pmm.c	/^pa2page(uintptr_t pa)$/;"	f
+pa2page	../mm/pmm.h	/^pa2page(uintptr_t pa);$/;"	p
 pad	../trap/ioapic.c	/^  uint pad[3];$/;"	m	struct:ioapic	file:
-page2kva	../mm/pmm.c	/^page2kva(uint32_t n)$/;"	f	file:
+page	../mm/buddy_pmm.c	/^    struct page page[1];$/;"	m	struct:buddy	typeref:struct:buddy::page	file:
+page	../mm/pmm.h	/^struct page{$/;"	s
+page2kva	../mm/pmm.c	/^page2kva(struct page* page)$/;"	f
+page2kva	../mm/pmm.h	/^page2kva(struct page* page);$/;"	p
+page2pa	../mm/pmm.c	/^page2pa(struct page* page)$/;"	f
+page2pa	../mm/pmm.h	/^page2pa(struct page* page);$/;"	p
+page_insert	../mm/vmm.c	/^page_insert(pde_t *pgdir, struct page *page, uintptr_t la, uint32_t perm) {$/;"	f
 page_off	../kernel.asm	/^            page_off = i2page_off(i,1);$/;"	d
+page_remove	../mm/vmm.c	/^page_remove(pde_t *pgdir, uintptr_t la) {$/;"	f
+page_remove	../mm/vmm.h	/^page_remove(pde_t *pgdir, uintptr_t la);$/;"	p
+page_remove_pte	../mm/vmm.c	/^page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {$/;"	f	file:
 panic	../debug/kdebug.h	10;"	d
 panic_dead	../kernel.asm	/^panic_dead:$/;"	l
 pde	../kernel.asm	/^        pde = &pgdir[i]; $/;"	d
+pde2page	../mm/vmm.c	/^pde2page(pte_t pte) {$/;"	f	file:
 perm	../kernel.asm	/^                        perm = PTE_FLAGS(pte[j]);$/;"	d
-perm	../mm/vm.c	/^    int32_t perm;$/;"	m	struct:kmap	file:
+perm	../mm/vmm.c	/^    int32_t perm;$/;"	m	struct:kmap	file:
 pg_size	../mm/buddy_pmm.c	/^    uint32_t pg_size;             \/\/the num of page(4096) $/;"	m	struct:buddy	file:
-phys_end	../mm/vm.c	/^    uintptr_t phys_end;$/;"	m	struct:kmap	file:
-phys_start	../mm/vm.c	/^    uintptr_t phys_start;$/;"	m	struct:kmap	file:
+pgdir	../mm/pmm.h	/^    pde_t *pgdir;                  $/;"	m	struct:page
+pgdir	../mm/vmm.h	/^    pde_t *pgdir;                  \/\/ the PDT of these vma$/;"	m	struct:mm_struct
+pgdir_alloc_page	../mm/vmm.c	/^pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {$/;"	f	file:
+pgfault_handler	../trap/trap.c	/^pgfault_handler(struct trapframe *tf) {$/;"	f	file:
+pgfault_num	../mm/vmm.c	/^volatile unsigned int pgfault_num=0;$/;"	v
+phys_end	../mm/vmm.c	/^    uintptr_t phys_end;$/;"	m	struct:kmap	file:
+phys_start	../mm/vmm.c	/^    uintptr_t phys_start;$/;"	m	struct:kmap	file:
 physaddr	../smp/mp.h	/^  void *physaddr;               \/\/ phys addr of MP config table$/;"	m	struct:mp
 pmm_info	../mm/pmm.c	/^struct pmm_info pmm_info = {$/;"	v	typeref:struct:pmm_info
 pmm_info	../mm/pmm.h	/^struct pmm_info{$/;"	s
 pmm_manager	../kernel.asm	/^    pmm_manager = &buddy_pmm_manager;$/;"	d
 pmm_manager	../mm/pmm.c	/^const struct pmm_manager *pmm_manager;$/;"	v	typeref:struct:pmm_manager
 pmm_manager	../mm/pmm.h	/^struct pmm_manager {$/;"	s
+pra_list_manager	../mm/swap_lru.c	/^struct pra_list_manager{$/;"	s	file:
+pra_page_link	../mm/pmm.h	/^    list_entry_t pra_page_link;$/;"	m	struct:page
+pra_vaddr	../mm/pmm.h	/^    uint32_t pra_vaddr;$/;"	m	struct:page
 print_cur_status	../debug/kdebug.c	/^print_cur_status()$/;"	f
 print_cur_status	../debug/kdebug.h	/^void print_cur_status();$/;"	p
 print_e280map	../mm/pmm.c	/^print_e280map()$/;"	f	file:
+print_pgfault	../trap/trap.c	/^print_pgfault(struct trapframe *tf) {$/;"	f	file:
 print_pmm_info	../mm/pmm.c	/^print_pmm_info()$/;"	f	file:
 print_stack_trace	../debug/kdebug.c	/^print_stack_trace()$/;"	f
 print_stack_trace	../debug/kdebug.h	/^void print_stack_trace();$/;"	p
@@ -404,6 +674,7 @@ proc	../kernel.asm	/^      proc = (struct mpproc*)p;$/;"	d
 product	../smp/mp.h	/^  uchar product[20];            \/\/ product id$/;"	m	struct:mpconf
 pte	../kernel.asm	/^            pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); $/;"	d
 pte	../kernel.asm	/^       pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); $/;"	d
+pte2page	../mm/vmm.c	/^pte2page(pte_t pte) {$/;"	f	file:
 pte_t	../kernel.asm	/^pte_t *kpgdir;$/;"	l
 putch	../libs/stdio.c	/^static void putch(char ch)$/;"	f	file:
 r	../kernel.asm	/^            r = m - 1;$/;"	d
@@ -424,23 +695,38 @@ rc_magenta	../driver/console.h	/^    rc_magenta,$/;"	e	enum:real_color
 rc_red	../driver/console.h	/^    rc_red,$/;"	e	enum:real_color
 rc_white	../driver/console.h	/^    rc_white,$/;"	e	enum:real_color
 rc_xxxx	../driver/console.h	/^    rc_xxxx$/;"	e	enum:real_color
-read_pte_addr	../mm/vm.c	/^read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)$/;"	f	file:
+read_pte_addr	../mm/vmm.c	/^read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)$/;"	f
+read_pte_addr	../mm/vmm.h	/^read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);$/;"	p
 real_color	../driver/console.h	/^enum real_color{$/;"	g
 real_color_t	../driver/console.h	/^}real_color_t;$/;"	t	typeref:enum:real_color
+ref	../mm/pmm.h	/^    uint8_t ref;$/;"	m	struct:page
 reg	../trap/ioapic.c	/^  uint reg;$/;"	m	struct:ioapic	file:
 reserved	../smp/mp.h	/^  uchar reserved;$/;"	m	struct:mpconf
 reserved	../smp/mp.h	/^  uchar reserved[3];$/;"	m	struct:mp
 reserved	../smp/mp.h	/^  uchar reserved[8];$/;"	m	struct:mpproc
+ret	../kernel.asm	/^        ret = pmm_manager->nr_free_pages();$/;"	d
+ret	../kernel.asm	/^    ret = -1;$/;"	d
+ret	../kernel.asm	/^   ret = 0;$/;"	d
+ret_page_addr	../mm/pmm.h	/^    struct page* (*ret_page_addr)(size_t offset); $/;"	m	struct:pmm_manager	typeref:struct:pmm_manager::ret_page_addr
 ret_val32	../mm/buddy_pmm.c	/^uint32_t ret_val32(uint8_t val)$/;"	f	file:
 right	../kernel.asm	/^    right = (stab_end - stab_begin) - 1;$/;"	d
 rtcdate	../smp/lapic.c	/^struct rtcdate {$/;"	s	file:
 sb	../kernel.asm	/^  sb = cmos_read(CMOS_STATB);$/;"	d
 scroll	../driver/console.c	/^static void scroll()$/;"	f	file:
 second	../smp/lapic.c	/^  uint second;$/;"	m	struct:rtcdate	file:
-setup_kvm	../mm/vm.c	/^setup_kvm(void)$/;"	f
+sectors	../kernel.asm	/^            sectors = *(unsigned int *)(ident + IDE_IDENT_MAX_LBA);$/;"	d
+sectors	../kernel.asm	/^            sectors = *(unsigned int *)(ident + IDE_IDENT_MAX_LBA_EXT);$/;"	d
+seginit	../mm/vmm.c	/^seginit(void)$/;"	f
+seginit	../mm/vmm.h	/^seginit(void);$/;"	p
+set_unswappable	../mm/swap.h	/^     bool (*set_unswappable) (struct mm_struct *mm, uintptr_t addr);$/;"	m	struct:swap_manager
+sets	../driver/ide.c	/^    unsigned int sets;          \/\/ Commend Sets Supported$/;"	m	struct:ide_device	file:
+setup_kvm	../mm/vmm.c	/^setup_kvm(void)$/;"	f
+shiftcode	../driver/kbd.c	/^static uint8_t shiftcode[256] = {$/;"	v	file:
+shiftmap	../driver/kbd.c	/^static uint8_t shiftmap[256] = {$/;"	v	file:
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ "_MP_"$/;"	m	struct:mp
 signature	../smp/mp.h	/^  uchar signature[4];           \/\/ CPU signature$/;"	m	struct:mpproc
+size	../driver/ide.c	/^    unsigned int size;          \/\/ Size in Sectors$/;"	m	struct:ide_device	file:
 size	../kernel.asm	/^                        size = 0;$/;"	d
 size	../kernel.asm	/^                size = 0;$/;"	d
 size	../kernel.asm	/^        size = 0;$/;"	d
@@ -451,8 +737,10 @@ size	../mm/buddy_pmm.c	/^    uint32_t size;               \/\/the num of page,bu
 size	../mm/pmm.c	/^        long long size;$/;"	m	struct:e820map::__anon1	file:
 size	../mm/pmm.h	/^    uint32_t size; \/\/ num of PGSIZE$/;"	m	struct:pmm_info
 size_t	../kernel.asm	/^size_t $/;"	l
-size_t	../kernel.asm	/^size_t buddy_pmm_free_pages()$/;"	l
 size_t	../kernel.asm	/^size_t$/;"	l
+sm	../kernel.asm	/^    sm = &swap_manager_lru;$/;"	d
+sm	../mm/swap.c	/^static struct swap_manager *sm;$/;"	v	typeref:struct:swap_manager	file:
+sm_priv	../mm/vmm.h	/^    void *sm_priv;                   \/\/ the private data for swap manager$/;"	m	struct:mm_struct
 specrev	../smp/mp.h	/^  uchar specrev;                \/\/ [14]$/;"	m	struct:mp
 stab	../debug/stabs.h	/^struct stab {$/;"	s
 stab_binsearch	../debug/kdebug.c	/^stab_binsearch(struct stab *stabs, int *region_left, int *region_right,$/;"	f	file:
@@ -460,41 +748,83 @@ start	../kernel.asm	/^                        start = PTE_ADDR(pte[j]);$/;"	d
 start	../mm/pmm.h	/^    uintptr_t start;$/;"	m	struct:pmm_info
 started	../smp/mp.h	/^  volatile uint started;       \/\/ Has the CPU started?$/;"	m	struct:cpu
 static	../kernel.asm	/^static bool is_panic = 0;$/;"	l
+static	../kernel.asm	/^static bool$/;"	l
+static	../kernel.asm	/^static inline list_entry_t *$/;"	l
+static	../kernel.asm	/^static inline struct page *$/;"	l
 static	../kernel.asm	/^static inline uint$/;"	l
+static	../kernel.asm	/^static inline uint32_t $/;"	l
 static	../kernel.asm	/^static inline uint32_t$/;"	l
 static	../kernel.asm	/^static inline uint8_t$/;"	l
+static	../kernel.asm	/^static inline uintptr_t$/;"	l
 static	../kernel.asm	/^static inline void $/;"	l
-static	../kernel.asm	/^static inline void adjust_i(uint32_t i ,uint8_t power)$/;"	l
 static	../kernel.asm	/^static inline void$/;"	l
 static	../kernel.asm	/^static inline void*$/;"	l
 static	../kernel.asm	/^static inline$/;"	l
 static	../kernel.asm	/^static int uart;    \/\/ is there a uart?$/;"	l
 static	../kernel.asm	/^static int$/;"	l
-static	../kernel.asm	/^static pte_t*$/;"	l
+static	../kernel.asm	/^static list_entry_t*$/;"	l
+static	../kernel.asm	/^static size_t$/;"	l
 static	../kernel.asm	/^static struct mp*$/;"	t
 static	../kernel.asm	/^static struct mpconf*$/;"	t
+static	../kernel.asm	/^static struct page *$/;"	t
+static	../kernel.asm	/^static struct page*$/;"	t
 static	../kernel.asm	/^static uchar$/;"	l
 static	../kernel.asm	/^static uint cmos_read(uint reg)$/;"	l
 static	../kernel.asm	/^static uint$/;"	l
+static	../kernel.asm	/^static uint32_t $/;"	l
 static	../kernel.asm	/^static uint32_t$/;"	l
 static	../kernel.asm	/^static uint8_t cursor_x = 0;$/;"	l
 static	../kernel.asm	/^static uint8_t cursor_y = 0;$/;"	l
+static	../kernel.asm	/^static uint8_t$/;"	l
 static	../kernel.asm	/^static void $/;"	l
+static	../kernel.asm	/^static void check_swap(void);$/;"	l
 static	../kernel.asm	/^static void fill_rtcdate(struct rtcdate *r)$/;"	l
 static	../kernel.asm	/^static void move_cursor()$/;"	l
-static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base, int width)$/;"	l
+static	../kernel.asm	/^static void print_int(void (*putch)(char),int num, int base, int width, char epch)$/;"	l
 static	../kernel.asm	/^static void putch(char ch)$/;"	l
 static	../kernel.asm	/^static void scroll()$/;"	l
 static	../kernel.asm	/^static void$/;"	l
+static_assert	../debug/kdebug.h	22;"	d
 str	../kernel.asm	/^                   str = va_arg(ap, char*);$/;"	d
 sum	../kernel.asm	/^  sum = 0;$/;"	d
 sum	../smp/mp.c	/^sum(uchar *addr, int len)$/;"	f	file:
-switchkvm	../mm/vm.c	/^switchkvm(void)$/;"	f
+swap_in	../mm/swap.c	/^swap_in(struct mm_struct *mm, uintptr_t addr, struct page **ptr_result)$/;"	f
+swap_in	../mm/swap.h	/^int swap_in(struct mm_struct *mm, uintptr_t addr, struct page **ptr_result);$/;"	p
+swap_init	../mm/swap.c	/^swap_init(void)$/;"	f
+swap_init	../mm/swap.h	/^bool swap_init(void);$/;"	p
+swap_init_mm	../mm/swap.c	/^swap_init_mm(struct mm_struct *mm)$/;"	f
+swap_init_mm	../mm/swap.h	/^int swap_init_mm(struct mm_struct *mm);$/;"	p
+swap_init_ok	../kernel.asm	/^        swap_init_ok = 1;$/;"	d
+swap_init_ok	../mm/swap.c	/^volatile bool  swap_init_ok = 0;$/;"	v
+swap_manager	../mm/swap.h	/^struct swap_manager$/;"	s
+swap_manager_lru	../mm/swap_lru.c	/^struct swap_manager swap_manager_lru =$/;"	v	typeref:struct:swap_manager
+swap_map_swappable	../mm/swap.c	/^swap_map_swappable(struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in)$/;"	f
+swap_map_swappable	../mm/swap.h	/^int swap_map_swappable(struct mm_struct *mm, uintptr_t addr, struct page *page, int swap_in);$/;"	p
+swap_offset	../mm/swap.h	26;"	d
+swap_out	../mm/swap.c	/^swap_out(struct mm_struct *mm, int n, int in_tick)$/;"	f
+swap_out	../mm/swap.h	/^int swap_out(struct mm_struct *mm, int n, int in_tick);$/;"	p
+swap_out_num	../mm/swap.c	/^volatile unsigned int swap_out_num=0;$/;"	v
+swap_out_victim	../mm/swap.h	/^     bool (*swap_out_victim) (struct mm_struct *mm, struct page **ptr_page, int in_tick);$/;"	m	struct:swap_manager
+swap_set_unswappable	../mm/swap.c	/^swap_set_unswappable(struct mm_struct *mm, uintptr_t addr)$/;"	f
+swap_set_unswappable	../mm/swap.h	/^int swap_set_unswappable(struct mm_struct *mm, uintptr_t addr);$/;"	p
+swap_tick_event	../mm/swap.c	/^swap_tick_event(struct mm_struct *mm)$/;"	f
+swap_tick_event	../mm/swap.h	/^int swap_tick_event(struct mm_struct *mm);$/;"	p
+swapfs_init	../fs/swapfs.c	/^swapfs_init(void) {$/;"	f
+swapfs_init	../fs/swapfs.h	/^void swapfs_init(void);$/;"	p
+swapfs_read	../fs/swapfs.c	/^swapfs_read(swap_entry_t entry, struct page *page) {$/;"	f
+swapfs_read	../fs/swapfs.h	/^int swapfs_read(swap_entry_t entry, struct page *page);$/;"	p
+swapfs_write	../fs/swapfs.c	/^swapfs_write(swap_entry_t entry, struct page *page) {$/;"	f
+swapfs_write	../fs/swapfs.h	/^int swapfs_write(swap_entry_t entry, struct page *page);$/;"	p
+switchkvm	../mm/vmm.c	/^switchkvm(void)$/;"	f
+tick_event	../mm/swap.h	/^     int (*tick_event)      (struct mm_struct *mm);$/;"	m	struct:swap_manager
 ticks	../trap/trap.c	/^uint ticks;$/;"	v
+tlb_invalidate	../mm/pmm.c	/^tlb_invalidate(pde_t *pgdir, uintptr_t la) {$/;"	f
+tlb_invalidate	../mm/pmm.h	/^tlb_invalidate(pde_t *pgdir, uintptr_t la);$/;"	p
 tmp	../kernel.asm	/^       tmp = n[i];$/;"	d
-tmp	../kernel.asm	/^     tmp  = ROUNDUP(fix_size(pg_size) * 2 - 1 + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); $/;"	d
+tmp	../kernel.asm	/^     tmp  = ROUNDUP((fix_size(pg_size) * 2 - 1) * sizeof(struct page) + BUDDY_SIZE_EXCEPT_VAL + p_start  , PGSIZE); $/;"	d
 tmp	../kernel.asm	/^    tmp = stab_begin[left].n_strx + strst_begin;$/;"	d
 tmplen	../kernel.asm	/^    tmplen = strfind(tmp,':') - tmp;$/;"	d
+togglecode	../driver/kbd.c	/^static uint8_t togglecode[256] = {$/;"	v	file:
 trap	../trap/trap.c	/^trap(struct trapframe *tf)$/;"	f
 trapret	../kernel.asm	/^trapret:$/;"	l
 trapret	../trap/trapasm.S	/^trapret:$/;"	l
@@ -511,14 +841,15 @@ uartinit	../driver/uart.c	/^uartinit(void)$/;"	f
 uartinit	../driver/uart.h	/^uartinit(void);$/;"	p
 uartputc	../driver/uart.c	/^uartputc(int c)$/;"	f
 uartputc	../driver/uart.h	/^uartputc(int c);$/;"	p
-uint32_t	../kernel.asm	/^uint32_t $/;"	l
 uint32_t	../kernel.asm	/^uint32_t i2page_off(uint32_t i, uint32_t size)$/;"	l
 uint32_t	../kernel.asm	/^uint32_t ret_val32(uint8_t val)$/;"	l
-uint8_t	../kernel.asm	/^uint8_t fastlog2(int x)$/;"	l
+uint32_t	../kernel.asm	/^uint32_t$/;"	l
+uintptr_t	../kernel.asm	/^uintptr_t$/;"	l
 unum	../kernel.asm	/^        unum = -num;$/;"	d
 unum	../kernel.asm	/^        unum = num; $/;"	d
 va_ed	../kernel.asm	/^    va_ed = va_st + size;$/;"	d
-val	../mm/buddy_pmm.c	/^    uint8_t val[1];              \/\/a val describe a page$/;"	m	struct:buddy	file:
+val	../mm/pmm.h	/^    uint8_t val;$/;"	m	struct:page
+valid	../driver/ide.c	/^    unsigned char valid;        \/\/ 0 or 1 (If Device Really Exists)$/;"	m	struct:ide_device	file:
 vcprintf	../libs/stdio.c	/^int vcprintf(const char *fmt, va_list ap)$/;"	f
 vector0	../kernel.asm	/^vector0:$/;"	l
 vector0	../trap/vectors.S	/^vector0:$/;"	l
@@ -1037,7 +1368,19 @@ version	../smp/mp.h	/^  uchar version;                \/\/ I\/O APIC version$/;"
 version	../smp/mp.h	/^  uchar version;                \/\/ [14]$/;"	m	struct:mpconf
 version	../smp/mp.h	/^  uchar version;                \/\/ local APIC verison$/;"	m	struct:mpproc
 video_memory	../driver/console.c	/^static uint16_t *video_memory = (uint16_t*)P2V(0xB8000);$/;"	v	file:
-virt	../mm/vm.c	/^    uintptr_t virt;$/;"	m	struct:kmap	file:
+virt	../mm/vmm.c	/^    uintptr_t virt;$/;"	m	struct:kmap	file:
+vm_end	../mm/vmm.h	/^    uintptr_t vm_end;        \/\/ end addr of vma$/;"	m	struct:vma_struct
+vm_flags	../mm/vmm.h	/^    uint32_t vm_flags;       \/\/ flags of vma$/;"	m	struct:vma_struct
+vm_mm	../mm/vmm.h	/^    struct mm_struct *vm_mm; \/\/ the set of vma using the same PDT$/;"	m	struct:vma_struct	typeref:struct:vma_struct::mm_struct
+vm_start	../mm/vmm.h	/^    uintptr_t vm_start;      \/\/    start addr of vma$/;"	m	struct:vma_struct
+vma	../kernel.asm	/^                    vma = NULL;$/;"	d
+vma	../kernel.asm	/^                    vma = le2vma(le, list_link);$/;"	d
+vma	../kernel.asm	/^        vma = mm->mmap_cache;$/;"	d
+vma_create	../mm/vmm.c	/^vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags) {$/;"	f
+vma_create	../mm/vmm.h	/^struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags);$/;"	p
+vma_struct	../mm/vmm.h	/^struct vma_struct {$/;"	s
+vmm_init	../mm/vmm.c	/^vmm_init(void) {$/;"	f
+vmm_init	../mm/vmm.h	/^void vmm_init(void);$/;"	p
 void	../kernel.asm	/^void  $/;"	l
 void	../kernel.asm	/^void $/;"	l
 void	../kernel.asm	/^void cmostime(struct rtcdate *r)$/;"	l
@@ -1046,6 +1389,9 @@ void	../kernel.asm	/^void console_putc(char cstr)$/;"	l
 void	../kernel.asm	/^void console_putc_color(char c,real_color_t back, real_color_t fore)$/;"	l
 void	../kernel.asm	/^void swap(void *a,void *b,int sz)$/;"	l
 void	../kernel.asm	/^void$/;"	l
+volatile	../kernel.asm	/^volatile unsigned int pgfault_num=0;$/;"	l
+volatile	../kernel.asm	/^volatile unsigned int swap_out_num=0;$/;"	l
+width	../kernel.asm	/^                       width = width * 10 +  ch - '0';$/;"	d
 width	../kernel.asm	/^                   width = 0;$/;"	d
 width	../kernel.asm	/^                   width = width * 10 +  ch - '0';$/;"	d
 wrv	../kernel.asm	/^  wrv = (ushort*)P2V((0x40<<4 | 0x67));  \/\/ Warm reset vector$/;"	d

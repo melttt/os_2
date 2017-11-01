@@ -360,6 +360,7 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
     *p_start = buddy->beginning_addr;
     *pg_size = buddy->pg_size;
 
+    cprintf("buddy init ok!");
 }
 
 static size_t

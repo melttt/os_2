@@ -2,6 +2,8 @@
 #include "pmm.h"
 #include "x86.h"
 #include "mmu.h"
+#include "vmm.h"
+#include "swap.h"
 #include "kdebug.h"
 #include "stdio.h"
 #include "buddy_pmm.h"
@@ -138,11 +140,23 @@ kfree(void *n)
 struct page*
 alloc_page()
 {
-   uint32_t offset = pmm_manager->alloc_pages(1);
-   if(offset != ALLOC_FALSE)
-       return pmm_manager->ret_page_addr(offset);  
-   else
-       return NULL;
+   uint32_t offset;
+   while(1)
+   {
+       offset = pmm_manager->alloc_pages(1);
+       if (offset != ALLOC_FALSE || swap_init_ok == 0) break;
+       extern struct mm_struct *check_mm_struct;
+       //cprintf("page %x, call swap_out in alloc_pages %d\n",page, n);
+       swap_out(check_mm_struct, 1, 0);
+   }
+   if(offset != ALLOC_FALSE && swap_init_ok == 1)
+   {
+       struct page* page = pmm_manager->ret_page_addr(offset);  
+       page->pra_vaddr = (uintptr_t)offset2kva(offset);
+       page->pgdir = kpgdir;
+   }
+
+   return offset != ALLOC_FALSE ? pmm_manager->ret_page_addr(offset) : NULL;
 }
 //free one page
 void
@@ -150,9 +164,11 @@ free_page(struct page* page)
 {
     assert(page >= pmm_manager->ret_page_addr(0));
     uint32_t offset = page - pmm_manager->ret_page_addr(0);
+    page->pra_vaddr = 0;
+    page->pgdir = NULL;
     pmm_manager->free_pages(offset);
 }
-void*
+inline void*
 page2kva(struct page* page)
 {
     assert(page >= pmm_manager->ret_page_addr(0));
@@ -160,14 +176,24 @@ page2kva(struct page* page)
     return offset2kva(offset);
 }
 
-struct page*
+inline struct page*
 kva2page(void *va)
 {
     uint32_t offset = kva2offset(va);
     return pmm_manager->ret_page_addr(offset);
 }
 
+uintptr_t
+page2pa(struct page* page)
+{
+    return V2P(page2kva(page));
+}
 
+struct page*
+pa2page(uintptr_t pa)
+{
+    return kva2page(P2V(pa));
+}
 
 size_t
 nr_free_pages(void){
@@ -189,6 +215,7 @@ init_pmm(void)
     pmm_manager = &buddy_pmm_manager;
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
 
+    cprintf("pmm init ok !\n");
     assert(pmm_info.size != 0 );
     vmm_init();
 }
