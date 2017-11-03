@@ -5,13 +5,12 @@
 #include "list.h"
 #include "memlayout.h"
 
-int32_t
-init_kvm(void);
-void
-seginit(void);
+int32_t init_kvm(void);
+void seginit(void);
 
 extern pte_t *kpgdir;
 extern volatile unsigned int pgfault_num;
+
 /******************************************************************************/
 
 
@@ -42,21 +41,21 @@ struct mm_struct {
     void *sm_priv;                   // the private data for swap manager
 };
 
+//vmm 
 struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);
 struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags);
 void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);
 
+//mm
 struct mm_struct *mm_create(void);
 void mm_destroy(struct mm_struct *mm);
 
-void vmm_init(void);
-int
-do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
-pte_t*
-read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
-void
-page_remove(pde_t *pgdir, uintptr_t la);
+//function when page default
+int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
 
-void
-check_vmm(void);
+//page init
+void vmm_init(void);
+pte_t* read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
+void page_remove(pde_t *pgdir, uintptr_t la);
+void check_vmm(void);
 #endif

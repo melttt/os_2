@@ -24,6 +24,7 @@ static struct kmap {
     { (uintptr_t)data,     V2P(data),     0,   PTE_W}, // kern data+memory
     { DEVSPACE, DEVSPACE,      0,         PTE_W}, // more devices
 };
+
 pte_t *kpgdir;
 
 static inline struct page *
@@ -43,6 +44,10 @@ pde2page(pte_t pte) {
     return pa2page((pte) & ~0xFFF);
 }
 
+
+/**************************************PAGE***********************************/
+
+//sub fuction for page_remove
 static inline void
 page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
     if (*ptep & PTE_P) {
@@ -62,6 +67,7 @@ page_remove(pde_t *pgdir, uintptr_t la) {
     }
 }
 
+//insert page with page and perm in la
 int
 page_insert(pde_t *pgdir, struct page *page, uintptr_t la, uint32_t perm) {
     pte_t *ptep = read_pte_addr(pgdir, la, 1);
@@ -84,7 +90,6 @@ page_insert(pde_t *pgdir, struct page *page, uintptr_t la, uint32_t perm) {
     return 0;
 }
 
-
 static struct page *
 pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
     struct page *page = alloc_page();
@@ -106,7 +111,8 @@ pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
 
     return page;
 }
-//
+
+
 pte_t*
 read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)
 {
@@ -293,7 +299,8 @@ seginit(void)
 /*************************************************************************************/
 
 
-/**************************************VMA********************************************/
+/**************************************VMA&MM********************************************/
+
 // vma_create - alloc a vma_struct & initialize it. (addr range: vm_start~vm_end)
 struct vma_struct *
 vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags) {
@@ -421,6 +428,10 @@ vmm_init(void) {
     //should after ide_init()
 //    check_vmm();
 }
+
+
+
+
 // check_vmm - check correctness of vmm
 void
 check_vmm(void) {
@@ -436,6 +447,7 @@ check_vmm(void) {
 
 
 
+//check vmm and mm structure
 static void
 check_vma_struct(void) {
     size_t nr_free_pages_store = nr_free_pages();
@@ -543,6 +555,8 @@ check_pgfault(void) {
 }
 
 volatile unsigned int pgfault_num=0;
+
+//page fault fuction
 int
 do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     int ret = -1;

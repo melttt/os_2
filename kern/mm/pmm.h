@@ -38,41 +38,25 @@ struct page{
 
 
 extern struct pmm_info pmm_info;
-void 
-init_pmm(void);
-void*
-alloc_pages(size_t n);
-void
-free_pages(void *n);
-void*
-kmalloc(size_t n);
-void
-kfree(void *n);
+void init_pmm(void);
+void* alloc_pages(size_t n);
+void free_pages(void *n);
+void *kmalloc(size_t n);
+void kfree(void *n);
 
-size_t
-nr_free_pages(void);
+size_t nr_free_pages(void);
 
-uint32_t
-get_page_offset(struct page* page);
+uint32_t get_page_offset(struct page* page);
 
-struct page*
-kva2page(void *va);
+struct page* kva2page(void *va);
 
-void*
-page2kva(struct page* page);
+void *page2kva(struct page* page);
 
-uintptr_t
-page2pa(struct page* page);
-
-struct page*
-pa2page(uintptr_t pa);
-void
-free_page(struct page* page);
-
-void
-tlb_invalidate(pde_t *pgdir, uintptr_t la);
-struct page*
-alloc_page();
+uintptr_t page2pa(struct page* page);
+struct page* pa2page(uintptr_t pa);
+void free_page(struct page* page);
+void tlb_invalidate(pde_t *pgdir, uintptr_t la);
+struct page* alloc_page();
 
 #if 0
 // convert list entry to page
