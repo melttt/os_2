@@ -9,6 +9,10 @@
 #include "swap_lru.h"
 #include "kdebug.h"
 
+
+extern pte_t* read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
+extern void page_remove(pde_t *pgdir, uintptr_t la);
+
 volatile bool  swap_init_ok = 0;
 size_t max_swap_offset;
 static struct swap_manager *sm;
@@ -136,7 +140,7 @@ swap_in(struct mm_struct *mm, uintptr_t addr, struct page **ptr_result)
      }
      cprintf("swap_in: load disk swap entry %d with swap_page in vadr 0x%x\n", (*ptep)>>8, addr);
      *ptr_result=result;
-     return 0;
+     return 1;
 }
 
 

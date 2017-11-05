@@ -47,6 +47,26 @@ pde2page(pte_t pte) {
 
 /**************************************PAGE***********************************/
 
+pte_t*
+read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)
+{
+    pde_t* pde = &pgdir[PDX(va)];
+    pte_t* pte; 
+    if(*pde & PTE_P)
+    {
+       pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); 
+    }else{
+       if(!alloc || (pte = (pte_t*)alloc_pages(1)) == NULL)
+            return NULL;
+       //make sure PTE_P bits are zero.
+       memset(pte, 0 ,PGSIZE);
+       assert(((uint32_t)pte & 0x3ff) == 0);
+       //PTE_U maybe dangerous,but it is very convenient to create user's page table(just copy it).
+       *pde = PTE_ADDR(V2P(pte)) | PTE_P | PTE_W | PTE_U ;   
+    }
+    return &pte[PTX(va)];
+}
+
 //sub fuction for page_remove
 static inline void
 page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
@@ -113,25 +133,6 @@ pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
 }
 
 
-pte_t*
-read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc)
-{
-    pde_t* pde = &pgdir[PDX(va)];
-    pte_t* pte; 
-    if(*pde & PTE_P)
-    {
-       pte = (pte_t*)P2V_WO(PTE_ADDR(*pde)); 
-    }else{
-       if(!alloc || (pte = (pte_t*)alloc_pages(1)) == NULL)
-            return NULL;
-       //make sure PTE_P bits are zero.
-       memset(pte, 0 ,PGSIZE);
-       assert(((uint32_t)pte & 0x3ff) == 0);
-       //PTE_U maybe dangerous,but it is very convenient to create user's page table(just copy it).
-       *pde = PTE_ADDR(V2P(pte)) | PTE_P | PTE_W | PTE_U ;   
-    }
-    return &pte[PTX(va)];
-}
 
 
 static int
@@ -414,27 +415,28 @@ mm_destroy(struct mm_struct *mm) {
     mm=NULL;
 }
 
-static void
-check_vma_struct(void);
-static void
-check_pgfault(void);
 
 void
 vmm_init(void) {
     init_kvm();
     seginit();
-
-
     //should after ide_init()
 //    check_vmm();
 }
 
+#if 0
+static void
+check_vma_struct(void);
+static void
+check_pgfault(void);
+#endif
 
 
 
 // check_vmm - check correctness of vmm
 void
 check_vmm(void) {
+#if 0
     swap_init();
     size_t nr_free_pages_store = nr_free_pages();
     check_vma_struct();
@@ -443,9 +445,10 @@ check_vmm(void) {
     assert(nr_free_pages_store == nr_free_pages());
 
     cprintf("check_vmm() succeeded.\n");
+#endif
 }
 
-
+#if 0
 
 //check vmm and mm structure
 static void
@@ -522,7 +525,7 @@ check_pgfault(void) {
     pde_t *pgdir = mm->pgdir = kpgdir;
     assert(pgdir[0] == 0);
 
-    struct vma_struct *vma = vma_create(0, PGSIZE * 1024, VM_WRITE);
+    struct vma_struct *vma = vma_create(0, PGSIZE * 1024, VM_WRITE | VM_READ );
     assert(vma != NULL);
 
     insert_vma_struct(mm, vma);
@@ -530,6 +533,7 @@ check_pgfault(void) {
     uintptr_t addr = 0x100;
     assert(find_vma(mm, addr) == vma);
 
+    // test1
     int i, sum = 0;
     for (i = 0; i < 100; i ++) {
         *(char *)(addr + i) = i;
@@ -538,8 +542,16 @@ check_pgfault(void) {
     for (i = 0; i < 100; i ++) {
         sum -= *(char *)(addr + i);
     }
-
     assert(sum == 0);
+    page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
+
+    //test2
+    pte_t* tmp = read_pte_addr(pgdir,0,0);
+    *tmp = 0 << 8 | 4;
+    tlb_invalidate(kpgdir,0x100);
+
+    tmp = read_pte_addr(pgdir,0,0);
+    assert(*(int*)(0x100) == SWAP_MAGIC_NUM );
 
     page_remove(pgdir, ROUNDDOWN(addr, PGSIZE));
     free_page(pde2page(pgdir[0]));
@@ -553,7 +565,7 @@ check_pgfault(void) {
 
     cprintf("check_pgfault() succeeded!\n");
 }
-
+#endif
 volatile unsigned int pgfault_num=0;
 
 //page fault fuction
@@ -609,7 +621,6 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
         cprintf("get_pte in do_pgfault failed\n");
         goto failed;
     }
-
     if (*ptep == 0) { // if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
         if (pgdir_alloc_page(mm->pgdir, addr, perm) == NULL) {
             cprintf("pgdir_alloc_page in do_pgfault failed\n");

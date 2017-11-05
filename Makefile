@@ -47,7 +47,7 @@ ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
 
-os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel
+os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel swap.img
 	dd if=/dev/zero of=os.img count=10000
 	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
 	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc

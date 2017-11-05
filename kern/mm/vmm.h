@@ -53,9 +53,10 @@ void mm_destroy(struct mm_struct *mm);
 //function when page default
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
 
-//page init
+//page fuction
 void vmm_init(void);
+void check_vmm(void);
 pte_t* read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
 void page_remove(pde_t *pgdir, uintptr_t la);
-void check_vmm(void);
+
 #endif

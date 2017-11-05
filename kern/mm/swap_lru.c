@@ -54,7 +54,11 @@ _lru_swap_cleanup(struct mm_struct *mm, int32_t cleanup_len)
     for(i = 0, delt = 0 ; i < busy_i ; i ++,le = le->next)
     {
        struct page *page = le2page(le, pra_page_link);
-       assert(page->pgdir != NULL);
+       if(page->pgdir == NULL){
+           list_del(le);
+           p->busy_count --;
+           continue;
+       }
        pte_t* ptep = read_pte_addr(page->pgdir, page->pra_vaddr, 0);
        assert((*ptep & PTE_P) != 0);
        if(!(*ptep & PTE_A || *ptep & PTE_D))
@@ -72,6 +76,11 @@ _lru_swap_cleanup(struct mm_struct *mm, int32_t cleanup_len)
     for(i = 0, delt = 0 ; i < free_i ; i ++,le = le->next)
     {
        struct page *page = le2page(le, pra_page_link);
+       if(page->pgdir == NULL){
+           list_del(le);
+           p->free_count --;
+           continue;
+       }
        assert(page->pgdir != NULL);
        pte_t* ptep = read_pte_addr(page->pgdir, page->pra_vaddr, 0);
        assert(*ptep & PTE_P);
