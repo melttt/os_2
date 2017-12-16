@@ -54,7 +54,8 @@ _lru_swap_cleanup(struct mm_struct *mm, int32_t cleanup_len)
     for(i = 0, delt = 0 ; i < busy_i ; i ++,le = le->next)
     {
        struct page *page = le2page(le, pra_page_link);
-       if(page->pgdir == NULL){
+       if(page->pgdir == NULL)
+       {
            list_del(le);
            p->busy_count --;
            continue;
@@ -76,7 +77,8 @@ _lru_swap_cleanup(struct mm_struct *mm, int32_t cleanup_len)
     for(i = 0, delt = 0 ; i < free_i ; i ++,le = le->next)
     {
        struct page *page = le2page(le, pra_page_link);
-       if(page->pgdir == NULL){
+       if(page->pgdir == NULL)
+       {
            list_del(le);
            p->free_count --;
            continue;

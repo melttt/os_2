@@ -141,4 +141,8 @@ mpinit(void)
 //  cprintf("smp : %d , cpu_num : %d , lapic_addr: 0x%x\n", ismp, ncpu ,(uint)lapic);
 }
 
+uint32_t get_cpu(void)
+{
+    return 1;
+}
 

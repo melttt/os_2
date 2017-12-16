@@ -75,5 +75,5 @@ extern int   ismp;
 extern uchar ioapicid;
 extern struct cpu cpus[NCPU];
 extern int ncpu;
-
+size_t get_cpu(void);
 #endif
