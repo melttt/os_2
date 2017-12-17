@@ -7,6 +7,7 @@
 #include "kdebug.h"
 #include "stdio.h"
 #include "buddy_pmm.h"
+#include "kmalloc.c"
 /**************************E820MAP***************************/
 struct pmm_info pmm_info = {
     .size = 0,
@@ -123,17 +124,6 @@ free_pages(void *n)
     pmm_manager->free_pages(offset);
 }
 
-void*
-kmalloc(size_t n)
-{
-    return alloc_pages( (PGSIZE + n - 1) / PGSIZE );
-}
-
-void
-kfree(void *n)
-{
-    free_pages(n);
-}
 
 // function for one page
 //alloc one page

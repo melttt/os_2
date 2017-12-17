@@ -9,8 +9,6 @@
 #define BUFSIZE 4096
 #define to_slab(ptr) to_struct(ptr, struct kmm_slab, list)
 
-static bool kmm_slab_grow(kmm_cache_t cache);
-static void kmm_slab_destroy(kmm_slab_t slab);
 static void kmm_slab_add_buf(kmm_slab_t slab, void *addr);
 static void adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status);
 static bufctl_t kmm_pull_buf(kmm_slab_t slab);
@@ -19,12 +17,13 @@ static kmm_status get_status(kmm_slab_t slab);
 
 
 kmm_cache_t
-kmm_cache_create(size_t size)
+kmm_cache_create(const char *name,size_t size)
 {
     kmm_cache_t t = (kmm_cache_t)MALLOC(sizeof(struct kmm_cache));
     size_t i;
     if(!t) return NULL;
     t->size = size;
+    t->name = name;
     for(i = 0 ; i < NCPU ; i ++)
     {
         list_init(&t->slab_list_cpu[i].slab_used);
@@ -136,8 +135,9 @@ adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status)
 }
 
 void *
-kmm_alloc(kmm_cache_t cache )
+kmm_alloc(kmm_cache_t cache)
 {
+    assert(cache);
     list_entry_t *l_used = &cache->slab_list_cpu[get_cpu()].slab_used;
     list_entry_t *l_free = &cache->slab_list_cpu[get_cpu()].slab_free;
     kmm_slab_t slab;

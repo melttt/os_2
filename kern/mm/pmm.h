@@ -43,8 +43,6 @@ void init_pmm(void);
 //alloc and free
 void* alloc_pages(size_t n);
 void free_pages(void *n);
-void *kmalloc(size_t n);
-void kfree(void *n);
 size_t nr_free_pages(void);
 void free_page(struct page* page);
 struct page* alloc_page();

@@ -12,6 +12,7 @@ typedef enum{
 }kmm_status;
 
 struct kmm_cache{
+    const char *name;
     size_t size;
     struct{
         list_entry_t slab_used;
@@ -40,8 +41,10 @@ typedef struct bufctl *bufctl_t;
 
 
 
-kmm_cache_t kmm_cache_create(size_t size);
+kmm_cache_t kmm_cache_create(const char *name, size_t size);
 bool kmm_cache_destroy(kmm_cache_t cache);
+bool kmm_slab_grow(kmm_cache_t cache);
+void kmm_slab_destroy(kmm_slab_t slab);
 void* kmm_alloc(kmm_cache_t cache);
 void kmm_free(bufctl_t addr);
 
