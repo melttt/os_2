@@ -2,31 +2,42 @@
 #include "slab.h"
 #include "pmm.h"
 #include "mp.h"
+#include "kdebug.h"
 
-#define MALLOC(a) malloc(a)
-#define FREE(a) free(a)
+#define MALLOC(a) kmalloc(a)
+#define FREE(a) kfree(a)
 #define BUFSIZE 4096
 #define to_slab(ptr) to_struct(ptr, struct kmm_slab, list)
 
+static bool kmm_slab_grow(kmm_cache_t cache);
+static void kmm_slab_destroy(kmm_slab_t slab);
+static void kmm_slab_add_buf(kmm_slab_t slab, void *addr);
+static void adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status);
+static bufctl_t kmm_pull_buf(kmm_slab_t slab);
+static void kmm_push_buf(kmm_slab_t slab, bufctl_t buf);
+static kmm_status get_status(kmm_slab_t slab);
 
-kmm_cache_t kmm_cache_create(size_t size)
+
+kmm_cache_t
+kmm_cache_create(size_t size)
 {
     kmm_cache_t t = (kmm_cache_t)MALLOC(sizeof(struct kmm_cache));
     size_t i;
+    if(!t) return NULL;
     t->size = size;
     for(i = 0 ; i < NCPU ; i ++)
     {
-        list_init(t->slab_list_cpu[i].slab_used);
-        list_init(t->slab_list_cpu[i].slab_free);
+        list_init(&t->slab_list_cpu[i].slab_used);
+        list_init(&t->slab_list_cpu[i].slab_free);
     }
     return t;
 }
 
-
-bool kmm_cache_destroy(kmm_cache_t cache)
+bool
+kmm_cache_destroy(kmm_cache_t cache)
 {
-    list_entry_t *l_used = &cache->slab_list_cpu(get_cpu()).slab_used;
-    list_entry_t *l_free = &cache->slab_list_cpu(get_cpu()).slab_free;
+    list_entry_t *l_used = &cache->slab_list_cpu[get_cpu()].slab_used;
+    list_entry_t *l_free = &cache->slab_list_cpu[get_cpu()].slab_free;
     list_entry_t *le,*tmp;
     assert(list_empty(l_used));
     if(!list_empty(l_free)){
@@ -40,27 +51,32 @@ bool kmm_cache_destroy(kmm_cache_t cache)
         }
     }
     FREE(cache);
+    return true;
 }
-static void kmm_slab_destroy(kmm_slab_t slab)
+
+static void
+kmm_slab_destroy(kmm_slab_t slab)
 {
+    assert(slab->status == KMM_FREE_LIST);
     list_del_init(&slab->list);
     FREE(slab->buffer);
     FREE(slab);
 }
 
 
-bool kmm_slab_grow(kmm_cache_t cache)
+static bool
+kmm_slab_grow(kmm_cache_t cache)
 {
     kmm_slab_t slab = (kmm_slab_t)MALLOC(sizeof(struct kmm_slab)); 
     size_t var;
-    size_t size = cache->size + sizeof(struct bufctl):
+    size_t size = cache->size + sizeof(struct bufctl);
 
     if(slab == NULL && size > BUFSIZE){
         goto slab_fail;
     } 
 
     slab->cache = cache;
-    if(slab->buffer = MALLOC(BUFSIZE))
+    if(!(slab->buffer = MALLOC(BUFSIZE)))
     {
         goto buf_fail;
     }
@@ -69,9 +85,9 @@ bool kmm_slab_grow(kmm_cache_t cache)
     slab->next_free = NULL;
     for(var = 0 ; var < slab->free_count ; var ++)
     {
-        __slab_add_buf(slab, slab->buffer + size*var);
+        kmm_slab_add_buf(slab, slab->buffer + size*var);
     }
-
+    slab->status = KMM_FREE_LIST;
     adjust_slab_list(cache, slab, KMM_FREE_LIST);
     return true;
 buf_fail:
@@ -80,21 +96,22 @@ slab_fail:
     return false;
 }
 
-static void __slab_add_buf(kmm_slab_t slab, void *addr)
+static void
+kmm_slab_add_buf(kmm_slab_t slab, void *addr)
 {
    bufctl_t buf = (bufctl_t)addr;  
    buf->slab = slab;
    buf->addr = (buf + 1);
    buf->next = slab->next_free;
-   
    slab->next_free = buf;
 }
 
-static void adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status)
+static void
+adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status)
 {
-    list_t *l_head;
+    list_entry_t *l_head;
     size_t i_cpu = get_cpu();
-    assert(slab && cache)
+    assert(slab && cache);
     slab->status = status;
     switch(status)
     {
@@ -118,13 +135,13 @@ static void adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status stat
     slab->cache = cache;
 }
 
-void *kmem_cache_alloc(kmem_cache_t cache )
+void *
+kmm_alloc(kmm_cache_t cache )
 {
-    list_entry_t *l_used = &cache->slab_list_cpu(get_cpu()).slab_used;
-    list_entry_t *l_free = &cache->slab_list_cpu(get_cpu()).slab_free;
+    list_entry_t *l_used = &cache->slab_list_cpu[get_cpu()].slab_used;
+    list_entry_t *l_free = &cache->slab_list_cpu[get_cpu()].slab_free;
     kmm_slab_t slab;
     bufctl_t buf;
-    void *ret;
 
     if(!list_empty(l_used))
     {
@@ -135,7 +152,7 @@ void *kmem_cache_alloc(kmem_cache_t cache )
     }else{
         if(!kmm_slab_grow(cache))
         {
-            return NULL
+            return NULL;
         }
         slab = to_slab(l_free);
     }
@@ -145,9 +162,11 @@ void *kmem_cache_alloc(kmem_cache_t cache )
     return buf->addr;
 }
 
-inline static kmm_status get_status(kmm_slab_t slab)
+inline static kmm_status
+get_status(kmm_slab_t slab)
 {
-    size_t count = BUFSIZE / (cache->size + sizeof(struct bufctl)); 
+    assert(slab && slab->cache);
+    size_t count = BUFSIZE / (slab->cache->size + sizeof(struct bufctl)); 
     assert(slab->free_count <= count && slab->free_count >= 0);
     if(count == slab->free_count)
     {
@@ -160,7 +179,8 @@ inline static kmm_status get_status(kmm_slab_t slab)
     }
 }
 
-bufctrl_t kmm_pull_buf(kmm_slab_t slab)
+static bufctl_t
+kmm_pull_buf(kmm_slab_t slab)
 {
     bufctl_t ret;
     assert(slab->next_free);
@@ -171,18 +191,21 @@ bufctrl_t kmm_pull_buf(kmm_slab_t slab)
     return ret;
 }
 
-void kmm_push_buf(kmm_slab_t slab, bufctrl_t buf)
+static void
+kmm_push_buf(kmm_slab_t slab, bufctl_t buf)
 {
     buf->next = slab->next_free;
     slab->next_free = buf;
     slab->free_count ++;
-    slab->status = get_status();
+    slab->status = get_status(slab);
 }
-void kmm_free(bufctl_t addr)
+
+void
+kmm_free(bufctl_t addr)
 {
     assert(addr->slab && addr->slab->cache);
     kmm_cache_t cache = addr->slab->cache;
     kmm_push_buf(addr->slab, addr); 
-    adjust_slab_list(cache, addr->slab, addr->slab->status;
+    adjust_slab_list(cache, addr->slab, addr->slab->status);
 }
 

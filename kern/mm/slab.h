@@ -1,7 +1,8 @@
+#ifndef __KERN_SLAB_H_
+#define __KERN_SLAB_H_
 #include "defs.h"
 #include "list.h"
-#include "pmm.h"
-#include "kdebug.h"
+#include "param.h"
 //void* alloc_pages(size_t n);
 //void free_pages(void *n);
 typedef enum{
@@ -19,24 +20,29 @@ struct kmm_cache{
 };
 typedef struct kmm_cache *kmm_cache_t;
 
+struct bufctl;
 struct kmm_slab{
     kmm_status status;
-    struct kmm_cache_t cache;
+    kmm_cache_t cache;
     int32_t free_count;
     void *buffer;
     list_entry_t list;
-    struct bufctl next_free;
+    struct bufctl* next_free;
 };
 typedef struct kmm_slab *kmm_slab_t;
 
 struct bufctl{
     struct bufctl *next;
-    kmm_slab_t *slab;
+    kmm_slab_t slab;
     void *addr;
 };
 typedef struct bufctl *bufctl_t;
 
 
 
+kmm_cache_t kmm_cache_create(size_t size);
+bool kmm_cache_destroy(kmm_cache_t cache);
+void* kmm_alloc(kmm_cache_t cache);
+void kmm_free(bufctl_t addr);
 
-
+#endif
