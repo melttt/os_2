@@ -4,6 +4,7 @@
 #include "memlayout.h"
 #include "vmm.h"
 #include "list.h"
+#include "kmalloc.h"
 
 #define ALLOC_FALSE -1
 struct page;

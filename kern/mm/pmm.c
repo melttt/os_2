@@ -7,7 +7,6 @@
 #include "kdebug.h"
 #include "stdio.h"
 #include "buddy_pmm.h"
-#include "kmalloc.c"
 /**************************E820MAP***************************/
 struct pmm_info pmm_info = {
     .size = 0,
@@ -208,6 +207,8 @@ init_pmm(void)
     cprintf("pmm init ok !\n");
     assert(pmm_info.size != 0 );
     vmm_init();
+    init_slab_allocator();
+    slab_allocator_test();   
 }
 
 

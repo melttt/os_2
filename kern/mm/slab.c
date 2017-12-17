@@ -3,6 +3,7 @@
 #include "pmm.h"
 #include "mp.h"
 #include "kdebug.h"
+#include "stdio.h"
 
 #define MALLOC(a) kmalloc(a)
 #define FREE(a) kfree(a)
@@ -53,7 +54,7 @@ kmm_cache_destroy(kmm_cache_t cache)
     return true;
 }
 
-static void
+void
 kmm_slab_destroy(kmm_slab_t slab)
 {
     assert(slab->status == KMM_FREE_LIST);
@@ -63,14 +64,14 @@ kmm_slab_destroy(kmm_slab_t slab)
 }
 
 
-static bool
+bool
 kmm_slab_grow(kmm_cache_t cache)
 {
     kmm_slab_t slab = (kmm_slab_t)MALLOC(sizeof(struct kmm_slab)); 
     size_t var;
     size_t size = cache->size + sizeof(struct bufctl);
 
-    if(slab == NULL && size > BUFSIZE){
+    if(slab == NULL){
         goto slab_fail;
     } 
 
@@ -145,16 +146,16 @@ kmm_alloc(kmm_cache_t cache)
 
     if(!list_empty(l_used))
     {
-        slab = to_slab(l_used);
+        slab = to_slab(l_used->next);
     }else if(!list_empty(l_free))
     {
-        slab = to_slab(l_free);  
+        slab = to_slab(l_free->next);  
     }else{
         if(!kmm_slab_grow(cache))
         {
             return NULL;
         }
-        slab = to_slab(l_free);
+        slab = to_slab(l_free->next);
     }
     buf = kmm_pull_buf(slab);
     adjust_slab_list(cache, slab, slab->status);
@@ -167,6 +168,7 @@ get_status(kmm_slab_t slab)
 {
     assert(slab && slab->cache);
     size_t count = BUFSIZE / (slab->cache->size + sizeof(struct bufctl)); 
+
     assert(slab->free_count <= count && slab->free_count >= 0);
     if(count == slab->free_count)
     {

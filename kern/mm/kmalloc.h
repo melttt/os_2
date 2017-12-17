@@ -2,7 +2,8 @@
 #define __KERN_MM_KMALLOC_H_
 #include "defs.h"
 #include "slab.h"
-void init_slab_allocator():
+void init_slab_allocator();
 void kfree(void *n);
-void* kmalloc(int32_t n)
+void* kmalloc(int32_t n);
+void slab_allocator_test(void);
 #endif
