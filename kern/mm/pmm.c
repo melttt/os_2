@@ -208,7 +208,8 @@ init_pmm(void)
     assert(pmm_info.size != 0 );
     vmm_init();
     init_slab_allocator();
-    slab_allocator_test();   
+    //suggest 1
+    slab_allocator_test(1);   
 }
 
 

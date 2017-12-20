@@ -5,5 +5,5 @@
 void init_slab_allocator();
 void kfree(void *n);
 void* kmalloc(int32_t n);
-void slab_allocator_test(void);
+void slab_allocator_test(size_t n);
 #endif

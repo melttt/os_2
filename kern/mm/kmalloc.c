@@ -5,7 +5,7 @@
 #include "mmu.h"
 #include "stdio.h"
 #ifdef KDEBUG
-#define LOG_DEBUG(x,...) ;// cprintf(x,##__VA_ARGS__)
+#define LOG_DEBUG(x,...)  cprintf(x,##__VA_ARGS__)
 #endif
 /*
 void* alloc_pages(size_t n);
@@ -64,9 +64,11 @@ select_slab(size_t size)
     panic("NO VALID SLAB");
     return -1;
 }
+static size_t init_before_page;
 void 
 init_slab_allocator()
 {
+    init_before_page = nr_free_pages();
     //install special slab -> cache,slab
     slab_size_map[SLAB_NORMAL] = sizeof(struct kmm_cache); 
     slab_size_map[SLAB_NORMAL + 1] = sizeof(struct kmm_slab);
@@ -88,18 +90,28 @@ init_slab_allocator()
         assert(kmm_slab_grow(slab_allocator[SLAB_NORMAL + 1]));
     }
     slab_allocator_activated = true; 
+    LOG_DEBUG("slab_allocator init ok !\n");
 }
-
+//just for test case 2
+static void 
+deinit_slab_allocator()
+{
+    int i = 0;
+    for(i = 0 ; i <= 12 ; i ++)
+    {
+        kmm_cache_destroy(slab_allocator[i]);
+    }
+    slab_allocator_activated = false; 
+    assert(nr_free_pages() == init_before_page);
+}
 
 void
 kfree(void *n)
 {
     if(((uintptr_t)n&(PGSIZE-1)) && slab_allocator_activated)
     {
-        LOG_DEBUG("kmm_free : %x\n",(int32_t)n);
         kmm_free((bufctl_t)n - 1); 
     }else{
-        LOG_DEBUG("free_pages : %x\n",(int32_t)n);
         free_pages(n);
     }
 }
@@ -112,7 +124,6 @@ kmalloc(int32_t n)
 
     if(slab_allocator_activated == false || n > slab_size_map[SLAB_NORMAL - 1])
     {
-        LOG_DEBUG("alloc_pages size: %d\n",n);
         return alloc_pages( (PGSIZE + n - 1) / PGSIZE );
     }else{
         if(n == sizeof(struct kmm_cache))
@@ -128,20 +139,19 @@ kmalloc(int32_t n)
             if(!ret) goto ret_null; 
         }
     }
-    LOG_DEBUG("kmm_alloc size: %d\n",n);
     return ret;
 alloc_page:
-    LOG_DEBUG("alloc_one_page \n");
     ret = alloc_pages(1);
 ret_null:
     return ret; 
 }
 
 
+
 //try X macro :-)
 
 void
-slab_allocator_test(void)
+slab_allocator_test(size_t n)
 {
     LOG_DEBUG("slab test start !\nbuf_size : %d \n", sizeof(struct bufctl));    
     //Case 1: only one data
@@ -153,18 +163,17 @@ slab_allocator_test(void)
     a = kmalloc(sizeof(int));
     assert(a == tmp);
     kfree(tmp);
-    LOG_DEBUG("Test 1 pass!\n");
 
     //Case 2: many data
 #define TEST_LIST \
-    ENTRY(8,20) \
-    ENTRY(16,16) \
+    ENTRY(8,40) \
+    ENTRY(16,20) \
     ENTRY(32,14) \
     ENTRY(64,12) \
     ENTRY(128,32) \
     ENTRY(192,50) \
     ENTRY(256,62) \
-    ENTRY(512,30) \
+    ENTRY(512,12) \
     ENTRY(1024,10) \
     ENTRY(2048,7)
 
@@ -180,7 +189,6 @@ slab_allocator_test(void)
         {                       \
             ptr[I(a)] = kmalloc(sizeof(char) * a); \
         }                                           \
-        LOG_DEBUG("FREE_%d_TIMES\n",b); \
         FOR_EACH_INT(a,b)       \
         {                       \
             kfree(ptr[I(a)]);   \
@@ -191,9 +199,11 @@ slab_allocator_test(void)
 #undef ENTRY
 #undef FOR_EACH_INT
 #undef I
-    LOG_DEBUG("Test 2 pass!\n");
-    LOG_DEBUG("page : %x\n",nr_free_pages());
-
-
-    LOG_DEBUG("slab test end !\n");
+    deinit_slab_allocator();
+    init_slab_allocator();
+    if(n != 0)
+    {
+        slab_allocator_test(--n);
+        LOG_DEBUG("slab test ok !\n");
+    }
 }
