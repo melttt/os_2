@@ -2,6 +2,7 @@
 #define _KERN_DEBUG_KDEBUG_H_
 #include "defs.h"
 #include "stabs.h"
+#define KDEBUG
 
 void print_stack_trace();
 void print_cur_status();

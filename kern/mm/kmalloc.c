@@ -4,9 +4,9 @@
 #include "kdebug.h"
 #include "mmu.h"
 #include "stdio.h"
-#define LOG_DEBUG(a,...)  \
-        cprintf(a,##__VA_ARGS__)
-
+#ifdef KDEBUG
+#define LOG_DEBUG(x,...) ;// cprintf(x,##__VA_ARGS__)
+#endif
 /*
 void* alloc_pages(size_t n);
 void free_pages(void *n);
@@ -94,7 +94,7 @@ init_slab_allocator()
 void
 kfree(void *n)
 {
-    if((uintptr_t)n&PGSIZE && slab_allocator_activated)
+    if(((uintptr_t)n&(PGSIZE-1)) && slab_allocator_activated)
     {
         LOG_DEBUG("kmm_free : %x\n",(int32_t)n);
         kmm_free((bufctl_t)n - 1); 
@@ -138,18 +138,61 @@ ret_null:
 }
 
 
-
+//try X macro :-)
 
 void
 slab_allocator_test(void)
 {
     LOG_DEBUG("slab test start !\nbuf_size : %d \n", sizeof(struct bufctl));    
-    int *a = kmalloc(sizeof(int));
-    int *b;
-    *a = 1;
+    //Case 1: only one data
+    int *a = NULL, *tmp = NULL;
+    a = tmp = kmalloc(sizeof(int)); 
     kfree(a);
-    b = kmalloc(sizeof(int) * 4);
-    kfree(b);
+    a = kmalloc(sizeof(int));     
+    kfree(a);
+    a = kmalloc(sizeof(int));
+    assert(a == tmp);
+    kfree(tmp);
+    LOG_DEBUG("Test 1 pass!\n");
+
+    //Case 2: many data
+#define TEST_LIST \
+    ENTRY(8,20) \
+    ENTRY(16,16) \
+    ENTRY(32,14) \
+    ENTRY(64,12) \
+    ENTRY(128,32) \
+    ENTRY(192,50) \
+    ENTRY(256,62) \
+    ENTRY(512,30) \
+    ENTRY(1024,10) \
+    ENTRY(2048,7)
+
+#define SLAB_TEST2_LEN 100
+    void* ptr[SLAB_TEST2_LEN];
+#define I(x) __i_##x
+#define FOR_EACH_INT(a,b)   \
+    for(I(a) = 0 ; I(a) < b ; I(a) ++) 
+#define ENTRY(a,b) \
+    do{             \
+        int I(a) ;    \
+        FOR_EACH_INT(a,b)       \
+        {                       \
+            ptr[I(a)] = kmalloc(sizeof(char) * a); \
+        }                                           \
+        LOG_DEBUG("FREE_%d_TIMES\n",b); \
+        FOR_EACH_INT(a,b)       \
+        {                       \
+            kfree(ptr[I(a)]);   \
+        }               \
+    }while(0);
+    TEST_LIST
+    TEST_LIST
+#undef ENTRY
+#undef FOR_EACH_INT
+#undef I
+    LOG_DEBUG("Test 2 pass!\n");
+    LOG_DEBUG("page : %x\n",nr_free_pages());
 
 
     LOG_DEBUG("slab test end !\n");
