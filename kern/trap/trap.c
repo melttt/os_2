@@ -124,6 +124,7 @@ trap(struct trapframe *tf)
             //PAGEBREAK: 13
         default:
             ;
+            cprintf("trapno : %d\n",tf->trapno);
             /*
                if(proc == 0 || (tf->cs&3) == 0){
             // In kernel, it must be our mistake.

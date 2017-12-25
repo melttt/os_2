@@ -176,6 +176,7 @@ static inline void
 invlpg(void *addr) {
     asm volatile ("invlpg (%0)" :: "r" (addr) : "memory");
 }
+
 struct trapframe {
   // registers as pushed by pusha
   uint edi;

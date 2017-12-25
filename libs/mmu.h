@@ -153,6 +153,8 @@ struct segdesc {
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
 #define PTE_FLAGS(pte)  ((uint)(pte) &  0xFFF)
 
+#define KSTACKPAGE          2                           // # of pages in kernel stack
+#define KSTACKSIZES          (KSTACKPAGE * PGSIZE)       // sizeof kernel stack
 #endif
 
 #ifndef __ASSEMBLER__

@@ -24,8 +24,8 @@ alltraps:
   addl $4, %esp
 
   # Return falls through to trapret...
-.globl trapret
-trapret:
+.globl __traprets
+__traprets:
   popal
   popl %gs
   popl %fs
@@ -33,5 +33,4 @@ trapret:
   popl %ds
   addl $0x8, %esp  # trapno and errcode
   iret
-
 

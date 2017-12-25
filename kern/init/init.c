@@ -14,6 +14,7 @@
 #include "trap.h"
 #include "kbd.h"
 #include "ide.h"
+#include "proc.h"
 //#define g(x) #x
 int main()
 {
@@ -47,12 +48,13 @@ int main()
     ide_write_secs(1,0,test,1);
     cprintf("\n");
    */ 
-    asm volatile ("sti");
-         
+//    asm volatile ("sti");
     check_vmm();
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
+proc_init();
+sche();
     /*****test ****/
     
 //    cprintf("%x\n",*(int*)(0x70000000));
