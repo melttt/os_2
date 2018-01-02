@@ -8,7 +8,7 @@
 #include "mmu.h"
 #include "error.h"
 #include "stdio.h"
-
+#include "cpu.h"
 
 
 // the process set's list
@@ -115,6 +115,7 @@ proc_init(void) {
     assert(idleproc != NULL && idleproc->pid == 0);
     assert(initproc != NULL && initproc->pid == 1);
 }
+
 
 // forkret -- the first kernel entry point of a new thread/process
 // NOTE: the addr of forkret is setted in copy_thread function

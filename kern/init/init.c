@@ -15,6 +15,7 @@
 #include "kbd.h"
 #include "ide.h"
 #include "proc.h"
+#include "cpu.h"
 //#define g(x) #x
 int main()
 {

@@ -7,6 +7,7 @@ INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs -I./boot
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
 S_OBJS := $(shell find $(KERN_DIR) -name "*.S")
 LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
+C_PATH =./$(addprefix :,$(shell find ./kern -type d)):./libs:./boot
 OBJS := $(patsubst %.c,%.o,$(C_OBJS))
 OBJS += $(patsubst %.S,%.o,$(S_OBJS))
 OBJS += $(patsubst %.c,%.o,$(LIBS_OBJS))
@@ -95,5 +96,9 @@ clean:
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
 	rm -f ./kern/trap/vectors.*
+	rm -f ./tags
+ 
 test :
-	@echo $(OBJS)
+	export C_INCLUDE_PATH="$(C_PATH)"
+
+

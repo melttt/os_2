@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "slab.h"
 #include "pmm.h"
-#include "mp.h"
+#include "cpu.h"
 #include "kdebug.h"
 #include "stdio.h"
 

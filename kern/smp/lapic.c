@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "x86.h"
 #include "mp.h"
+#include "cpu.h"
 #include "kdebug.h"
 #include "stdio.h"
 #include "string.h"

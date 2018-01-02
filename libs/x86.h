@@ -177,6 +177,20 @@ invlpg(void *addr) {
     asm volatile ("invlpg (%0)" :: "r" (addr) : "memory");
 }
 
+
+static inline uint
+xchg(volatile uint *addr, uint newval)
+{
+  uint result;
+
+  // The + in "+m" denotes a read-modify-write operand.
+  asm volatile("lock; xchgl %0, %1" :
+               "+m" (*addr), "=a" (result) :
+               "1" (newval) :
+               "cc");
+  return result;
+}
+
 struct trapframe {
   // registers as pushed by pusha
   uint edi;

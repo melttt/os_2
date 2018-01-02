@@ -47,7 +47,7 @@ struct mpioapic {       // I/O APIC table entry
   uchar flags;                  // I/O APIC flags
   uint *addr;                  // I/O APIC address
 };
-#include "mmu.h"
+/*
 struct cpu {
   uchar apicid;                // Local APIC ID
 //  struct context *scheduler;   // swtch() here to enter scheduler
@@ -61,7 +61,7 @@ struct cpu {
   struct cpu *cpu;
 //  struct proc *proc;           // The currently-running process.
 };
-
+*/
 // Table entry types
 #define MPPROC    0x00  // One per processor
 #define MPBUS     0x01  // One per bus
@@ -69,11 +69,9 @@ struct cpu {
 #define MPIOINTR  0x03  // One per bus interrupt source
 #define MPLINTR   0x04  // One per system interrupt source
 
+
 extern volatile uint *lapic;  // Initialized in mp.c
 void            mpinit(void);
 extern int   ismp;
 extern uchar ioapicid;
-extern struct cpu cpus[NCPU];
-extern int ncpu;
-size_t get_cpu(void);
 #endif

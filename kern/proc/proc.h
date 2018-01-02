@@ -4,7 +4,7 @@
 #include "list.h"
 #include "vmm.h"
 #include "x86.h" //struct trapframe
-
+#include "param.h"
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
 // because they are constant across kernel contexts.
@@ -50,10 +50,7 @@ struct proc {
 };
 
 
-
-
-
-
+extern struct proc *proc asm("%gs:4");     // cpus[cpunum()].proc
 
 
 void sche(void);

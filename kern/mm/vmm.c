@@ -5,7 +5,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "kdebug.h"
-#include "mp.h"
+#include "cpu.h"
 #include "lapic.h"
 #include "x86.h"
 #include "swap.h"
