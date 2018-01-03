@@ -23,13 +23,12 @@ enum real_color{
 }real_color_t;
 
 //  清屏
-void console_clear();
-
+void clear_cons();
 //  屏幕输出一个字符 带颜色
-void console_putc_color(char c, real_color_t back, real_color_t fore);
-
+void putc_color_cons(char c, real_color_t back, real_color_t fore);
 //  屏幕打印一个\0结尾的字符串，默认黑底白字
-void console_putc(char cstr);
+void putc_cons(char cstr);
 
+void init_cons();
 
 #endif

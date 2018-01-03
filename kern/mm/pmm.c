@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "param.h"
 #include "pmm.h"
 #include "x86.h"
 #include "mmu.h"
@@ -7,6 +8,7 @@
 #include "kdebug.h"
 #include "stdio.h"
 #include "buddy_pmm.h"
+#include "spinlock.h"
 /**************************E820MAP***************************/
 struct pmm_info pmm_info = {
     .size = 0,
@@ -69,6 +71,8 @@ init_pmm_info()
             break;
         }
     }
+
+    init_lock(&pmm_info.lock, "pmm");
     assert(pmm_info.size != 0);
 }
 
@@ -108,7 +112,9 @@ get_page_offset(struct page* page)
 void*
 alloc_pages(size_t n)
 {
+   acquire(&pmm_info.lock);
    uint32_t offset = pmm_manager->alloc_pages(n);
+   release(&pmm_info.lock);
    if(offset != ALLOC_FALSE)
        return offset2kva(offset);  
    else
@@ -120,7 +126,9 @@ free_pages(void *n)
 {
     assert((uint32_t)n >= KERNBASE);
     uint32_t offset = kva2offset(n);    
+    acquire(&pmm_info.lock);
     pmm_manager->free_pages(offset);
+    release(&pmm_info.lock);
 }
 
 
@@ -157,19 +165,28 @@ free_page(struct page* page)
     page->pgdir = NULL;
     pmm_manager->free_pages(offset);
 }
+
 inline void*
 page2kva(struct page* page)
 {
+    void * ret;
+    acquire(&pmm_info.lock);
     assert(page >= pmm_manager->ret_page_addr(0));
     uint32_t offset = page - pmm_manager->ret_page_addr(0);
-    return offset2kva(offset);
+    release(&pmm_info.lock);
+    ret = offset2kva(offset);
+    return ret;
 }
 
 inline struct page*
 kva2page(void *va)
 {
+    struct page *ret;
+    acquire(&pmm_info.lock);
     uint32_t offset = kva2offset(va);
-    return pmm_manager->ret_page_addr(offset);
+    ret = pmm_manager->ret_page_addr(offset);
+    release(&pmm_info.lock);
+    return ret;
 }
 
 uintptr_t
@@ -187,25 +204,25 @@ pa2page(uintptr_t pa)
 size_t
 nr_free_pages(void){
     size_t ret;
-    //local_intr_save(intr_flag);
-    {
-        ret = pmm_manager->nr_free_pages();
-    }
-    //local_intr_restore(intr_flag);
+    acquire(&pmm_info.lock);
+    ret = pmm_manager->nr_free_pages();
+    release(&pmm_info.lock);
     return ret;
 }
 void 
 init_pmm(void)
 {
+
     print_e280map();
     init_pmm_info();
     print_pmm_info();
-    
     pmm_manager = &buddy_pmm_manager;
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
-
     cprintf("pmm init ok !\n");
+
     assert(pmm_info.size != 0 );
+
+
     vmm_init();
     init_slab_allocator();
     //suggest 1

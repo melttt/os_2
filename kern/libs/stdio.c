@@ -1,3 +1,4 @@
+#if 0
 #include "defs.h"
 #include "stdio.h"
 #include "stdarg.h"
@@ -24,3 +25,4 @@ int cprintf(const char *fmt, ...)
     va_end(ap);
     return cnt;
 }
+#endif

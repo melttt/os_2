@@ -49,14 +49,14 @@ extern const char __STABSTR_END__[];        // end of string table
  *      stab_binsearch(stabs, &left, &right, N_SO, 0xf0100184);
  * will exit setting left = 118, right = 554.
  * */
-static void 
+    static void 
 stab_binsearch(struct stab *stabs, int *region_left, int *region_right,
-           int type, uint addr)
+        int type, uint addr)
 {
     int l = *region_left , r = *region_right;
     int m, true_m;
     int have_matches = 0;
-//    int true_addr = addr;
+    //    int true_addr = addr;
     while(l <= r)
     {
         true_m = (l + r) / 2;
@@ -112,7 +112,7 @@ debuginfo_eip(uintptr_t addr, struct eipdebuginfo *info) {
     if(left > right) return -1;
 
     info->eip_file = stab_begin[left].n_strx + strst_begin;
-    
+
     // find the name of function
     stab_binsearch(stab_begin, &left, &right, N_FUN, addr);
     if(left > right) return -1;
@@ -148,41 +148,41 @@ print_cur_status()
     uint16_t reg1,reg2,reg3,reg4;
 
     asm volatile( "mov %%cs, %0;"
-                  "mov %%ds, %1;"
-                  "mov %%es, %2;"
-                  "mov %%ss, %3;"
-                  : "=m"(reg1), "=m"(reg2), "=m"(reg3), "=m"(reg4));
-    
+            "mov %%ds, %1;"
+            "mov %%es, %2;"
+            "mov %%ss, %3;"
+            : "=m"(reg1), "=m"(reg2), "=m"(reg3), "=m"(reg4));
+
     cprintf("%d: @ring %d\n", round, reg1&0x3);
     cprintf("%d: cs = %x\n", round, reg1);
     cprintf("%d: ds = %x\n", round, reg2);
     cprintf("%d: es = %x\n", round, reg3);
     cprintf("%d: ss = %x\n", round, reg4);
     ++ round; 
-    
+
 }
 
 static bool is_panic = 0;
 void  
 __panic(const char *file, int line, const char *fmt, ...)
 {
-   if (is_panic)
-   {
-       goto panic_dead;
-   }
-   is_panic = 1;
-   va_list ap;
-   va_start(ap, fmt);
-   cprintf("*****************PANIC!!!*******************\n");
-   cprintf("kernel panic at %s:%d:\n", file, line);
-   vcprintf(fmt, ap);
-   cprintf("\n");
-   print_stack_trace();
-   va_end(ap);
+    if (is_panic)
+    {
+        goto panic_dead;
+    }
+    is_panic = 1;
+    va_list ap;
+    va_start(ap, fmt);
+    cprintf("*****************PANIC!!!*******************\n");
+    cprintf("kernel panic at %s:%d:\n", file, line);
+    vcprintf(fmt, ap);
+    cprintf("\n");
+    print_stack_trace();
+    va_end(ap);
 panic_dead:
-   while(1)
-   {
-       ;
-   }
+    while(1)
+    {
+        ;
+    }
 }
 

@@ -1,6 +1,6 @@
 #include "defs.h"
-#include "mmu.h"
 #include "param.h"
+#include "mmu.h"
 #include "memlayout.h"
 #include "stdio.h"
 #include "console.h"
@@ -17,21 +17,25 @@
 #include "proc.h"
 #include "cpu.h"
 //#define g(x) #x
-int main()
-{
-    extern char data[],edata[],end[];
-    console_clear();
-    uartinit();
-    cprintf("data : %08x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
-    //cprintf("%x\n",(int)__STABSTR_BEGIN__);
-    cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
+int main() {
+    
+    init_cons();
+    clear_cons();
+    init_uart();
 
-    cprintf("%04d\n",5);
+    extern char data[],edata[],end[];
+    cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
+    cprintf("start cpu id = %d\n",get_cpu());
+    cprintf("data : %08x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
+
     init_pmm();
+
 
     mpinit();
     lapicinit();
     ioapicinit();
+
+    cprintf("cpu id = %d\n",get_cpu());
     tvinit();
     idtinit();
     kbd_init();

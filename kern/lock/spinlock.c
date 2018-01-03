@@ -10,10 +10,10 @@
 // are off, then pushcli, popcli leaves them off.
 
 static void
-pushcli(void)
+push_cli(void)
 {
   int eflags;
-
+  struct cpu* cpu = &cpus[get_cpu()];
   eflags = readeflags();
   cli();
   if(cpu->ncli == 0)
@@ -22,8 +22,9 @@ pushcli(void)
 }
 
 static void
-popcli(void)
+pop_cli(void)
 {
+  struct cpu* cpu = &cpus[get_cpu()];
   if(readeflags()&FL_IF)
     panic("popcli - interruptible");
   if(--cpu->ncli < 0)
@@ -36,11 +37,11 @@ popcli(void)
 bool
 holding(struct spinlock *lock)
 {
-  return lock->locked && lock->cpu == cpu;
+  return lock->locked && lock->cpu == get_cpu();
 }
 
 void
-initlock(struct spinlock *lk, char *name)
+init_lock(struct spinlock *lk, char *name)
 {
   lk->name = name;
   lk->locked = 0;
@@ -54,7 +55,7 @@ initlock(struct spinlock *lk, char *name)
 void
 acquire(struct spinlock *lk)
 {
-  pushcli(); // disable interrupts to avoid deadlock.
+  push_cli(); // disable interrupts to avoid deadlock.
   if(holding(lk))
     panic("acquire");
 
@@ -68,7 +69,7 @@ acquire(struct spinlock *lk)
   __sync_synchronize();
 
   // Record info about lock acquisition for debugging.
-  lk->cpu = cpu;
+  lk->cpu = get_cpu();
 //  getcallerpcs(&lk, lk->pcs);
 }
 
@@ -95,11 +96,5 @@ release(struct spinlock *lk)
   // not be atomic. A real OS would use C atomics here.
   asm volatile("movl $0, %0" : "+m" (lk->locked) : );
 
-  popcli();
+  pop_cli();
 }
-
-
-
-
-
-

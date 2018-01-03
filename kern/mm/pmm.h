@@ -5,6 +5,7 @@
 #include "vmm.h"
 #include "list.h"
 #include "kmalloc.h"
+#include "spinlock.h"
 
 #define ALLOC_FALSE -1
 struct page;
@@ -22,6 +23,7 @@ struct pmm_info{
     uintptr_t start;
     uintptr_t end;
     uint32_t size; // num of PGSIZE
+    struct spinlock lock;
 };
 
 

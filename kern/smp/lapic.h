@@ -14,6 +14,8 @@ lapicstartap(uint8_t, uint32_t);
 void
 lapiceoi(void);
 
+int
+lapicid(void);
 
 
 
