@@ -90,7 +90,6 @@ init_slab_allocator()
         assert(kmm_slab_grow(slab_allocator[SLAB_NORMAL + 1]));
     }
     slab_allocator_activated = true; 
-    LOG_DEBUG("slab_allocator init ok !\n");
 }
 //just for test case 2
 static void 
@@ -153,7 +152,7 @@ ret_null:
 void
 slab_allocator_test(size_t n)
 {
-    LOG_DEBUG("slab test start !\nbuf_size : %d \n", sizeof(struct bufctl));    
+//    LOG_DEBUG("slab test start !\nbuf_size : %d \n", sizeof(struct bufctl));    
     //Case 1: only one data
     int *a = NULL, *tmp = NULL;
     a = tmp = kmalloc(sizeof(int)); 
@@ -204,6 +203,6 @@ slab_allocator_test(size_t n)
     if(n != 0)
     {
         slab_allocator_test(--n);
-        LOG_DEBUG("slab test ok !\n");
+        LOG_DEBUG("---------->slab test ok !\n");
     }
 }

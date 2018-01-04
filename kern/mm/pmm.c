@@ -72,7 +72,6 @@ init_pmm_info()
         }
     }
 
-    init_lock(&pmm_info.lock, "pmm");
     assert(pmm_info.size != 0);
 }
 
@@ -86,6 +85,7 @@ print_pmm_info()
 }
 
 /********************************PMM*****************************************/
+
 static inline void*
 offset2kva(uint32_t n)
 {
@@ -105,16 +105,16 @@ const struct pmm_manager *pmm_manager;
 uint32_t
 get_page_offset(struct page* page)
 {
+    uint32_t ret;
     assert(page >= pmm_manager->ret_page_addr(0));
-    return  page - pmm_manager->ret_page_addr(0);
+    ret = page - pmm_manager->ret_page_addr(0);
+    return  ret;
 }
 
 void*
 alloc_pages(size_t n)
 {
-   acquire(&pmm_info.lock);
    uint32_t offset = pmm_manager->alloc_pages(n);
-   release(&pmm_info.lock);
    if(offset != ALLOC_FALSE)
        return offset2kva(offset);  
    else
@@ -126,14 +126,11 @@ free_pages(void *n)
 {
     assert((uint32_t)n >= KERNBASE);
     uint32_t offset = kva2offset(n);    
-    acquire(&pmm_info.lock);
     pmm_manager->free_pages(offset);
-    release(&pmm_info.lock);
 }
 
 
-// function for one page
-//alloc one page
+/*not use swap ,the fuction is not use*/
 struct page*
 alloc_page()
 {
@@ -166,14 +163,14 @@ free_page(struct page* page)
     pmm_manager->free_pages(offset);
 }
 
+/*************/
+
 inline void*
 page2kva(struct page* page)
 {
     void * ret;
-    acquire(&pmm_info.lock);
     assert(page >= pmm_manager->ret_page_addr(0));
     uint32_t offset = page - pmm_manager->ret_page_addr(0);
-    release(&pmm_info.lock);
     ret = offset2kva(offset);
     return ret;
 }
@@ -182,10 +179,8 @@ inline struct page*
 kva2page(void *va)
 {
     struct page *ret;
-    acquire(&pmm_info.lock);
     uint32_t offset = kva2offset(va);
     ret = pmm_manager->ret_page_addr(offset);
-    release(&pmm_info.lock);
     return ret;
 }
 
@@ -204,9 +199,7 @@ pa2page(uintptr_t pa)
 size_t
 nr_free_pages(void){
     size_t ret;
-    acquire(&pmm_info.lock);
     ret = pmm_manager->nr_free_pages();
-    release(&pmm_info.lock);
     return ret;
 }
 void 
@@ -218,10 +211,9 @@ init_pmm(void)
     print_pmm_info();
     pmm_manager = &buddy_pmm_manager;
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
-    cprintf("pmm init ok !\n");
+    cprintf("---------->pmm init ok !\n");
 
     assert(pmm_info.size != 0 );
-
 
     vmm_init();
     init_slab_allocator();

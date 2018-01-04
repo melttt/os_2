@@ -14,12 +14,16 @@
 #define BUDDY_PAGE_ADDR(x) (&(buddy->page[x]))
 #define PARENT(INDEX) ((INDEX + 1) / 2 - 1)
 #define BUDDY_SIZE_EXCEPT_VAL  (sizeof(struct buddy) - sizeof(struct page))
+#define INIT_LOCK init_lock(&buddy->lock, "buddy_system")
+#define ACQUIRE acquire(&buddy->lock)
+#define RELEASE release(&buddy->lock)
 
 struct buddy{
     uintptr_t beginning_addr;    //the beginning address of buddy 
     uint32_t free_pg;            //the num of free page
     uint32_t pg_size;             //the num of page(4096) 
     uint32_t size;               //the num of page,but in power of 2
+    struct spinlock lock;
     struct page page[1];
 }__attribute__((packed))*buddy;
 
@@ -140,14 +144,18 @@ buddy_pmm_alloc(uint32_t size)
     if(!IS_POWER_OF_2(size))
         size = fix_size(size);
     size = fastlog2(size) + 1;
+
     uint32_t i = 0;
     uint32_t node_size = fastlog2(buddy->size) + 1;
     uint32_t offset;
     uint32_t offsize;
     //no enough space
     if((BUDDY_VAL(i) & 0x7f) < size)
+    {
         return ALLOC_FALSE;
-       
+    }
+     
+    ACQUIRE;
     for(; size != node_size ; node_size --)
     {
        if((BUDDY_VAL(LEFT_SON(i)) & 0x7f) >= size)
@@ -169,6 +177,7 @@ buddy_pmm_alloc(uint32_t size)
        adjust_i(i = PARENT(i), ++node_size); 
     }
     buddy->free_pg -= offsize;
+    RELEASE;
     //cprintf("offset : %x offsize : %x \n", offset, offsize);      
     return offset;
 }
@@ -177,7 +186,7 @@ static void
 buddy_pmm_free(uint32_t offset)
 {
     assert(offset < buddy->size);
-
+    ACQUIRE;
     int32_t node_size = 1;
     uint32_t i = offset2i(offset,&node_size);
 
@@ -191,19 +200,21 @@ buddy_pmm_free(uint32_t offset)
     {
         adjust_i(i = PARENT(i), ++node_size); 
     }
-
+    RELEASE;
 }
 
 
-static uint8_t
+static int8_t
 buddy_change_page_ref(uint32_t offset, int8_t ch)
 {
+    ACQUIRE;
     assert(offset < buddy->size);
-
     int32_t node_size = 1;
     uint32_t i = offset2i(offset,&node_size);
     assert((BUDDY_REF(i) + ch) >= 1);
-    return BUDDY_REF(i) += ch;
+    int8_t ret = BUDDY_REF(i) += ch;
+    RELEASE;
+    return ret;
 }
 
 static void 
@@ -359,8 +370,8 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
          
     *p_start = buddy->beginning_addr;
     *pg_size = buddy->pg_size;
-
-    cprintf("buddy init ok!");
+    INIT_LOCK;
+    cprintf("---------->buddy init ok!\n");
 }
 
 static size_t
