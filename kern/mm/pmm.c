@@ -211,7 +211,7 @@ init_pmm(void)
     print_pmm_info();
     pmm_manager = &buddy_pmm_manager;
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
-    cprintf("---------->pmm init ok !\n");
+    cprintf(INITOK"pmm init ok !\n");
 
     assert(pmm_info.size != 0 );
 

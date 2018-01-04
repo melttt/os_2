@@ -123,8 +123,6 @@ pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
             page->pra_vaddr=la;
             page->pgdir = pgdir;
             swap_map_swappable(check_mm_struct, la, page, 0);
-            //assert(page_ref(page) == 1);
-            //cprintf("get No. %d  page: pra_vaddr %x, pra_link.prev %x, pra_link_next %x in pgdir_alloc_page\n", (page-pages), page->pra_vaddr,page->pra_page_link.prev, page->pra_page_link.next);
         }
 
     }
@@ -181,7 +179,7 @@ setup_kvm(void)
 }
 
 int 
-kvm_test(pde_t* pgdir)
+kvm_print(pde_t* pgdir)
 {
     int32_t i = 0,j = 0;
     int32_t perm;
@@ -262,7 +260,7 @@ init_kvm(void)
 {
     kpgdir = setup_kvm();
     if(kpgdir == NULL) return 1;
-    kvm_test(kpgdir);
+    kvm_print(kpgdir);
     switchkvm();
     return -1;
 }
@@ -420,8 +418,7 @@ void
 vmm_init(void) {
     init_kvm();
     seginit();
-    //should after ide_init()
-//    check_vmm();
+    cprintf(INITOK"init vmm ok!\n");
 }
 
 #if 0

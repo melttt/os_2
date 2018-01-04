@@ -92,7 +92,7 @@ lapicinit(void)
 
   // Enable interrupts on the APIC (but not on the processor).
   lapicw(TPR, 0);
-  cprintf("---------->lapic ok!\n");
+  cprintf(INITOK"lapic ok!\n");
 }
 
 int

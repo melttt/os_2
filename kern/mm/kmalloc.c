@@ -203,6 +203,6 @@ slab_allocator_test(size_t n)
     if(n != 0)
     {
         slab_allocator_test(--n);
-        LOG_DEBUG("---------->slab test ok !\n");
+        LOG_DEBUG(INITOK"slab test ok !\n");
     }
 }

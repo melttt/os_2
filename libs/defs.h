@@ -63,4 +63,5 @@ typedef size_t ppn_t;
 #define to_struct(ptr, type, member)                               \
     ((type *)((char *)(ptr) - offsetof(type, member)))
 
+#define INITOK "---------->"
 #endif

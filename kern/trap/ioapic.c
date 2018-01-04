@@ -69,7 +69,7 @@ ioapicinit(void)
     ioapicwrite(REG_TABLE+2*i, INT_DISABLED | (T_IRQ0 + i));
     ioapicwrite(REG_TABLE+2*i+1, 0);
   }
-  cprintf("---------->ioapic init ok!\n");
+  cprintf(INITOK"ioapic init ok!\n");
 }
 
 

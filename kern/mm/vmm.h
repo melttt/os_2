@@ -6,10 +6,10 @@
 #include "memlayout.h"
 
 int32_t init_kvm(void);
-void seginit(void);
 
 extern pte_t *kpgdir;
 extern volatile unsigned int pgfault_num;
+
 
 /******************************************************************************/
 

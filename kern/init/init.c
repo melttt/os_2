@@ -30,14 +30,15 @@ int main() {
 
     init_pmm();
 
-
     mpinit();
     lapicinit();
     ioapicinit();
 
+
     cprintf("cpu id = %d\n",get_cpu());
-    tvinit();
+
     idtinit();
+
     kbd_init();
     ide_init();
    /* 
