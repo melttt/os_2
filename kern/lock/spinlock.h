@@ -16,5 +16,6 @@ acquire(struct spinlock *lk);
 
 void
 release(struct spinlock *lk);
-
+bool 
+holding(struct spinlock *lock);
 #endif

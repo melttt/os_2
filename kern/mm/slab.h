@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "list.h"
 #include "param.h"
+#include "spinlock.h"
 //void* alloc_pages(size_t n);
 //void free_pages(void *n);
 typedef enum{
@@ -17,6 +18,7 @@ struct kmm_cache{
     struct{
         list_entry_t slab_used;
         list_entry_t slab_free;
+        struct spinlock lock;
     }slab_list_cpu[NCPU];
 };
 typedef struct kmm_cache *kmm_cache_t;

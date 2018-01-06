@@ -39,7 +39,7 @@ void sche(void)
 {
     assert(current && idleproc);
     cprintf("sche\n");
-    asm volatile("cli");
+    //asm volatile("cli");
     if(current == idleproc)
     {
     cprintf("sche _ go\n");

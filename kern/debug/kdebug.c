@@ -170,6 +170,7 @@ __panic(const char *file, int line, const char *fmt, ...)
     {
         goto panic_dead;
     }
+    cprintf("*****************PANIC!!!*******************\n");
     is_panic = 1;
     va_list ap;
     va_start(ap, fmt);
@@ -180,6 +181,7 @@ __panic(const char *file, int line, const char *fmt, ...)
     print_stack_trace();
     va_end(ap);
 panic_dead:
+    cprintf("panic_dead\n");
     while(1)
     {
         ;

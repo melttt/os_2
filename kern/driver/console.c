@@ -138,11 +138,11 @@ int cprintf(const char *fmt, ...)
 {
     va_list ap;
     int cnt;
-    acquire(&cons.lock);
+//    acquire(&cons.lock);
     va_start(ap, fmt);
     cnt = vprintfmt(putch,fmt,ap);
     va_end(ap);
-    release(&cons.lock);
+//    release(&cons.lock);
     return cnt;
 }
 

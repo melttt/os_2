@@ -34,7 +34,6 @@ tvinit(void)
 void
 idtinit(void)
 {
-  tvinit();
   lidt(idt, sizeof(idt));
   cprintf(INITOK"idt init ok!\n");
 }

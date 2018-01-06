@@ -149,13 +149,14 @@ buddy_pmm_alloc(uint32_t size)
     uint32_t node_size = fastlog2(buddy->size) + 1;
     uint32_t offset;
     uint32_t offsize;
+    ACQUIRE;
     //no enough space
     if((BUDDY_VAL(i) & 0x7f) < size)
     {
+        RELEASE;
         return ALLOC_FALSE;
     }
      
-    ACQUIRE;
     for(; size != node_size ; node_size --)
     {
        if((BUDDY_VAL(LEFT_SON(i)) & 0x7f) >= size)
@@ -357,8 +358,6 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
                 BUDDY_VAL(i) |= 1 << INVALID;
             }
         }
-
-
         if(IS_POWER_OF_2(i + 1))
         {
             node_size += 1;
@@ -366,18 +365,22 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
     }
 
     assert(node_size == fastlog2(buddy->size * 2) + 1);
+    INIT_LOCK;
     buddy_pmm_test(*p_start);
          
     *p_start = buddy->beginning_addr;
     *pg_size = buddy->pg_size;
-    INIT_LOCK;
     cprintf(INITOK"buddy init ok!\n");
 }
 
 static size_t
 buddy_pmm_free_pages()
 {
-    return buddy->free_pg;
+    size_t t;
+    ACQUIRE;
+    t = buddy->free_pg;
+    RELEASE;
+    return t;
 }
 
 static struct page*

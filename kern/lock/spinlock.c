@@ -13,9 +13,9 @@ static void
 push_cli(void)
 {
   int eflags;
-  struct cpu* cpu = &cpus[get_cpu()];
   eflags = readeflags();
   cli();
+  struct cpu* cpu = &cpus[get_cpu()];
   if(cpu->ncli == 0)
     cpu->intena = eflags & FL_IF;
   cpu->ncli += 1;
@@ -24,9 +24,9 @@ push_cli(void)
 static void
 pop_cli(void)
 {
-  struct cpu* cpu = &cpus[get_cpu()];
   if(readeflags()&FL_IF)
     panic("popcli - interruptible");
+  struct cpu* cpu = &cpus[get_cpu()];
   if(--cpu->ncli < 0)
     panic("popcli");
   if(cpu->ncli == 0 && cpu->intena)

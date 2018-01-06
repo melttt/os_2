@@ -4,11 +4,19 @@
 #include "cpu.h"
 #include "kdebug.h"
 #include "stdio.h"
+#include "spinlock.h"
 
 #define MALLOC(a) kmalloc(a)
 #define FREE(a) kfree(a)
 #define BUFSIZE 4096
 #define to_slab(ptr) to_struct(ptr, struct kmm_slab, list)
+#define ACQUIRE_SLAB(slab) acquire(&slab->cache->slab_list_cpu[get_cpu()].lock)
+#define RELEASE_SLAB(slab) release(&slab->cache->slab_list_cpu[get_cpu()].lock)
+#define HODING_SLAB(slab) holding(&slab->cache->slab_list_cpu[get_cpu()].lock)
+#define ACQUIRE_CACHE(cache) acquire(&cache->slab_list_cpu[get_cpu()].lock)
+#define RELEASE_CACHE(cache) release(&cache->slab_list_cpu[get_cpu()].lock)
+#define HODING_CACHE(cache) holding(&cache->slab_list_cpu[get_cpu()].lock)
+
 
 static void kmm_slab_add_buf(kmm_slab_t slab, void *addr);
 static void adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status);
@@ -29,6 +37,7 @@ kmm_cache_create(const char *name,size_t size)
     {
         list_init(&t->slab_list_cpu[i].slab_used);
         list_init(&t->slab_list_cpu[i].slab_free);
+        init_lock(&t->slab_list_cpu[i].lock, "slab");
     }
     return t;
 }
@@ -57,16 +66,19 @@ kmm_cache_destroy(kmm_cache_t cache)
 void
 kmm_slab_destroy(kmm_slab_t slab)
 {
+    ACQUIRE_SLAB(slab);
     assert(slab->status == KMM_FREE_LIST);
     list_del_init(&slab->list);
     FREE(slab->buffer);
     FREE(slab);
+    RELEASE_SLAB(slab);
 }
 
 
 bool
 kmm_slab_grow(kmm_cache_t cache)
 {
+    assert(!HODING_CACHE(cache));
     kmm_slab_t slab = (kmm_slab_t)MALLOC(sizeof(struct kmm_slab)); 
     size_t var;
     size_t size = cache->size + sizeof(struct bufctl);
@@ -75,6 +87,7 @@ kmm_slab_grow(kmm_cache_t cache)
         goto slab_fail;
     } 
 
+    
     slab->cache = cache;
     if(!(slab->buffer = MALLOC(BUFSIZE)))
     {
@@ -87,8 +100,9 @@ kmm_slab_grow(kmm_cache_t cache)
     {
         kmm_slab_add_buf(slab, slab->buffer + size*var);
     }
-    slab->status = KMM_FREE_LIST;
+    ACQUIRE_SLAB(slab);
     adjust_slab_list(cache, slab, KMM_FREE_LIST);
+    RELEASE_SLAB(slab);
     return true;
 buf_fail:
     FREE(slab);
@@ -99,6 +113,7 @@ slab_fail:
 static void
 kmm_slab_add_buf(kmm_slab_t slab, void *addr)
 {
+   assert(!HODING_SLAB(slab));
    bufctl_t buf = (bufctl_t)addr;  
    buf->slab = slab;
    buf->addr = (buf + 1);
@@ -109,6 +124,7 @@ kmm_slab_add_buf(kmm_slab_t slab, void *addr)
 static void
 adjust_slab_list(kmm_cache_t cache, kmm_slab_t slab, kmm_status status)
 {
+    assert(HODING_SLAB(slab));
     list_entry_t *l_head;
     size_t i_cpu = get_cpu();
     assert(slab && cache);
@@ -139,6 +155,7 @@ void *
 kmm_alloc(kmm_cache_t cache)
 {
     assert(cache);
+    ACQUIRE_CACHE(cache);
     list_entry_t *l_used = &cache->slab_list_cpu[get_cpu()].slab_used;
     list_entry_t *l_free = &cache->slab_list_cpu[get_cpu()].slab_free;
     kmm_slab_t slab;
@@ -151,21 +168,24 @@ kmm_alloc(kmm_cache_t cache)
     {
         slab = to_slab(l_free->next);  
     }else{
+        RELEASE_CACHE(cache);
         if(!kmm_slab_grow(cache))
         {
             return NULL;
         }
+        ACQUIRE_CACHE(cache);
         slab = to_slab(l_free->next);
     }
     buf = kmm_pull_buf(slab);
     adjust_slab_list(cache, slab, slab->status);
-
+    RELEASE_CACHE(cache);
     return buf->addr;
 }
 
 inline static kmm_status
 get_status(kmm_slab_t slab)
 {
+    assert(HODING_SLAB(slab));
     assert(slab && slab->cache);
     size_t count = BUFSIZE / (slab->cache->size + sizeof(struct bufctl)); 
 
@@ -184,6 +204,7 @@ get_status(kmm_slab_t slab)
 static bufctl_t
 kmm_pull_buf(kmm_slab_t slab)
 {
+    assert(HODING_SLAB(slab));
     bufctl_t ret;
     assert(slab->next_free);
     ret = slab->next_free;
@@ -196,6 +217,7 @@ kmm_pull_buf(kmm_slab_t slab)
 static void
 kmm_push_buf(kmm_slab_t slab, bufctl_t buf)
 {
+    assert(HODING_SLAB(slab));
     buf->next = slab->next_free;
     slab->next_free = buf;
     slab->free_count ++;
@@ -205,9 +227,11 @@ kmm_push_buf(kmm_slab_t slab, bufctl_t buf)
 void
 kmm_free(bufctl_t addr)
 {
+    ACQUIRE_SLAB(addr->slab);
     assert(addr->slab && addr->slab->cache);
     kmm_cache_t cache = addr->slab->cache;
     kmm_push_buf(addr->slab, addr); 
     adjust_slab_list(cache, addr->slab, addr->slab->status);
+    RELEASE_SLAB(addr->slab);
 }
 

@@ -16,9 +16,13 @@
 #include "ide.h"
 #include "proc.h"
 #include "cpu.h"
+#include "kmalloc.h"
+#include "cpu.h"
 //#define g(x) #x
 int main() {
     
+    asm volatile("cli");
+    cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
     init_cons();
     clear_cons();
     init_uart();
@@ -36,7 +40,7 @@ int main() {
 
 
     cprintf("cpu id = %d\n",get_cpu());
-
+    tvinit();
     idtinit();
 
     kbd_init();
@@ -54,19 +58,24 @@ int main() {
     ide_write_secs(1,0,test,1);
     cprintf("\n");
    */ 
-//    asm volatile ("sti");
     check_vmm();
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
-proc_init();
-sche();
+    proc_init();
+    cprintf("proc init\n");
+
+    cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
+    asm volatile ("sti");
+
+    sche();
+
     /*****test ****/
     
 //    cprintf("%x\n",*(int*)(0x70000000));
 //    *(int*)(0x80109010 - 4) = 0x12345678;
     
-
+    
     while(1);
     return 0;
 }
