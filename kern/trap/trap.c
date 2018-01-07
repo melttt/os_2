@@ -7,6 +7,7 @@
 #include "lapic.h"
 #include "kbd.h"
 #include "vmm.h"
+#include "cpu.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -83,7 +84,7 @@ trap(struct trapframe *tf)
              pgfault_handler(tf);
             break;
         case T_IRQ0 + IRQ_TIMER:
-            if(cpunum() == 0){
+            if(get_cpu() == 0){
                 ticks ++;
 //                cprintf("ticks: %d\n",ticks);
                 /*
@@ -118,7 +119,7 @@ trap(struct trapframe *tf)
         case T_IRQ0 + 7:
         case T_IRQ0 + IRQ_SPURIOUS:
             cprintf("cpu%d: spurious interrupt at %x:%x\n",
-                    cpunum(), tf->cs, tf->eip);
+                    get_cpu(), tf->cs, tf->eip);
             lapiceoi();
             break;
 

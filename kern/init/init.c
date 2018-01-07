@@ -68,6 +68,9 @@ int main() {
     cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
     asm volatile ("sti");
 
+    int *c = kmalloc(4);
+    *c = 1;
+    cprintf("c : %x\n", c);
     sche();
 
     /*****test ****/

@@ -14,6 +14,8 @@ struct spinlock lock = {
 
 size_t get_cpu(void)
 {
+    return 0;
+    /*
     int apicid;
     size_t i;
 
@@ -36,6 +38,7 @@ size_t get_cpu(void)
     }
     panic("unknown apicid\n");
     return 0;
+    */
 }
 
 

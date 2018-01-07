@@ -35,6 +35,15 @@ extern void __traprets(void);
 void swtch(struct context **a, struct context *b);
 void kernel_thread_entry(void);
 void traprets(struct trapframe *tf);
+// init_main - the second kernel thread used to create user_main kernel threads
+static int
+init_main(void *arg) {
+    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
+    cprintf("To U: \"%s\".\n", (const char *)arg);
+    cprintf("To U: \"en.., Bye, Bye. :)\"\n");
+    while(100);
+    return 0;
+}
 void sche(void)
 {
     assert(current && idleproc);
@@ -43,6 +52,7 @@ void sche(void)
     if(current == idleproc)
     {
     cprintf("sche _ go\n");
+    cprintf("%x\n",init_main);
         swtch(&idleproc->context, initproc->context);
     }
 }
@@ -66,15 +76,6 @@ alloc_proc(void)
     return proc;
 }
 
-// init_main - the second kernel thread used to create user_main kernel threads
-static int
-init_main(void *arg) {
-    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
-    cprintf("To U: \"%s\".\n", (const char *)arg);
-    cprintf("To U: \"en.., Bye, Bye. :)\"\n");
-    while(100);
-    return 0;
-}
 
 
 // proc_init - set up the first kernel thread idleproc "idle" by itself and 
@@ -192,7 +193,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
 
     proc->parent = current;
 
-    if ((proc->kstack = kmalloc(KSTACKSIZE)) == NULL) {
+    if ((proc->kstack = kmalloc(KSTACKSIZES)) == NULL) {
         goto bad_fork_cleanup_proc;
     }
 

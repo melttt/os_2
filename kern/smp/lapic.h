@@ -2,8 +2,6 @@
 #define _KERN_SMP_LAPIC_H_
 #include "defs.h"
 
-int
-cpunum(void);
 
 void
 lapicinit(void);
