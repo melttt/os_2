@@ -1,13 +1,13 @@
-#include "defs.h"
+#include "basic_p.h"
+#include "mm_p.h"
+#include "driver_p.h"
+#include "smp_p.h"
+#include "arch_p.h"
+
 #include "trap.h"
 #include "kdebug.h"
-#include "mmu.h"
 #include "stdio.h"
-#include "x86.h"
-#include "lapic.h"
-#include "kbd.h"
-#include "vmm.h"
-#include "cpu.h"
+#include "syscall.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -68,7 +68,10 @@ pgfault_handler(struct trapframe *tf) {
 void
 trap(struct trapframe *tf)
 {
+
     if(tf->trapno == T_SYSCALL){
+        cpus[get_cpu()].cur_proc->tf = tf;
+           syscall();
         /*
            if(proc->killed)
            exit();

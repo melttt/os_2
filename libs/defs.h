@@ -63,5 +63,6 @@ typedef size_t ppn_t;
 #define to_struct(ptr, type, member)                               \
     ((type *)((char *)(ptr) - offsetof(type, member)))
 
+#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 #define INITOK "---------->"
 #endif

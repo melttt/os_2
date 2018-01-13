@@ -14,18 +14,24 @@ struct spinlock lock = {
 
 size_t get_cpu(void)
 {
-    return 0;
-    /*
+//    return 0;
     int apicid;
+    bool flag = false;
     size_t i;
 
     if(readeflags()&FL_IF)
+    {
+        asm volatile("cli");
+        flag = true;
 ;//        panic("mycpu called with interrupts enabled\n");
+
+    }
 
 
     apicid = lapicid();
     if(apicid == 0)
     {
+        if (flag)     asm volatile("sti");
         return 0;
     }
     // APIC IDs are not guaranteed to be contiguous. Maybe we should have
@@ -38,7 +44,6 @@ size_t get_cpu(void)
     }
     panic("unknown apicid\n");
     return 0;
-    */
 }
 
 

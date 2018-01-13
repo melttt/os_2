@@ -1,14 +1,17 @@
-#include "defs.h"
+#include "basic_p.h"
+#include "driver_p.h"
+#include "mm_p.h"
+#include "smp_p.h"
+#include "arch_p.h"
+
 #include "proc.h"
 #include "list.h"
-#include "kmalloc.h"
 #include "kdebug.h"
 #include "string.h"
-#include "x86.h"
-#include "mmu.h"
 #include "error.h"
 #include "stdio.h"
-#include "cpu.h"
+#include "syscall.h"
+#include "trap.h"
 
 
 // the process set's list
@@ -41,6 +44,11 @@ init_main(void *arg) {
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
     cprintf("To U: \"en.., Bye, Bye. :)\"\n");
+     asm volatile (
+        "int %0;"
+        : 
+        : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
+        : "memory");
     while(100);
     return 0;
 }
@@ -103,7 +111,7 @@ proc_init(void) {
     nr_process ++;
 
     current = idleproc;
-
+    cpus[get_cpu()].cur_proc = current;
     int pid = kernel_thread(init_main, "Hello world!!", 0);
     if (pid <= 0) {
         panic("create init_main failed.\n");

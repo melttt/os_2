@@ -3,9 +3,8 @@
 
 #include "asm.h"
 #include "memlayout.h"
-#include "param.h"
 #include "mmu.h"
-
+#define KSTACKSIZES 8192
 
 .p2align 2
 .text
@@ -28,7 +27,7 @@ entry:
   movl    %eax, %cr0
 
   # Set up the stack pointer.
-  movl $(stack + KSTACKSIZE ), %esp
+  movl $(stack + KSTACKSIZES), %esp
 
   # Jump to main(), and switch to executing at
   # high addresses. The indirect call is needed because
@@ -37,6 +36,6 @@ entry:
   mov $main, %eax
   jmp *%eax
 
-.comm stack, KSTACKSIZE
+.comm stack, KSTACKSIZES
 
 
