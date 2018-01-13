@@ -24,12 +24,6 @@ extern uint32_t hash32(uint32_t, uint32_t);
 static list_entry_t hash_list[HASH_LIST_SIZE];
 
 
-// idle proc
-struct proc *idleproc = NULL;
-// init proc
-struct proc *initproc = NULL;
-// current proc
-struct proc *current = NULL;
 
 
 static int nr_process = 0;
@@ -41,6 +35,7 @@ void traprets(struct trapframe *tf);
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
+    struct proc *current = PCPU->cur_proc;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
     cprintf("To U: \"en.., Bye, Bye. :)\"\n");
@@ -54,6 +49,9 @@ init_main(void *arg) {
 }
 void sche(void)
 {
+    struct proc *idleproc = PCPU->idle_proc;
+    struct proc *initproc = PCPU->init_proc;
+    struct proc *current = PCPU->cur_proc;
     assert(current && idleproc);
     cprintf("sche\n");
     //asm volatile("cli");
@@ -91,27 +89,30 @@ alloc_proc(void)
 void
 proc_init(void) {
     int i;
-
+    struct proc **idleproc = &PCPU->idle_proc;
+    struct proc **initproc = &PCPU->init_proc;
+    struct proc **current = &PCPU->cur_proc;
     list_init(&proc_list);
+
     for (i = 0; i < HASH_LIST_SIZE; i ++) {
         list_init(hash_list + i);
     }
 
-    if ((idleproc = alloc_proc()) == NULL) {
+    if ((*idleproc = alloc_proc()) == NULL) {
         panic("cannot alloc idleproc.\n");
     }
 
-    idleproc->context = kmalloc(sizeof(struct context));
-    idleproc->pid = 0;
+    (*idleproc)->context = kmalloc(sizeof(struct context));
+    (*idleproc)->pid = 0;
     //warning
     //idleproc->kstack =  (char*)stack; 
     //idleproc->need_resched = 1;
-    strcpy(idleproc->name, "idle");
-    idleproc->state = RUNNABLE;
+    strcpy((*idleproc)->name, "idle");
+    (*idleproc)->state = RUNNABLE;
     nr_process ++;
 
-    current = idleproc;
-    cpus[get_cpu()].cur_proc = current;
+    *current = *idleproc;
+    cpus[get_cpu()].cur_proc = *current;
     int pid = kernel_thread(init_main, "Hello world!!", 0);
     if (pid <= 0) {
         panic("create init_main failed.\n");
@@ -119,10 +120,10 @@ proc_init(void) {
 
     //initproc = find_proc(pid);
     //set_proc_name(initproc, "init");
-    strcpy(idleproc->name, "init");
+    strcpy((*idleproc)->name, "init");
 
-    assert(idleproc != NULL && idleproc->pid == 0);
-    assert(initproc != NULL && initproc->pid == 1);
+    assert((*idleproc) != NULL && (*idleproc)->pid == 0);
+    assert(*initproc != NULL && (*initproc)->pid == 1);
 }
 
 
@@ -153,6 +154,9 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
 
 static int
 copy_mm(uint32_t clone_flags, struct proc *proc) {
+    
+    
+    struct proc *current = PCPU->cur_proc;
     assert(current->mm == NULL);
     /* do nothing in this project */
     return 0;
@@ -189,6 +193,8 @@ wakeup_proc(struct proc *proc) {
 int
 do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     int ret = -E_NO_FREE_PROC;
+    struct proc **initproc = &PCPU->init_proc;
+    struct proc *current = PCPU->cur_proc;
     struct proc *proc;
     if (nr_process >= 20) {
         goto fork_out;
@@ -221,7 +227,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     nr_process ++;
     //}
     //local_intr_restore(intr_flag);
-    initproc = proc;
+    *initproc = proc;
 
     wakeup_proc(proc);
 

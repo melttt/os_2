@@ -15,7 +15,9 @@ struct cpu{
 
   // Cpu-local storage variables; see below
   struct cpu *cpu;
-  struct proc * cur_proc;           // The currently-running process.
+  struct proc *cur_proc;           // The currently-running process.
+  struct proc *init_proc;
+  struct proc *idle_proc;
 };
 
 
@@ -24,6 +26,7 @@ extern size_t ncpu;
 //extern struct cpu *cpu ;       // &cpus[cpunum()]
 size_t get_cpu(void);
 
+#define PCPU (&cpus[get_cpu()])
 
 
 #endif
