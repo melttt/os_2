@@ -10,7 +10,6 @@
 #include "kdebug.h"
 #include "trap.h"
 #include "proc.h"
-//#define g(x) #x
 int main() {
     
     asm volatile("cli");
@@ -65,10 +64,6 @@ int main() {
     cprintf("c : %x\n", c);
     sche();
 
-    /*****test ****/
-    
-//    cprintf("%x\n",*(int*)(0x70000000));
-//    *(int*)(0x80109010 - 4) = 0x12345678;
     
     
     while(1);

@@ -6,11 +6,12 @@
 #include "stdio.h"
 
 extern int sys_put(void);
+extern int sys_exec(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_dup(void);
-extern int sys_exec(void);
+//extern int sys_exec(void);
 extern int sys_exit(void);
 extern int sys_fork(void);
 extern int sys_fstat(void);
@@ -38,7 +39,7 @@ static int (*syscalls[])(void) = {
 [SYS_pipe]    sys_pipe,
 [SYS_read]    sys_read,
 [SYS_kill]    sys_kill,
-[SYS_exec]    sys_exec,
+//[SYS_exec]    sys_exec,
 [SYS_fstat]   sys_fstat,
 [SYS_chdir]   sys_chdir,
 [SYS_dup]     sys_dup,
@@ -54,10 +55,19 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 */
+[SYS_exec]    sys_exec,
 [SYS_put]   sys_put,
 };
 
-
+int 
+sys_exec()
+{
+    extern char _binary___user_user_test_start[];
+    extern char _binary___user_user_test_size[];
+    cprintf("sys_exec()\n");
+    do_execve(" ", 1, (unsigned char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
+    return 0;
+}
 void
 syscall()
 {

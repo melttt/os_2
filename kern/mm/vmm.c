@@ -412,6 +412,18 @@ mm_destroy(struct mm_struct *mm) {
     kfree(mm); //kfree mm
     mm=NULL;
 }
+bool
+mm_setup_pgdir(struct mm_struct *mm){
+    assert(mm != NULL);
+    pde_t *pgdir;
+    if((pgdir = kmalloc(PGSIZE)) == NULL)
+    {
+        return false;
+    }
+    memcpy(pgdir, kpgdir, PGSIZE);
+    mm->pgdir = pgdir;
+    return true;
+}
 
 
 void
@@ -645,4 +657,37 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
    ret = 0;
 failed:
     return ret;
+}
+
+bool
+user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write){
+    if(mm != NULL){
+        if(!USER_ACCESS(addr, addr + len)){
+            return false;
+        }
+
+        struct vma_struct *vma;
+        uintptr_t start = addr, end = addr + len;
+        while(start < end){
+            if((vma = find_vma(mm, start)) == NULL || start < vma->vm_start){
+                return 0;
+            }
+
+            if(!(vma->vm_flags & ((write ? VM_WRITE : VM_READ)))){
+                return 0;
+            }
+
+            if(write && (vma->vm_flags & VM_STACK)){
+                panic("VM_STACK test maybe wrong");
+                if(start < vma->vm_start + PGSIZE){
+                    return 0;
+                } 
+            }
+
+            start = vma->vm_end;
+
+        }
+        return 1;
+    }
+    return 1;
 }

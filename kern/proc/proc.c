@@ -12,6 +12,7 @@
 #include "stdio.h"
 #include "syscall.h"
 #include "trap.h"
+#include "elf.h"
 
 
 // the process set's list
@@ -22,6 +23,8 @@ extern uint32_t hash32(uint32_t, uint32_t);
 #define pid_hashfn(x)       (hash32(x, HASH_SHIFT))
 // has list for process set based on pid
 static list_entry_t hash_list[HASH_LIST_SIZE];
+
+
 
 
 
@@ -44,6 +47,11 @@ init_main(void *arg) {
         : 
         : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
         : "memory");
+     asm volatile (
+        "int %0;"
+        : 
+        : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_exec)
+        : "memory");
     while(100);
     return 0;
 }
@@ -62,6 +70,7 @@ void sche(void)
         swtch(&idleproc->context, initproc->context);
     }
 }
+
 
 static struct proc*
 alloc_proc(void)
@@ -171,9 +180,7 @@ copy_thread(struct proc *proc, uintptr_t esp, struct trapframe *tf) {
     proc->tf->eax = 0;
     proc->tf->esp = (int)(proc->kstack + 2048);
     proc->tf->eflags |= FL_IF;
-    cprintf("proc->tf : %x\n",proc->tf);
     *((int*)(proc->tf) - 1) = (int)__traprets;
-    cprintf("trapret : %x\n",kernel_thread_entry);
     proc->context = (struct context*)((int*)(proc->tf) - 1) - 1;
     proc->context->eip = (uintptr_t)forkret;
 }
@@ -223,7 +230,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     //{
     proc->pid = 1;
     //hash_proc(proc);
-//    list_add(&proc_list, &(proc->list_link));
+    //list_add(&proc_list, &(proc->list_link));
     nr_process ++;
     //}
     //local_intr_restore(intr_flag);
@@ -242,7 +249,99 @@ bad_fork_cleanup_proc:
     goto fork_out;
 }
 
+
+
+
 void do_exit(void)
 {
     
+}
+
+
+static int
+load_icode(unsigned char *binary, size_t size);
+
+bool
+do_execve(const char *name, size_t len, unsigned char *binary, size_t size)
+{
+   struct proc *proc = PCPU->cur_proc; 
+   struct mm_struct *mm = proc->mm;
+
+   if(!(user_mem_check(mm, (uintptr_t)name, len, 0)))
+   {
+       return false;
+   }
+
+    if(len > PROC_NAME)
+    {
+        len = PROC_NAME;
+    }
+
+    if(mm != NULL)
+    {
+        panic("no achieve now!\n");
+    }
+
+    int ret;
+    if((ret = load_icode(binary, size)) != 0){
+        panic("go to execve_exit");
+    }
+
+
+    return 0;
+
+}
+
+
+/* load_icode - load the content of binary program(ELF format) as the new content of current process
+ * @binary:  the memory addr of the content of binary program
+ * @size:  the size of the content of binary program
+ */
+static int
+load_icode(unsigned char *binary, size_t size)
+{
+    struct proc *current = PCPU->cur_proc;
+    if(current->mm != NULL){
+        panic("load_icode: current->mm must be empty.\n");
+    }
+
+    int ret = -E_NO_MEM;
+    struct mm_struct *mm;
+    //(1) create a new mm for current process
+    if((mm = mm_create()) == NULL)
+    {
+        cprintf("no mm\n");
+        goto bad_mm;
+    }
+
+    //(2) create a new PDT, and mm->pgdir= kernel virtual addr of PDT
+    if(mm_setup_pgdir(mm) ==false)
+    {
+        cprintf("no setup\n");
+        goto bad_pgdir_cleanup_mm;
+    }
+
+    struct elfhdr *elf = (struct elfhdr *)binary;
+    struct proghdr *ph = (struct proghdr *)(binary + elf->e_phoff);
+
+    if(elf->e_magic != ELF_MAGIC){
+        ret = -E_INVAL_ELF;
+        cprintf("no e_magic\n");
+        goto bad_elf_cleanup_pgdir;
+    }
+
+    struct proghdr *ph_end = ph + elf->e_phnum;
+    int i;
+    for(i = 0; ph < ph_end ;i ++, ph ++)
+    {
+        cprintf("i : %d\nph_type : %d\np_filesz : %d\np_memsz : %d\nph_flags : %d\nph_va : %d",
+                i, ph->p_type, ph->p_filesz, ph->p_memsz, ph->p_flags, ph->p_va);
+    }
+
+     
+    ret = 0;
+bad_mm:
+bad_pgdir_cleanup_mm:
+bad_elf_cleanup_pgdir:
+    return ret;
 }

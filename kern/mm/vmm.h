@@ -31,6 +31,7 @@ struct vma_struct {
 #define VM_READ                 0x00000001
 #define VM_WRITE                0x00000002
 #define VM_EXEC                 0x00000004
+#define VM_STACK                0x00000008
 
 // the control struct for a set of vma using the same PDT
 struct mm_struct {
@@ -45,10 +46,12 @@ struct mm_struct {
 struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);
 struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags);
 void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);
+bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write);
 
 //mm
 struct mm_struct *mm_create(void);
 void mm_destroy(struct mm_struct *mm);
+bool mm_setup_pgdir(struct mm_struct *mm);
 
 //function when page default
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);

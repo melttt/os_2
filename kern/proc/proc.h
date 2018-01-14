@@ -25,9 +25,9 @@ struct context {
 
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
-
+#define PROC_NAME 16
 struct proc {
-    char name[16];               // Process name (debugging)
+    char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
     int pid;                     // Process ID
     struct proc *parent;         // Parent process
@@ -61,7 +61,8 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
 
 int
 do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
-
+bool
+do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
 
 
 

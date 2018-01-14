@@ -20,6 +20,12 @@
 #define P2V_WO(x) ((x) + KERNBASE)    // same as P2V, but without casts
 
 
+#define USERBASE 0x00000000
+#define USERTOP  0x00400000
+#define USER_ACCESS(start, end) \
+    (USERBASE <= (start) && (start) < (end) && (end) <= USERTOP)
+
+
 #ifndef __ASSEMBLER__
 #include "defs.h"
 #include "list.h"

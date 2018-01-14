@@ -7,11 +7,23 @@ INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs -I./boot
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
 S_OBJS := $(shell find $(KERN_DIR) -name "*.S")
 LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
-C_PATH =./$(addprefix :,$(shell find ./kern -type d)):./libs:./boot
+C_PATH =./$(addprefix :,$(shell find ./kern -type d)):./libs:./boot:./user:./user/ulib
 OBJS := $(patsubst %.c,%.o,$(C_OBJS))
 OBJS += $(patsubst %.S,%.o,$(S_OBJS))
 OBJS += $(patsubst %.c,%.o,$(LIBS_OBJS))
 OBJS_EXTRA := ./kern/trap/vectors.o
+
+
+# USER
+USER_DIR := ./user
+USER_INCLUDE := $(addprefix -I,$(shell find $(USER_DIR) -type d))
+USER_C_FILE := $(shell find $(USER_DIR) -name "*.c") 
+USER_S_FILE := $(shell find $(USER_DIR) -name "*.S")
+USER_OBJS := $(patsubst %.c,%.o,$(USER_C_FILE))
+USER_OBJS += $(patsubst %.S,%.o,$(USER_S_FILE))
+USER_D_FILE := $(patsubst %.o,%.d,$(USER_OBJS)) 
+USER_TEST_FILE := $(USER_DIR)/user_test
+
 
 ifeq ($(findstring $(OBJS_EXTRA),$(OBJS)),)
 OBJS += $(OBJS_EXTRA)	
@@ -41,7 +53,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
-CFLAGS :=$(INCLUDEFLAGS) -fno-pic -static -fno-builtin   -fno-strict-aliasing   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector 
+CFLAGS :=$(INCLUDEFLAGS) $(USER_INCLUDE) -fno-pic -static -fno-builtin   -fno-strict-aliasing   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector 
 
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
@@ -62,8 +74,8 @@ $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootm
 	$(BOOTLOADER_DIR)/sign.pl $(BOOTLOADER_DIR)/bootblock
 
 
-$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) 
-	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS) 
+$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) $(USER_TEST_FILE)
+	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS)  -b binary $(USER_TEST_FILE)
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
 
@@ -71,6 +83,12 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)
 ./kern/trap/vectors.S: $(TOOLS_DIR)/vectors.pl
 	perl $< > $@
 
+
+
+
+$(USER_TEST_FILE) : $(USER_OBJS)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+	
 ifndef CPUS
 CPUS := 4
 endif
@@ -95,6 +113,7 @@ clean:
 	rm -f os.img swap.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
+	rm -f $(USER_OBJS) $(USER_D_FILE) $(USER_TEST_FILE)
 	rm -f ./kern/trap/vectors.*
 	rm -f ./tags
  
