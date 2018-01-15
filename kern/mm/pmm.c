@@ -130,7 +130,7 @@ free_pages(void *n)
 }
 
 
-/*not use swap ,the fuction is not use*/
+/*not use swap ,the fuction is not use*//*use in do_exec*/
 struct page*
 alloc_page()
 {
@@ -165,7 +165,7 @@ free_page(struct page* page)
 
 /*************/
 
-inline void*
+void*
 page2kva(struct page* page)
 {
     void * ret;
@@ -175,7 +175,7 @@ page2kva(struct page* page)
     return ret;
 }
 
-inline struct page*
+struct page*
 kva2page(void *va)
 {
     struct page *ret;

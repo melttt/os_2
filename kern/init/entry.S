@@ -9,6 +9,7 @@
 .p2align 2
 .text
 .globl _start
+.globl _boot_stack
 _start = V2P_WO(entry)
 
 # Entering xv6 on boot processor, with paging off.
@@ -27,7 +28,7 @@ entry:
   movl    %eax, %cr0
 
   # Set up the stack pointer.
-  movl $(stack + KSTACKSIZES), %esp
+  movl $(_boot_stack + KSTACKSIZES), %esp
 
   # Jump to main(), and switch to executing at
   # high addresses. The indirect call is needed because
@@ -36,6 +37,6 @@ entry:
   mov $main, %eax
   jmp *%eax
 
-.comm stack, KSTACKSIZES
+.comm _boot_stack, KSTACKSIZES
 
 

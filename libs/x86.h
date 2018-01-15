@@ -177,6 +177,12 @@ invlpg(void *addr) {
     asm volatile ("invlpg (%0)" :: "r" (addr) : "memory");
 }
 
+static inline void
+lcr3(uint32_t val)
+{
+  asm volatile("movl %0,%%cr3" : : "r" (val));
+}
+
 
 static inline uint
 xchg(volatile uint *addr, uint newval)

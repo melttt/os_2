@@ -3,6 +3,7 @@
 #define E_NO_MEM 1
 #define E_NO_FREE_PROC 2
 #define E_INVAL_ELF 3
+#define E_INVAL 4
 
 
 

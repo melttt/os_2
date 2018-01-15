@@ -21,7 +21,13 @@
 
 
 #define USERBASE 0x00000000
-#define USERTOP  0x00400000
+
+#ifndef PAGE
+#define PAGE 4096
+#define USTACKSIZE (4*PAGE)
+#endif
+
+#define USERTOP  0x04000000
 #define USER_ACCESS(start, end) \
     (USERBASE <= (start) && (start) < (end) && (end) <= USERTOP)
 

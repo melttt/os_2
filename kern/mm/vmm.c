@@ -1,4 +1,4 @@
-#include "defs.h"
+#include "basic_p.h"
 #include "mmu.h"
 #include "memlayout.h"
 #include "pmm.h"
@@ -110,7 +110,7 @@ page_insert(pde_t *pgdir, struct page *page, uintptr_t la, uint32_t perm) {
     return 0;
 }
 
-static struct page *
+struct page *
 pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
     struct page *page = alloc_page();
     if (page != NULL) {
@@ -243,11 +243,6 @@ kvm_print(pde_t* pgdir)
     return 1;
 }
 
-static inline void
-lcr3(uint32_t val)
-{
-  asm volatile("movl %0,%%cr3" : : "r" (val));
-}
 
 void
 switchkvm(void)
@@ -266,6 +261,7 @@ init_kvm(void)
 }
 
 
+static struct taskstate ts = {0};
 void
 seginit(void)
 {
@@ -280,6 +276,11 @@ seginit(void)
   c->gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
   c->gdt[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER);
   c->gdt[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
+  extern char *_boot_stack;
+  ts.esp0 = (uint)_boot_stack + KSTACKSIZES ;
+  ts.ss0 = SEG_KDATA << 3;
+  c->gdt[SEG_TSS] = SEG16(STS_T32A, &ts, sizeof(ts), 0);
+
 
   // Map cpu and proc -- these are private per cpu.
 //  c->gdt[SEG_KCPU] = SEG(1, 0xffffffff, 0, DPL_USER);
@@ -691,3 +692,35 @@ user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write){
     }
     return 1;
 }
+
+int
+mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
+       struct vma_struct **vma_store) {
+    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
+    if (!USER_ACCESS(start, end)) {
+        return -E_INVAL;
+    }
+
+    assert(mm != NULL);
+
+    int ret = -E_INVAL;
+
+    struct vma_struct *vma;
+    if ((vma = find_vma(mm, start)) != NULL && end > vma->vm_start) {
+        goto out;
+    }
+    ret = -E_NO_MEM;
+
+    if ((vma = vma_create(start, end, vm_flags)) == NULL) {
+        goto out;
+    }
+    insert_vma_struct(mm, vma);
+    if (vma_store != NULL) {
+        *vma_store = vma;
+    }
+    ret = 0;
+out:
+    return ret;
+}
+
+

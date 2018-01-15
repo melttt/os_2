@@ -48,10 +48,21 @@ struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_
 void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);
 bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write);
 
+int 
+kvm_print(pde_t* pgdir);
 //mm
+/*
+static inline int
+mm_count_inc(struct mm_struct *mm) {
+    mm->mm_count += 1;
+    return mm->mm_count;
+}
+*/
 struct mm_struct *mm_create(void);
 void mm_destroy(struct mm_struct *mm);
 bool mm_setup_pgdir(struct mm_struct *mm);
+int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store);
+
 
 //function when page default
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
@@ -61,5 +72,6 @@ void vmm_init(void);
 void check_vmm(void);
 pte_t* read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
 void page_remove(pde_t *pgdir, uintptr_t la);
+struct page*pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm);
 
 #endif

@@ -35,6 +35,7 @@ struct proc {
     struct context* context;     // swtch() here to run process
     struct trapframe *tf;        // Trap frame for current syscall
     pte_t *pgdir;                 // CR3 register: the base addr of Page Directroy Table(PDT)
+    uintptr_t cr3;
 
     char *kstack;                // Bottom of kernel stack for this process
     struct mm_struct *mm;         // Process memlayout

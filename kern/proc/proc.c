@@ -310,38 +310,147 @@ load_icode(unsigned char *binary, size_t size)
     //(1) create a new mm for current process
     if((mm = mm_create()) == NULL)
     {
-        cprintf("no mm\n");
         goto bad_mm;
     }
 
     //(2) create a new PDT, and mm->pgdir= kernel virtual addr of PDT
     if(mm_setup_pgdir(mm) ==false)
     {
-        cprintf("no setup\n");
         goto bad_pgdir_cleanup_mm;
     }
 
+    //(3) copy TEXT/DATA section, build BSS parts in binary to memory space of process
+    struct page *page;
     struct elfhdr *elf = (struct elfhdr *)binary;
     struct proghdr *ph = (struct proghdr *)(binary + elf->e_phoff);
-
+    //(3.1) This program is valid? 
     if(elf->e_magic != ELF_MAGIC){
         ret = -E_INVAL_ELF;
-        cprintf("no e_magic\n");
         goto bad_elf_cleanup_pgdir;
     }
 
+    uint32_t vm_flags, perm;
     struct proghdr *ph_end = ph + elf->e_phnum;
-    int i;
-    for(i = 0; ph < ph_end ;i ++, ph ++)
+    for(; ph < ph_end ;ph ++)
     {
-        cprintf("i : %d\nph_type : %d\np_filesz : %d\np_memsz : %d\nph_flags : %d\nph_va : %d",
-                i, ph->p_type, ph->p_filesz, ph->p_memsz, ph->p_flags, ph->p_va);
-    }
+        //(3.2) find every program section headers
+        if (ph->p_type != ELF_PROG_LOAD) {
+            continue ;
+        }
+        if (ph->p_filesz > ph->p_memsz) {
+            ret = -E_INVAL_ELF;
+            goto bad_cleanup_mmap;
+        }
+        if (ph->p_filesz == 0) {
+            continue ;
+        }
 
-     
+        //(3.3) call mm_map fun to setup the new vma ( ph->p_va, ph->p_memsz)
+        vm_flags = 0, perm = PTE_U;
+        if (ph->p_flags & ELF_PROG_FLAG_EXEC) vm_flags |= VM_EXEC;
+        if (ph->p_flags & ELF_PROG_FLAG_WRITE) vm_flags |= VM_WRITE;
+        if (ph->p_flags & ELF_PROG_FLAG_READ) vm_flags |= VM_READ;
+        if (vm_flags & VM_WRITE) perm |= PTE_W;
+        if ((ret = mm_map(mm, ph->p_va, ph->p_memsz, vm_flags, NULL)) != 0) {
+            goto bad_cleanup_mmap;
+        }
+
+        unsigned char *from = binary + ph->p_offset;
+        size_t off, size;
+        uintptr_t start = ph->p_va, end, la = ROUNDDOWN(start, PGSIZE);
+
+        ret = -E_NO_MEM;
+
+
+        //(3.4) alloc memory, and  copy the contents of every program section (from, from+end) to process's memory (la, la+end)
+        end = ph->p_va + ph->p_filesz;
+        //(3.4.1) copy TEXT/DATA section of bianry program
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_cleanup_mmap;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            memcpy(page2kva(page) + off, from, size);
+            start += size, from += size;
+        }
+
+        //(3.4.2) build BSS section of binary program
+        end = ph->p_va + ph->p_memsz;
+        if (start < la) {
+            /* ph->p_memsz == ph->p_filesz */
+            if (start == end) {
+                continue ;
+            }
+            off = start + PGSIZE - la, size = PGSIZE - off;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+            assert((end < la && start == end) || (end >= la && start == la));
+        }
+
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_cleanup_mmap;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+        }
+    }
+    vm_flags = VM_READ | VM_WRITE | VM_STACK;
+    if ((ret = mm_map(mm, USERTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0) {
+        goto bad_cleanup_mmap;
+    }
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE, perm);
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096, perm);
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*2, perm);
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*3, perm);
+    
+    //(5) set current process's mm, sr3, and set CR3 reg = physical addr of Page Directory
+//    mm_count_inc(mm);
+    current->mm = mm;
+    current->cr3 = V2P(mm->pgdir);
+    lcr3(V2P(mm->pgdir));  
+
+
+
+    //(6) setup trapframe for user environment
+    struct trapframe *tf = current->tf;
+    memset(tf, 0, sizeof(struct trapframe));
+    /* LAB5:EXERCISE1 YOUR CODE
+     * should set tf_cs,tf_ds,tf_es,tf_ss,tf_esp,tf_eip,tf_eflags
+     * NOTICE: If we set trapframe correctly, then the user level process can return to USER MODE from kernel. So
+     *          tf_cs should be USER_CS segment (see memlayout.h)
+     *          tf_ds=tf_es=tf_ss should be USER_DS segment
+     *          tf_esp should be the top addr of user stack (USTACKTOP)
+     *          tf_eip should be the entry point of this binary program (elf->e_entry)
+     *          tf_eflags should be set to enable computer to produce Interrupt
+     */
+    tf->cs = SEG_UCODE << 3;
+    tf->ds = tf->es = tf->ss = SEG_UDATA << 3;
+    tf->esp = USERTOP;
+    tf->eip = elf->e_entry;
+    cprintf("esp: %x\n",tf->esp);
+    cprintf("esp: %x\n",*read_pte_addr(mm->pgdir, tf->esp, 0));
+    *((int*)(tf->esp) - 4) = 123;
+
+    tf->eflags = FL_IF;
+
+    
     ret = 0;
+    return ret;
 bad_mm:
 bad_pgdir_cleanup_mm:
 bad_elf_cleanup_pgdir:
+bad_cleanup_mmap:
+    panic("exec wrong\n");
     return ret;
 }

@@ -130,6 +130,24 @@ trap(struct trapframe *tf)
         default:
             ;
             cprintf("trapno : %d\n",tf->trapno);
+            if(tf->trapno == 13)
+            {
+                cprintf("trapframe at %p\n", tf);
+                cprintf("  ds   0x----%04x\n", tf->ds);
+                cprintf("  es   0x----%04x\n", tf->es);
+                cprintf("  fs   0x----%04x\n", tf->fs);
+                cprintf("  gs   0x----%04x\n", tf->gs);
+                cprintf("  err  0x%08x\n", tf->err);
+                cprintf("  eip  0x%08x\n", tf->eip);
+                cprintf("  cs   0x----%04x\n", tf->cs);
+                cprintf("  flag 0x%08x ", tf->eflags);
+
+
+                    cprintf("  esp  0x%08x\n", tf->esp);
+                    cprintf("  ss   0x----%04x\n", tf->ss);
+                    while(1);
+            }
+
             /*
                if(proc == 0 || (tf->cs&3) == 0){
             // In kernel, it must be our mistake.
