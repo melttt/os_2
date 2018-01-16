@@ -409,16 +409,17 @@ load_icode(unsigned char *binary, size_t size)
     if ((ret = mm_map(mm, USERTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0) {
         goto bad_cleanup_mmap;
     }
-    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE, perm);
-    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096, perm);
-    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*2, perm);
-    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*3, perm);
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*2, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*3, (PTE_U | PTE_W | PTE_P));
     
     //(5) set current process's mm, sr3, and set CR3 reg = physical addr of Page Directory
 //    mm_count_inc(mm);
     current->mm = mm;
     current->cr3 = V2P(mm->pgdir);
-    lcr3(V2P(mm->pgdir));  
+    lcr3(V2P(mm->pgdir));
+
 
 
 
@@ -434,16 +435,13 @@ load_icode(unsigned char *binary, size_t size)
      *          tf_eip should be the entry point of this binary program (elf->e_entry)
      *          tf_eflags should be set to enable computer to produce Interrupt
      */
-    tf->cs = SEG_UCODE << 3;
-    tf->ds = tf->es = tf->ss = SEG_UDATA << 3;
-    tf->esp = USERTOP;
+    tf->cs = SEG_UCODE << 3 | 3;
+    tf->ds = tf->es = tf->ss = SEG_UDATA << 3 | 3;
+    tf->esp = USERTOP - 4;
     tf->eip = elf->e_entry;
-    cprintf("esp: %x\n",tf->esp);
-    cprintf("esp: %x\n",*read_pte_addr(mm->pgdir, tf->esp, 0));
-    *((int*)(tf->esp) - 4) = 123;
 
     tf->eflags = FL_IF;
-
+    
     
     ret = 0;
     return ret;

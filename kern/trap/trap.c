@@ -89,7 +89,7 @@ trap(struct trapframe *tf)
         case T_IRQ0 + IRQ_TIMER:
             if(get_cpu() == 0){
                 ticks ++;
-//                cprintf("ticks: %d\n",ticks);
+            //    cprintf("ticks: %d\n",ticks);
                 /*
                    acquire(&tickslock);
                    ticks++;

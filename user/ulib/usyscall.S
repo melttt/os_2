@@ -9,6 +9,7 @@
 .globl put;
   put: \
     movl $22, %eax; \
+    movl $40, %ebx; \
     int $64; \
     ret
 
