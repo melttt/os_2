@@ -59,7 +59,7 @@ ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
-
+export
 os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel swap.img
 	dd if=/dev/zero of=os.img count=10000
 	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
@@ -73,8 +73,7 @@ $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootm
 	$(OBJCOPY) -S -O binary -j .text $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootblock
 	$(BOOTLOADER_DIR)/sign.pl $(BOOTLOADER_DIR)/bootblock
 
-
-$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) $(USER_TEST_FILE)
+$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) tstMake #$(USER_TEST_FILE)
 	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS)  -b binary $(USER_TEST_FILE)
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
@@ -86,8 +85,12 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) $(USER_TEST_FILE)
 
 
 
-$(USER_TEST_FILE) : $(USER_OBJS)
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+tstMake :
+	$(MAKE) -C ./user
+	
+#$(USER_TEST_FILE) : $(USER_OBJS)
+#	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+
 	
 ifndef CPUS
 CPUS := 4
