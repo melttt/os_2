@@ -15,6 +15,8 @@
 #include "elf.h"
 
 
+
+
 // the process set's list
 list_entry_t proc_list;
 extern uint32_t hash32(uint32_t, uint32_t); 
@@ -419,9 +421,6 @@ load_icode(unsigned char *binary, size_t size)
     current->mm = mm;
     current->cr3 = V2P(mm->pgdir);
     lcr3(V2P(mm->pgdir));
-
-
-
 
     //(6) setup trapframe for user environment
     struct trapframe *tf = current->tf;

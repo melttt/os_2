@@ -41,7 +41,7 @@ holding(struct spinlock *lock)
 }
 
 void
-init_lock(struct spinlock *lk, char *name)
+init_lock(struct spinlock *lk,const char *name)
 {
   lk->name = name;
   lk->locked = 0;

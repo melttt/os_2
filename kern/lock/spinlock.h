@@ -5,12 +5,12 @@
 
 struct spinlock {
   uint32_t locked;       // Is the lock held?
-  char *name;        // Name of lock.
+  const char *name;        // Name of lock.
   size_t cpu;        // The cpu holding the lock.
 };
 
 void
-init_lock(struct spinlock *lk, char *name);
+init_lock(struct spinlock *lk,const char *name);
 void
 acquire(struct spinlock *lk);
 
