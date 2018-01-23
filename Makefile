@@ -1,3 +1,4 @@
+
 BOOTLOADER_DIR := ./boot
 TOOLS_DIR := ./tools
 KERN_DIR := ./kern
@@ -121,6 +122,6 @@ clean:
 	rm -f ./tags
  
 test :
-	export C_INCLUDE_PATH="$(C_PATH)"
+	#export C_INCLUDE_PATH="$(C_PATH)"
 
 

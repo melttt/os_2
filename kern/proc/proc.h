@@ -26,6 +26,7 @@ struct context {
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 #define PROC_NAME 16
+#define list2proc(ptr) to_struct(ptr, struct proc, ready_elm)
 struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
@@ -39,6 +40,7 @@ struct proc {
 
     char *kstack;                // Bottom of kernel stack for this process
     struct mm_struct *mm;         // Process memlayout
+    list_entry_t ready_elm;
 /*
     list_entry_t list_link;                     // Process link list 
     list_entry_t hash_link;                     // Process hash list
@@ -54,7 +56,6 @@ struct proc {
 extern struct proc *proc asm("%gs:4");     // cpus[cpunum()].proc
 
 
-void sche(void);
 void proc_init(void);
 void do_exit(void);
 int

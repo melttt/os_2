@@ -10,6 +10,7 @@
 #include "kdebug.h"
 #include "trap.h"
 #include "proc.h"
+#include "sche.h"
 int main() {
     
     asm volatile("cli");
@@ -62,11 +63,10 @@ int main() {
     int *c = kmalloc(4);
     *c = 1;
     cprintf("c : %x\n", c);
-    sche();
 
+    sche();
     
     
-    while(1);
     return 0;
 }
 

@@ -1,5 +1,6 @@
 
 # USER
+
 USER_DIR := ../user
 USER_INCLUDE := $(addprefix -I,$(shell find $(USER_DIR) -type d))
 USER_C_FILE := $(shell find $(USER_DIR) -name "*.c") 

@@ -5,6 +5,7 @@
 #include "arch_p.h"
 
 #include "proc.h"
+#include "sche.h"
 #include "list.h"
 #include "kdebug.h"
 #include "string.h"
@@ -34,7 +35,6 @@ static list_entry_t hash_list[HASH_LIST_SIZE];
 static int nr_process = 0;
 extern void __traprets(void);
 
-void swtch(struct context **a, struct context *b);
 void kernel_thread_entry(void);
 void traprets(struct trapframe *tf);
 // init_main - the second kernel thread used to create user_main kernel threads
@@ -57,6 +57,7 @@ init_main(void *arg) {
     while(100);
     return 0;
 }
+/*
 void sche(void)
 {
     struct proc *idleproc = PCPU->idle_proc;
@@ -72,6 +73,7 @@ void sche(void)
         swtch(&idleproc->context, initproc->context);
     }
 }
+*/
 
 
 static struct proc*
@@ -102,9 +104,10 @@ proc_init(void) {
     int i;
     struct proc **idleproc = &PCPU->idle_proc;
     struct proc **initproc = &PCPU->init_proc;
-    struct proc **current = &PCPU->cur_proc;
+    struct proc **curproc = &PCPU->cur_proc;
     list_init(&proc_list);
 
+    init_sche();
     for (i = 0; i < HASH_LIST_SIZE; i ++) {
         list_init(hash_list + i);
     }
@@ -122,8 +125,10 @@ proc_init(void) {
     (*idleproc)->state = RUNNABLE;
     nr_process ++;
 
-    *current = *idleproc;
-    cpus[get_cpu()].cur_proc = *current;
+    *curproc = *idleproc;
+    
+
+
     int pid = kernel_thread(init_main, "Hello world!!", 0);
     if (pid <= 0) {
         panic("create init_main failed.\n");
@@ -239,6 +244,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     *initproc = proc;
 
     wakeup_proc(proc);
+    put_proc(proc); 
 
     ret = proc->pid;
 fork_out:
