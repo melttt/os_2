@@ -43,8 +43,6 @@ void init_sche()
 void sche()
 {
     
-    while(1)
-    {
         asm volatile("sti");
         ACQUIRE;
         struct proc *idleproc = PCPU->idle_proc;
@@ -69,7 +67,6 @@ void sche()
             }
         }
         RELEASE;
-    }
 }
 
 
