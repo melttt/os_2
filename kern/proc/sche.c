@@ -43,7 +43,6 @@ void init_sche()
 void sche()
 {
     
-        asm volatile("sti");
         ACQUIRE;
         struct proc *idleproc = PCPU->idle_proc;
         struct proc *current = PCPU->cur_proc;

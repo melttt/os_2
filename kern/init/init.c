@@ -64,7 +64,10 @@ int main() {
     *c = 1;
     cprintf("c : %x\n", c);
 
-    sche();
+    while(1)
+    {
+        sche();
+    }
     
     
     return 0;

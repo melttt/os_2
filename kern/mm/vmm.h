@@ -46,23 +46,32 @@ struct mm_struct {
 struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);
 struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags);
 void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);
-bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write);
-
-int 
-kvm_print(pde_t* pgdir);
 //mm
-/*
-static inline int
-mm_count_inc(struct mm_struct *mm) {
-    mm->mm_count += 1;
-    return mm->mm_count;
-}
-*/
 struct mm_struct *mm_create(void);
 void mm_destroy(struct mm_struct *mm);
 bool mm_setup_pgdir(struct mm_struct *mm);
 int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store);
+void exit_mmap(struct mm_struct *mm);
 
+bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write);
+
+
+static inline int
+mm_count_inc(struct mm_struct *mm) {
+    mm->map_count += 1;
+    return mm->map_count;
+}
+
+static inline int
+mm_count_dec(struct mm_struct *mm) {
+    mm->map_count -= 1;
+    return mm->map_count;
+}
+
+static inline int
+mm_count(struct mm_struct *mm) {
+    return mm->map_count;
+}
 
 //function when page default
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
@@ -70,8 +79,12 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
 //page fuction
 void vmm_init(void);
 void check_vmm(void);
+int kvm_print(pde_t* pgdir);
 pte_t* read_pte_addr(pde_t *pgdir, uintptr_t va, int32_t alloc);
 void page_remove(pde_t *pgdir, uintptr_t la);
+void unmap_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
+void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
+void put_pgdir(struct mm_struct *mm);
 struct page*pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm);
 
 #endif

@@ -49,11 +49,14 @@ init_main(void *arg) {
         : 
         : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
         : "memory");
+
      asm volatile (
         "int %0;"
         : 
         : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_exec)
         : "memory");
+
+      
     while(100);
     return 0;
 }
@@ -112,6 +115,7 @@ proc_init(void) {
         list_init(hash_list + i);
     }
 
+
     if ((*idleproc = alloc_proc()) == NULL) {
         panic("cannot alloc idleproc.\n");
     }
@@ -136,7 +140,7 @@ proc_init(void) {
 
     //initproc = find_proc(pid);
     //set_proc_name(initproc, "init");
-    strcpy((*idleproc)->name, "init");
+    strcpy((*initproc)->name, "init");
 
     assert((*idleproc) != NULL && (*idleproc)->pid == 0);
     assert(*initproc != NULL && (*initproc)->pid == 1);
@@ -149,6 +153,7 @@ proc_init(void) {
 static void
 forkret(void) {
     //traprets(current->tf);
+//    RELEASE;
 }
 
 
@@ -260,10 +265,6 @@ bad_fork_cleanup_proc:
 
 
 
-void do_exit(void)
-{
-    
-}
 
 
 static int
@@ -456,4 +457,37 @@ bad_elf_cleanup_pgdir:
 bad_cleanup_mmap:
     panic("exec wrong\n");
     return ret;
+}
+
+//realease mm struct
+uint8_t
+do_exit()
+{
+    struct proc *current = PCPU->cur_proc;
+    struct proc *idleproc = PCPU->idle_proc;
+    struct proc *initproc = PCPU->init_proc;
+
+    if (current == idleproc) {
+        panic("idleproc exit.\n");
+    }
+    if (current == initproc) {
+        panic("initproc exit.\n");
+    }
+
+    //release mm struct
+    struct mm_struct *mm = PCPU->cur_proc->mm;
+    if (mm != NULL) {
+        lcr3(kpgdir);
+        if (mm_count_dec(mm) == 0) {
+            exit_mmap(mm);
+            put_pgdir(mm);
+            mm_destroy(mm);
+        }
+        current->mm = NULL;
+    }
+    current->state = PROC_ZOMBIE;
+    //current->exit_code = error_code;
+
+
+    sche();
 }

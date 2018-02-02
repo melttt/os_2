@@ -41,6 +41,8 @@ struct proc {
     char *kstack;                // Bottom of kernel stack for this process
     struct mm_struct *mm;         // Process memlayout
     list_entry_t ready_elm;
+
+
 /*
     list_entry_t list_link;                     // Process link list 
     list_entry_t hash_link;                     // Process hash list
@@ -57,7 +59,7 @@ extern struct proc *proc asm("%gs:4");     // cpus[cpunum()].proc
 
 
 void proc_init(void);
-void do_exit(void);
+uint8_t do_exit(void);
 int
 kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
 
@@ -65,10 +67,6 @@ int
 do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
 bool
 do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
-
-
-
-
 
 
 #endif
