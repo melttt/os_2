@@ -76,9 +76,7 @@ syscall()
     if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
         cpus[get_cpu()].cur_proc->tf->eax= syscalls[num]();
     } else {
-        cprintf("%d %s: unknown sys call %d\n",
-                proc->pid, proc->name, num);
-        proc->tf->eax = -1;
+        cprintf("unknown sys call\n");
     }
 }
 

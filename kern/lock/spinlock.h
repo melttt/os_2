@@ -9,6 +9,8 @@ struct spinlock {
   size_t cpu;        // The cpu holding the lock.
 };
 
+void push_cli(void);
+void pop_cli(void);
 void
 init_lock(struct spinlock *lk,const char *name);
 void

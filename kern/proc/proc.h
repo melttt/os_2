@@ -5,6 +5,7 @@
 #include "vmm.h"
 #include "x86.h" //struct trapframe
 #include "param.h"
+
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
 // because they are constant across kernel contexts.
@@ -25,12 +26,13 @@ struct context {
 
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+enum waitstate { WT_NO, SLEEP };
 #define PROC_NAME 16
-#define list2proc(ptr) to_struct(ptr, struct proc, ready_elm)
+#define list2proc(ptr) to_struct(ptr, struct proc, elm)
 struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
-    int pid;                     // Process ID
+    uint32_t pid;                     // Process ID
     struct proc *parent;         // Parent process
 
     struct context* context;     // swtch() here to run process
@@ -40,9 +42,10 @@ struct proc {
 
     char *kstack;                // Bottom of kernel stack for this process
     struct mm_struct *mm;         // Process memlayout
-    list_entry_t ready_elm;
-
-
+    
+    enum waitstate wait_state;
+    list_entry_t elm;
+    list_entry_t child;
 /*
     list_entry_t list_link;                     // Process link list 
     list_entry_t hash_link;                     // Process hash list
@@ -54,19 +57,12 @@ struct proc {
 */
 };
 
-
-extern struct proc *proc asm("%gs:4");     // cpus[cpunum()].proc
-
-
 void proc_init(void);
 uint8_t do_exit(void);
-int
-kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
-
-int
-do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
-bool
-do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
+int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
+bool do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+void wakeup_proc(struct proc *proc);
 
 
 #endif

@@ -9,7 +9,7 @@
 // it takes two popcli to undo two pushcli.  Also, if interrupts
 // are off, then pushcli, popcli leaves them off.
 
-static void
+void
 push_cli(void)
 {
   int eflags;
@@ -21,7 +21,7 @@ push_cli(void)
   cpu->ncli += 1;
 }
 
-static void
+void
 pop_cli(void)
 {
   if(readeflags()&FL_IF)

@@ -38,7 +38,6 @@ entry:
   jmp *%eax
 
 .comm _boot_stack, KSTACKSIZES
-.globl _bootstacktop
 _bootstacktop:
 
 

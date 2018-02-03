@@ -1,4 +1,5 @@
 #include "basic_p.h"
+#include "lock_p.h"
 #include "mmu.h"
 #include "memlayout.h"
 #include "pmm.h"
@@ -250,6 +251,30 @@ switchkvm(void)
   lcr3(V2P(kpgdir));   // switch to the kernel page table
 }
 
+void 
+switchuvm(struct proc *p)
+{
+  if(p == 0)
+    panic("switchuvm: no process");
+  if(p->kstack == 0)
+    panic("switchuvm: no kstack");
+  if(p->pgdir == 0)
+    panic("switchuvm: no pgdir");
+
+  push_cli();
+  struct cpu *cpu = PCPU;
+  cpu->gdt[SEG_TSS] = SEG16(STS_T32A, &cpu->ts, sizeof(cpu->ts), 0);
+  cpu->gdt[SEG_TSS].s = 0;
+  cpu->ts.ss0 = SEG_KDATA << 3;
+  cpu->ts.esp0 = (uintptr_t)p->kstack + KSTACKSIZES;
+  // setting IOPL=0 in eflags *and* iomb beyond the tss segment limit
+  // forbids I/O instructions (e.g., inb and outb) from user space
+  cpu->ts.iomb = (ushort) 0xFFFF;
+  ltr(SEG_TSS << 3);
+  lcr3(V2P(p->pgdir));  // switch to process's address space
+  pop_cli();
+}
+
 int32_t 
 init_kvm(void)
 {
@@ -261,8 +286,6 @@ init_kvm(void)
 }
 
 
-static struct taskstate ts = {0};
-char tsss[4096];
 void
 seginit(void)
 {
@@ -277,24 +300,9 @@ seginit(void)
   c->gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
   c->gdt[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER);
   c->gdt[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
-  ts.esp0 = (uintptr_t)(tsss + 2048) ;
-  ts.ss0 = SEG_KDATA << 3;
-  ts.iomb = (unsigned short)(0xFFFF);
-  c->gdt[SEG_TSS] = SEG16(STS_T32A, &ts, sizeof(ts), 0);
-  c->gdt[SEG_TSS].s = 0;
 
-
-  // Map cpu and proc -- these are private per cpu.
-//  c->gdt[SEG_KCPU] = SEG(1, 0xffffffff, 0, DPL_USER);
-  ///c->gdt[SEG_KCPU].p = 0;
 
   lgdt(c->gdt, sizeof(c->gdt) );
-  ltr(SEG_TSS << 3);
-//  loadgs(SEG_KCPU << 3);
-
-  // Initialize cpu-local storage.
-//  cpu = c;
-//  proc = 0;
 }
 
 
@@ -429,6 +437,127 @@ mm_setup_pgdir(struct mm_struct *mm){
     return true;
 }
 
+// mm_copy - process "proc" duplicate OR share process "current"'s mm according clone_flags
+//         - if clone_flags & CLONE_VM, then "share" ; else "duplicate"
+int
+mm_copy(uint32_t clone_flags, struct proc *proc) {
+    struct mm_struct *mm, *oldmm = CUR_PROC->mm;
+
+    /* current is a kernel thread */
+    if (oldmm == NULL) {
+        return 0;
+    }
+
+    if (clone_flags & CLONE_VM) {
+        mm = oldmm;
+        goto good_mm;
+    }
+
+    panic("now no support copy mm\n");
+#if 0
+    int ret = -E_NO_MEM;
+    if ((mm = mm_create()) == NULL) {
+        goto bad_mm;
+    }
+    if (setup_pgdir(mm) != 0) {
+        goto bad_pgdir_cleanup_mm;
+    }
+
+    lock_mm(oldmm);
+    {
+        ret = dup_mmap(mm, oldmm);
+    }
+    unlock_mm(oldmm);
+
+    if (ret != 0) {
+        goto bad_dup_cleanup_mmap;
+    }
+
+#endif
+good_mm:
+    mm_count_inc(mm);
+    proc->mm = mm;
+    proc->cr3 = V2P(mm->pgdir);
+    return 0;
+#if 0
+bad_dup_cleanup_mmap:
+    exit_mmap(mm);
+    put_pgdir(mm);
+bad_pgdir_cleanup_mm:
+    mm_destroy(mm);
+bad_mm:
+    return ret;
+#endif
+}
+
+
+#if 0
+static int
+dup_mmap(struct mm_struct *to, struct mm_struct *from) {
+    assert(to != NULL && from != NULL);
+    list_entry_t *list = &(from->mmap_list), *le = list;
+    while ((le = list_prev(le)) != list) {
+        struct vma_struct *vma, *nvma;
+        vma = le2vma(le, list_link);
+        nvma = vma_create(vma->vm_start, vma->vm_end, vma->vm_flags);
+        if (nvma == NULL) {
+            return -E_NO_MEM;
+        }
+
+        insert_vma_struct(to, nvma);
+
+        bool share = 0;
+        if (copy_range(to->pgdir, from->pgdir, vma->vm_start, vma->vm_end, share) != 0) {
+            return -E_NO_MEM;
+        }
+    }
+    return 0;
+}
+
+/* copy_range - copy content of memory (start, end) of one process A to another process B
+ * @to:    the addr of process B's Page Directory
+ * @from:  the addr of process A's Page Directory
+ * @share: flags to indicate to dup OR share. We just use dup method, so it didn't be used.
+ *
+ * CALL GRAPH: copy_mm-->dup_mmap-->copy_range
+ */
+int
+copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
+    assert(start % PGSIZE == 0 && end % PGSIZE == 0);
+    assert(USER_ACCESS(start, end));
+    do {
+        pte_t *ptep = get_pte(from, start, 0), *nptep;
+        if (ptep == NULL) {
+            start = ROUNDDOWN(start + PTSIZE, PTSIZE);
+            continue ;
+        }
+        if (*ptep & PTE_P) {
+            if ((nptep = get_pte(to, start, 1)) == NULL) {
+                return -E_NO_MEM;
+            }
+        uint32_t perm = (*ptep & PTE_USER);
+        //get page from ptep
+        struct Page *page = pte2page(*ptep);
+        // alloc a page for process B
+        struct Page *npage=alloc_page();
+        assert(page!=NULL);
+        assert(npage!=NULL);
+        int ret=0;
+
+        void * kva_src = page2kva(page);
+        void * kva_dst = page2kva(npage);
+    
+        memcpy(kva_dst, kva_src, PGSIZE);
+
+        ret = page_insert(to, npage, start, perm);
+        assert(ret == 0);
+        }
+        start += PGSIZE;
+    } while (start != 0 && start < end);
+    return 0;
+}
+
+#endif
 
 int
 mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
@@ -482,13 +611,19 @@ put_pgdir(struct mm_struct *mm) {
 }
 
 void
+put_kstack(struct proc *proc){
+    kfree(P2V(proc->kstack));
+}
+
+
+void
 vmm_init(void) {
     init_kvm();
     seginit();
     cprintf(INITOK"init vmm ok!\n");
 }
 
-#define PTSIZE 4096
+#define PTSIZE 4096*1024
 void
 unmap_range(pde_t *pgdir, uintptr_t start, uintptr_t end) {
     assert(start % PGSIZE == 0 && end % PGSIZE == 0);

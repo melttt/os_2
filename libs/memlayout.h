@@ -27,7 +27,7 @@
 #define USTACKSIZE (4*PAGE)
 #endif
 
-#define USERTOP  0x04000000
+#define USERTOP  0x04000000         // 64MB =_=~
 #define USER_ACCESS(start, end) \
     (USERBASE <= (start) && (start) < (end) && (end) <= USERTOP)
 
