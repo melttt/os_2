@@ -61,7 +61,7 @@ get_proc(){
     list_entry_t *head = &proc_manager.ready;
     if(!list_empty(head)){
        struct proc *ret = list2proc(head->next);
-       list_del(head->next);
+       list_del_init(head->next);
        return ret; 
     }
     return NULL;
@@ -108,6 +108,7 @@ void sche()
 {
     
         ACQUIRE;
+        assert(PCPU->ncli == 1);
         struct proc *idleproc = IDLE_PROC;
         struct proc *current = CUR_PROC;
         assert(current && idleproc);
@@ -116,8 +117,7 @@ void sche()
         cprintf("current : %d\n", current->pid);
         if(new)
         {
-            current->state = RUNNABLE;
-            if(current != IDLE_PROC && current != INIT_PROC)
+            if(current != IDLE_PROC)
                 put_proc(current);
 
             new->state = RUNNING;
@@ -128,7 +128,6 @@ void sche()
         }else{
             if(current != idleproc)
             {
-                current->state = RUNNABLE;
                 put_proc(current);
                 new->state = RUNNING;
                 switchuvm(new);
@@ -140,6 +139,7 @@ void sche()
 
             }
         }
+        assert(PCPU->ncli == 1);
         RELEASE;
 }
 
@@ -152,3 +152,46 @@ forkret(void) {
     RELEASE;
 }
 
+bool
+add_child(struct proc* parent, struct proc* child)
+{
+    assert(parent && child);
+    list_del_init(&child->plink); 
+    child->parent = parent;
+    list_add_before(&parent->child, &child->plink);
+    return true;
+}
+
+bool
+change_childs(struct proc* old, struct proc* new)
+{
+    assert(old && new);
+    ACQUIRE;
+    list_entry_t *head = &old->child, *le = head;
+    while((le = list_next(le)) != head)
+    {
+        struct proc* child = list2proc(le);        
+        add_child(new, child);
+        cprintf("change a child\n");
+    }
+    RELEASE;
+    return true;
+}
+bool
+has_child(struct proc *p)
+{
+    list_entry_t *head = &p->child;
+    return head->next != NULL;
+}
+struct proc*
+fetch_child(struct proc* p)
+{
+    list_entry_t *head = &p->child;
+    if(head->next != NULL)
+    {
+        struct proc *ret = list2proc(head->next);
+        list_del_init(head->next);
+        return ret;
+    }
+    return NULL;
+}

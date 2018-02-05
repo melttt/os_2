@@ -27,6 +27,7 @@ alloc_proc(void)
         memset(proc->name, 0, sizeof(proc->name));
         proc->state = EMBRYO;
         proc->pid = -1;
+        proc->exit_code = 0;
         proc->parent = NULL;
         proc->context = NULL;
         proc->tf = NULL;
@@ -36,6 +37,7 @@ alloc_proc(void)
         proc->wait_state = WT_NO;
         list_init(&proc->elm);
         list_init(&proc->child);
+        list_init(&proc->plink);
     }
     return proc;
 }
@@ -73,7 +75,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
 
-    proc->parent = CUR_PROC;
+    add_child(CUR_PROC, proc);
     if ((proc->kstack = kmalloc(KSTACKSIZES)) == NULL) {
         goto bad_fork_cleanup_proc;
     }
@@ -137,14 +139,15 @@ proc_init(void) {
 
     CUR_PROC = IDLE_PROC;
 
+    cprintf("start init\n");
     int pid = kernel_thread(init_main, "Hello world!!", 0);
     if (pid <= 0) {
         panic("create init_main failed.\n");
     }
-
+    
     INIT_PROC = find_proc(pid);
     strcpy((INIT_PROC)->name, "init");
-
+    cprintf("proc_init ok!\n");
     assert(IDLE_PROC != NULL && (IDLE_PROC)->pid == 0);
     assert(INIT_PROC != NULL && (INIT_PROC)->pid == 1);
 }
@@ -161,16 +164,15 @@ wakeup_proc(struct proc *proc) {
 static int
 user_main(void *arg){
     struct proc *current = CUR_PROC;
-    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
+    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
     cprintf("To U: \"%s\".\n", (const char *)arg);
-    cprintf("To U: \"en.., Bye, Bye. :)\"\n");
     asm volatile (
             "int %0;"
             : 
             : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_exec)
             : "memory");
 
-    panic("no exit\n");
+    panic("should not at here\n");
     return 1;
 }
 // init_main - the second kernel thread used to create user_main kernel threads
@@ -179,19 +181,27 @@ init_main(void *arg) {
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
-    cprintf("To U: \"en.., Bye, Bye. :)\"\n");
     asm volatile (
             "int %0;"
             : 
             : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
             : "memory");
 
+    size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "first USER program", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
-    cprintf("ok\n\n\n");
+
     sche();
+
+    struct proc* chi = find_proc(2);
+    cprintf("pid == 2 , status : %d\n", chi->state);
+    
+    put_kstack(chi);
+    kfree(chi);
+    assert(before == nr_free_pages());
+
     panic("now no wait function\n");
 
     while(100);
@@ -363,10 +373,11 @@ load_icode(unsigned char *binary, size_t size)
 
 
     //(5) set current process's mm, sr3, and set CR3 reg = physical addr of Page Directory
-    //    mm_count_inc(mm);
+    mm_count_inc(mm);
     current->mm = mm;
     current->cr3 = V2P(mm->pgdir);
     lcr3(V2P(mm->pgdir));
+    cprintf("mm->map_count : %d\n", mm->map_count);
 
     //(6) setup trapframe for user environment
     struct trapframe *tf = current->tf;
@@ -390,12 +401,12 @@ bad_cleanup_mmap:
 
 //realease mm struct
 uint8_t
-do_exit()
+do_exit(int8_t error_code)
 {
-#if 0
-    struct proc *current = PCPU->cur_proc;
-    struct proc *idleproc = PCPU->idle_proc;
-    struct proc *initproc = PCPU->init_proc;
+    
+    struct proc *current = CUR_PROC;
+    struct proc *idleproc = IDLE_PROC;
+    struct proc *initproc = INIT_PROC;
 
     if (current == idleproc) {
         panic("idleproc exit.\n");
@@ -403,9 +414,9 @@ do_exit()
     if (current == initproc) {
         panic("initproc exit.\n");
     }
-
+    cprintf("delete mm before :%d\n", nr_free_pages());
     //release mm struct
-    struct mm_struct *mm = PCPU->cur_proc->mm;
+    struct mm_struct *mm = current->mm;
     if (mm != NULL) {
         lcr3(V2P(kpgdir));
         if (mm_count_dec(mm) == 0) {
@@ -415,10 +426,12 @@ do_exit()
         }
         current->mm = NULL;
     }
-    current->state = PROC_ZOMBIE;
-    //current->exit_code = error_code;
-    
+    cprintf("delete mm after :%d\n", nr_free_pages());
+    current->state = ZOMBIE;
+    change_childs(current, current->parent); 
+    current->exit_code = error_code;
     sche();
-#endif
     return 1;
 }
+
+

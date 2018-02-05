@@ -39,6 +39,7 @@ struct mm_struct {
     struct vma_struct *mmap_cache; // current accessed vma, used for speed purpose
     pde_t *pgdir;                  // the PDT of these vma
     int map_count;                 // the count of these vma
+    int mm_count;
     void *sm_priv;                   // the private data for swap manager
 };
 
@@ -59,21 +60,25 @@ bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write
 
 static inline int
 mm_count_inc(struct mm_struct *mm) {
-    mm->map_count += 1;
-    return mm->map_count;
+    mm->mm_count += 1;
+    return mm->mm_count;
 }
 
 static inline int
 mm_count_dec(struct mm_struct *mm) {
-    mm->map_count -= 1;
-    return mm->map_count;
+    mm->mm_count -= 1;
+    return mm->mm_count;
 }
 
 static inline int
 mm_count(struct mm_struct *mm) {
-    return mm->map_count;
+    return mm->mm_count;
 }
 
+static inline int
+set_mm_count(struct mm_struct *mm, int val){
+   return mm->mm_count = val; 
+}
 //function when page default
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
 

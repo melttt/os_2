@@ -5,6 +5,6 @@ int main()
 {
     b = a;
     put('q');
-    while(1);
+    exit();
     return 0;
 }

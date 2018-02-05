@@ -398,14 +398,14 @@ insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma) {
 // mm_create -  alloc a mm_struct & initialize it.
 struct mm_struct *
 mm_create(void) {
-    struct mm_struct *mm = kmalloc(sizeof(struct mm_struct));
 
+    struct mm_struct *mm = kmalloc(sizeof(struct mm_struct));
     if (mm != NULL) {
         list_init(&(mm->mmap_list));
         mm->mmap_cache = NULL;
         mm->pgdir = NULL;
         mm->map_count = 0;
-
+        set_mm_count(mm, 0);
         if (swap_init_ok) swap_init_mm(mm);
         else mm->sm_priv = NULL;
     }
@@ -415,6 +415,7 @@ mm_create(void) {
 // mm_destroy - free mm and mm internal fields
 void
 mm_destroy(struct mm_struct *mm) {
+    assert(mm_count(mm) == 0);
 
     list_entry_t *list = &(mm->mmap_list), *le;
     while ((le = list_next(list)) != list) {
@@ -448,7 +449,7 @@ mm_copy(uint32_t clone_flags, struct proc *proc) {
         return 0;
     }
 
-    if (clone_flags & CLONE_VM) {
+    if (!(clone_flags & CLONE_VM)) {
         mm = oldmm;
         goto good_mm;
     }
@@ -612,7 +613,7 @@ put_pgdir(struct mm_struct *mm) {
 
 void
 put_kstack(struct proc *proc){
-    kfree(P2V(proc->kstack));
+    kfree((proc->kstack));
 }
 
 

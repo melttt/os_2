@@ -33,6 +33,7 @@ struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
     uint32_t pid;                     // Process ID
+    int8_t exit_code;
     struct proc *parent;         // Parent process
 
     struct context* context;     // swtch() here to run process
@@ -45,6 +46,7 @@ struct proc {
     
     enum waitstate wait_state;
     list_entry_t elm;
+    list_entry_t plink;
     list_entry_t child;
 /*
     list_entry_t list_link;                     // Process link list 
@@ -58,11 +60,10 @@ struct proc {
 };
 
 void proc_init(void);
-uint8_t do_exit(void);
+uint8_t do_exit(int8_t);
 int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
 bool do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
 void wakeup_proc(struct proc *proc);
-
 
 #endif

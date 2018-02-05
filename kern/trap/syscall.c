@@ -7,6 +7,7 @@
 
 extern int sys_put(void);
 extern int sys_exec(void);
+extern int sys_exit(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
@@ -34,7 +35,7 @@ extern int sys_uptime(void);
 static int (*syscalls[])(void) = {
     /*
 [SYS_fork]    sys_fork,
-[SYS_exit]    sys_exit,
+//[SYS_exit]    sys_exit,
 [SYS_wait]    sys_wait,
 [SYS_pipe]    sys_pipe,
 [SYS_read]    sys_read,
@@ -55,6 +56,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 */
+[SYS_exit]    sys_exit,
 [SYS_exec]    sys_exec,
 [SYS_put]   sys_put,
 };
@@ -68,11 +70,18 @@ sys_exec()
     do_execve(" ", 1, (unsigned char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
     return 0;
 }
+int 
+sys_exit()
+{
+    do_exit(0); 
+    return 0;
+}
+
 void
 syscall()
 {
     int num;
-    num = cpus[get_cpu()].cur_proc->tf->eax;
+    num = CUR_PROC->tf->eax;
     if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
         cpus[get_cpu()].cur_proc->tf->eax= syscalls[num]();
     } else {

@@ -28,4 +28,8 @@ void init_sche();
 void forkret(void);
 uint32_t get_pid();
 void sche();
+bool change_childs(struct proc* old, struct proc* new);
+bool add_child(struct proc* parent, struct proc* child);
+struct proc* fetch_child(struct proc* p);
+bool has_child(struct proc *p);
 #endif
