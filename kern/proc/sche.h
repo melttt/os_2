@@ -3,6 +3,7 @@
 
 #include "basic_p.h"
 #include "proc.h"
+#include "spinlock.h"
 
 #define MAX_PROC 40
 struct proc* get_proc();
@@ -19,6 +20,7 @@ extern struct proc_manager proc_manager;
 #define INIT_PROC (proc_manager.init_proc)
 #define IDLE_PROC (proc_manager.idle_proc)
 #define N_PROC (proc_manager.n_process)
+
 struct proc* get_proc();
 bool put_proc(struct proc *proc);
 void dec_proc_n();
@@ -31,5 +33,8 @@ void sche();
 bool change_childs(struct proc* old, struct proc* new);
 bool add_child(struct proc* parent, struct proc* child);
 struct proc* fetch_child(struct proc* p);
-bool has_child(struct proc *p);
+int do_wait();
+void wakeup(void *chan);
+void sleep(void *chan, struct spinlock *lk);
+bool put_proc_sleep(struct proc *proc);
 #endif

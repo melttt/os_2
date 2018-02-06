@@ -29,10 +29,12 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 enum waitstate { WT_NO, SLEEP };
 #define PROC_NAME 16
 #define list2proc(ptr) to_struct(ptr, struct proc, elm)
+#define clist2proc(ptr) to_struct(ptr, struct proc, plink)
+#define has_child(proc) (!list_empty(&proc->child))
 struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
-    uint32_t pid;                     // Process ID
+    int32_t pid;                     // Process ID
     int8_t exit_code;
     struct proc *parent;         // Parent process
 
@@ -45,6 +47,7 @@ struct proc {
     struct mm_struct *mm;         // Process memlayout
     
     enum waitstate wait_state;
+    void *chan;
     list_entry_t elm;
     list_entry_t plink;
     list_entry_t child;

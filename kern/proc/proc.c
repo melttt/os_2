@@ -1,5 +1,6 @@
 #include "basic_p.h"
 #include "driver_p.h"
+#include "lock_p.h"
 #include "mm_p.h"
 #include "smp_p.h"
 #include "arch_p.h"
@@ -189,6 +190,7 @@ init_main(void *arg) {
 
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "first USER program", 0);
+    cprintf("CUR_PID : %d\n", current->pid);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
@@ -196,10 +198,13 @@ init_main(void *arg) {
     sche();
 
     struct proc* chi = find_proc(2);
-    cprintf("pid == 2 , status : %d\n", chi->state);
+    cprintf("pid == %d , status : %d parent_pid : %d \n",chi->pid, chi->state, chi->parent->pid);
     
-    put_kstack(chi);
-    kfree(chi);
+
+    while(do_wait() != -1)
+    {
+       cprintf("get a child\n");
+    }
     assert(before == nr_free_pages());
 
     panic("now no wait function\n");
@@ -403,7 +408,6 @@ bad_cleanup_mmap:
 uint8_t
 do_exit(int8_t error_code)
 {
-    
     struct proc *current = CUR_PROC;
     struct proc *idleproc = IDLE_PROC;
     struct proc *initproc = INIT_PROC;
@@ -414,7 +418,6 @@ do_exit(int8_t error_code)
     if (current == initproc) {
         panic("initproc exit.\n");
     }
-    cprintf("delete mm before :%d\n", nr_free_pages());
     //release mm struct
     struct mm_struct *mm = current->mm;
     if (mm != NULL) {
@@ -426,10 +429,13 @@ do_exit(int8_t error_code)
         }
         current->mm = NULL;
     }
-    cprintf("delete mm after :%d\n", nr_free_pages());
-    current->state = ZOMBIE;
+
+
     change_childs(current, current->parent); 
     current->exit_code = error_code;
+    put_proc_sleep(current);
+    current->state = ZOMBIE;
+    
     sche();
     return 1;
 }

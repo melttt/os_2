@@ -6,10 +6,11 @@
 #include "kdebug.h"
 #include "sche.h"
 #include "stdio.h"
+#include "mm_p.h"
+struct proc_manager proc_manager;
 #define LOCK &proc_manager.lock
 #define ACQUIRE acquire(LOCK)
 #define RELEASE release(LOCK)
-struct proc_manager proc_manager;
 
 void swtch(struct context **a, struct context *b);
 
@@ -74,11 +75,19 @@ put_proc(struct proc *proc){
     return true;
 }
 
+bool
+put_proc_sleep(struct proc *proc){
+    list_entry_t *head = &proc_manager.sleep;
+    list_add_before(head, &proc->elm);
+    return true;
+}
+
 
 void init_sche()
 {
     init_lock(LOCK, "lock");
     list_init(&proc_manager.ready);
+    list_init(&proc_manager.sleep);
     proc_manager.n_process = 0;
     proc_manager.cur_use_pid = 0;
 }
@@ -106,41 +115,38 @@ void dec_proc_n()
 
 void sche()
 {
-    
-        ACQUIRE;
-        assert(PCPU->ncli == 1);
-        struct proc *idleproc = IDLE_PROC;
-        struct proc *current = CUR_PROC;
-        assert(current && idleproc);
-        struct proc *new = get_proc();
-        cprintf("new : %d\n", new->pid);
-        cprintf("current : %d\n", current->pid);
-        if(new)
-        {
-            if(current != IDLE_PROC)
-                put_proc(current);
+    ACQUIRE;
+    assert(PCPU->ncli == 1);
+    struct proc *idleproc = IDLE_PROC;
+    struct proc *current = CUR_PROC;
+    assert(current && idleproc);
+    struct proc *new = get_proc();
+    if(new)
+    {
+        if(current != IDLE_PROC)
+            put_proc(current);
 
+        new->state = RUNNING;
+        CUR_PROC = new;
+        switchuvm(new);
+        swtch(&current->context, new->context);
+        switchkvm();
+    }else{
+        if(current != idleproc)
+        {
+            put_proc(current);
             new->state = RUNNING;
-            CUR_PROC = new;
             switchuvm(new);
-            swtch(&current->context, new->context);
+            CUR_PROC = new;
+            swtch(&current->context, idleproc->context);
             switchkvm();
         }else{
-            if(current != idleproc)
-            {
-                put_proc(current);
-                new->state = RUNNING;
-                switchuvm(new);
-                CUR_PROC = new;
-                swtch(&current->context, idleproc->context);
-                switchkvm();
-            }else{
-                ;;;;;;;;;;
+            ;;;;;;;;;;
 
-            }
         }
-        assert(PCPU->ncli == 1);
-        RELEASE;
+    }
+    assert(PCPU->ncli == 1);
+    RELEASE;
 }
 
 // forkret -- the first kernel entry point of a new thread/process
@@ -167,21 +173,16 @@ change_childs(struct proc* old, struct proc* new)
 {
     assert(old && new);
     ACQUIRE;
-    list_entry_t *head = &old->child, *le = head;
-    while((le = list_next(le)) != head)
+
+    FOR_EACH_LIST(&old->child, le)
     {
         struct proc* child = list2proc(le);        
         add_child(new, child);
-        cprintf("change a child\n");
     }
+    FOR_EACH_END
+
     RELEASE;
     return true;
-}
-bool
-has_child(struct proc *p)
-{
-    list_entry_t *head = &p->child;
-    return head->next != NULL;
 }
 struct proc*
 fetch_child(struct proc* p)
@@ -195,3 +196,112 @@ fetch_child(struct proc* p)
     }
     return NULL;
 }
+
+// Atomically release lock and sleep on chan.
+// Reacquires lock when awakened.
+// should add ptable.lock before and after the sleep
+void
+sleep(void *chan, struct spinlock *lk)
+{
+    struct proc *proc = CUR_PROC;
+    if(proc == 0)
+        panic("sleep in no proc");
+
+    if(lk == 0)
+        panic("sleep without lk");
+
+    // Must acquire ptable.lock in order to
+    // change p->state and then call sched.
+    // Once we hold ptable.lock, we can be
+    // guaranteed that we won't miss any wakeup
+    // (wakeup runs with ptable.lock locked),
+    // so it's okay to release lk.
+    if(lk != LOCK){  //DOC: sleeplock0
+        ACQUIRE;
+        release(lk);
+    }
+
+    // Go to sleep.
+    proc->chan = chan;
+    proc->state = SLEEPING;
+    sche();
+
+    // Tidy up.
+    proc->chan = 0;
+
+    // Reacquire original lock.
+    if(lk != LOCK){  //DOC: sleeplock2
+        RELEASE;
+        acquire(lk);
+    }
+}
+
+
+//PAGEBREAK!
+// Wake up all processes sleeping on chan.
+// The ptable lock must be held.
+static void
+wakeup1(void *chan)
+{
+    FOR_EACH_LIST(&proc_manager.sleep, le)
+    {
+        struct proc *ret = list2proc(le);
+        if(ret->chan == chan)
+        {
+            ret->state = RUNNABLE;
+            list_del_init(le);
+            put_proc(ret);
+        }
+    }
+    FOR_EACH_END
+}
+
+// Wake up all processes sleeping on chan.
+void
+wakeup(void *chan)
+{
+  ACQUIRE;
+  wakeup1(chan);
+  RELEASE;
+}
+
+
+int
+do_wait()
+{
+    while(1)
+    {
+        struct proc *proc;
+        struct proc *cproc;
+        ACQUIRE;
+        proc = CUR_PROC;
+        cprintf("pid = %d\n",proc->pid);
+        if(!has_child(proc))
+        {
+            cprintf("NO CHILD\n");
+            RELEASE;
+            return -1;
+        }
+        FOR_EACH_LIST(&proc->child, le)
+        {
+            cproc = clist2proc(le); 
+            if(cproc->state == ZOMBIE)
+            {
+                int32_t pid = cproc->pid;            
+                put_kstack(cproc);
+                kfree(cproc);
+                list_del_init(le);
+                RELEASE;
+                return pid;
+            }
+        }
+        FOR_EACH_END
+
+        sleep(proc, LOCK);
+        RELEASE;
+    }
+
+    panic("no no no no no you shouldn't be here~_~\n");
+    return 1;
+}
+

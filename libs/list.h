@@ -4,6 +4,15 @@
 #ifndef __ASSEMBLER__
 #include "defs.h"
 
+
+#define FOR_EACH_LIST(head, le) \
+    list_entry_t *__head = head, *le = list_next(__head), *__tmp2 = le; \
+    for(; __tmp2 != __head ; ){                  \
+        le = __tmp2;                           \
+        __tmp2 = list_next(__tmp2);
+
+#define FOR_EACH_END }
+
 /* *
  * Simple doubly linked list implementation.
  *
