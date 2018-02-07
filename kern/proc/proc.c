@@ -194,7 +194,6 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
-
     sche();
 
     struct proc* chi = find_proc(2);
@@ -430,12 +429,10 @@ do_exit(int8_t error_code)
         current->mm = NULL;
     }
 
-
     change_childs(current, current->parent); 
     current->exit_code = error_code;
-    put_proc_sleep(current);
     current->state = ZOMBIE;
-    
+
     sche();
     return 1;
 }

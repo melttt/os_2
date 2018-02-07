@@ -121,6 +121,11 @@ clean:
 	rm -f ./kern/trap/vectors.*
 	rm -f ./tags
  
+git:
+	git add -A
+	git commit -m $(msg)
+	git push origin master
+
 test :
 	#export C_INCLUDE_PATH="$(C_PATH)"
 

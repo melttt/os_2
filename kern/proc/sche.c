@@ -71,6 +71,7 @@ get_proc(){
 bool
 put_proc(struct proc *proc){
     list_entry_t *head = &proc_manager.ready;
+    list_del_init(&proc->elm);
     list_add_before(head, &proc->elm);
     return true;
 }
@@ -78,6 +79,7 @@ put_proc(struct proc *proc){
 bool
 put_proc_sleep(struct proc *proc){
     list_entry_t *head = &proc_manager.sleep;
+    list_del_init(&proc->elm);
     list_add_before(head, &proc->elm);
     return true;
 }
@@ -123,9 +125,14 @@ void sche()
     struct proc *new = get_proc();
     if(new)
     {
-        if(current != IDLE_PROC)
+        if(current->state == RUNNING || current->state == RUNNABLE)
+        {
             put_proc(current);
-
+        }
+        else{
+            cprintf("CURRENT->state : %d\n", current->state);
+            put_proc_sleep(current);
+        }
         new->state = RUNNING;
         CUR_PROC = new;
         switchuvm(new);
@@ -134,15 +141,21 @@ void sche()
     }else{
         if(current != idleproc)
         {
-            put_proc(current);
+            new = idleproc;
+            if(current->state == RUNNABLE)
+            {
+                put_proc(current);
+            }
+            else{
+                put_proc_sleep(current);
+            }
             new->state = RUNNING;
-            switchuvm(new);
+            switchkvm();
             CUR_PROC = new;
             swtch(&current->context, idleproc->context);
             switchkvm();
         }else{
             ;;;;;;;;;;
-
         }
     }
     assert(PCPU->ncli == 1);
@@ -224,6 +237,7 @@ sleep(void *chan, struct spinlock *lk)
     // Go to sleep.
     proc->chan = chan;
     proc->state = SLEEPING;
+
     sche();
 
     // Tidy up.
