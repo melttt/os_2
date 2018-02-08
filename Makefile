@@ -123,15 +123,31 @@ define f_clean
 endef
 clean: 
 	$(f_clean)
- 
+
+.ONESHELL:
+SHELL := /bin/bash
+msg:=""
 git:
+ifneq ($(msg),"")
 	$(f_clean)
 	git add -A
 	git commit -m "$(msg)"
 	git push origin master
-
+else
+	@echo "commit string should not be empty ==>make git msg=\"your string\""
+endif
 test :
-	@echo \"$(msg)\"
+ifeq ($(msg),"")
+	echo "eq";
+else
+	echo "nonono";
+endif
+#if [ -n $(msg) ]; then 
+#echo "asd" 
+#else 
+#echo "aha" 
+#fi 
+
 
 
 #export C_INCLUDE_PATH="$(C_PATH)"
