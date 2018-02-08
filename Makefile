@@ -112,7 +112,7 @@ qemu: os.img swap.img
 qemu-gdb:  os.img swap.img $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
-clean: 
+define f_clean
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
 	rm -f os.img swap.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
@@ -120,13 +120,18 @@ clean:
 	rm -f $(USER_OBJS) $(USER_D_FILE) $(USER_TEST_FILE)
 	rm -f ./kern/trap/vectors.*
 	rm -f ./tags
+endef
+clean: 
+	$(f_clean)
  
 git:
+	$(f_clean)
 	git add -A
-	git commit -m $(msg)
+	git commit -m "$(msg)"
 	git push origin master
 
 test :
-	#export C_INCLUDE_PATH="$(C_PATH)"
+	@echo \"$(msg)\"
 
 
+#export C_INCLUDE_PATH="$(C_PATH)"
