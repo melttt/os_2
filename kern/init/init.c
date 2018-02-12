@@ -11,6 +11,18 @@
 #include "trap.h"
 #include "proc.h"
 #include "sche.h"
+
+void print_freq()
+{
+    uint32_t out_var1 = 0;
+    uint32_t op = 0x80860007;
+    asm volatile( "cpuid"
+      : "=a" (out_var1)
+      : "a" (op)
+     );
+    cprintf("---------------freq: %x \n", out_var1);
+    while(1);
+}
 int main() {
     
     asm volatile("cli");

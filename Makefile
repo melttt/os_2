@@ -1,10 +1,11 @@
 
+DIR := $(shell pwd)
 BOOTLOADER_DIR := ./boot
 TOOLS_DIR := ./tools
 KERN_DIR := ./kern
 LIBS_DIR := ./libs
 KERN_LD := ./tools/kernel.ld
-INCLUDEFLAGS := $(addprefix -I,$(shell find ./kern -type d)) -I./libs -I./boot
+INCLUDEFLAGS := $(addprefix -I,$(shell find $(DIR)/kern -type d)) -I$(DIR)/libs -I$(DIR)/boot
 C_OBJS = $(shell find $(KERN_DIR) -name "*.c")
 S_OBJS := $(shell find $(KERN_DIR) -name "*.S")
 LIBS_OBJS = $(shell find $(LIBS_DIR) -name "*.c") 
@@ -101,7 +102,7 @@ endif
 swap.img : 
 	dd if=/dev/zero of=$@ bs=1M count=512
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=swap.img,media=disk,cache=writeback
+QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=swap.img,media=disk,cache=writeback 
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
@@ -137,6 +138,7 @@ else
 	@echo "commit string should not be empty ==>make git msg=\"your string\""
 endif
 test :
+	@echo $(INCLUDEFLAGS)
 ifeq ($(msg),"")
 	echo "eq";
 else
