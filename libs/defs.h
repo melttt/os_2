@@ -34,8 +34,22 @@ typedef uintptr_t size_t;
 /* used for page numbers */
 typedef size_t ppn_t;
 
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MIN(x, y) ({        \
+        typeof(x) _min1 = (x);      \
+        typeof(y) _min2 = (y);      \
+        (void) (&_min1 == &_min2);    \
+        _min1 < _min2 ? _min1 : _min2; })
+
+#define MAX(x, y) ({        \
+        typeof(x) _max1 = (x);      \
+        typeof(y) _max2 = (y);      \
+        (void) (&_max1 == &_max2);    \
+        _max1 > _max2 ? _max1 : _max2; })
+
+//#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+//#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
+
 /* *
  * Rounding operations (efficient when n is a power of 2)
  * Round down to the nearest multiple of n
