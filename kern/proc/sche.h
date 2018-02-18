@@ -6,6 +6,21 @@
 #include "spinlock.h"
 
 #define MAX_PROC 40
+
+struct sched_class {
+    // the name of sched_class
+    const char *name;
+    // Init the run queue
+    void (*init)(struct run_queue *rq);
+    // put the proc into runqueue, and this function must be called with rq_lock
+    void (*enqueue)(struct run_queue *rq, struct proc_struct *proc);
+    // get the proc out runqueue, and this function must be called with rq_lock
+    void (*dequeue)(struct run_queue *rq, struct proc_struct *proc);
+    // choose the next runnable task
+    struct proc_struct *(*pick_next)(struct run_queue *rq);
+    // dealer of the time-tick
+    void (*proc_tick)(struct run_queue *rq, struct proc_struct *proc);
+};
 struct proc* get_proc();
 struct proc_manager{
     struct spinlock lock;

@@ -14,6 +14,7 @@ struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 
 
+
 uint ticks;
 
 
@@ -89,7 +90,8 @@ trap(struct trapframe *tf)
         case T_IRQ0 + IRQ_TIMER:
             if(get_cpu() == 0){
                 ticks ++;
-                cprintf("ticks: %d\n",ticks);
+                ktime ++;
+                cprintf("ktime: %d\n",ktime);
                 /*
                    acquire(&tickslock);
                    ticks++;

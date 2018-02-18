@@ -20,6 +20,7 @@ typedef unsigned int uint;
 typedef unsigned int uint32_t;
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
+#define UINT32_MAX (~(uint32_t)0)
 
 
 

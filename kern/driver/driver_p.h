@@ -4,5 +4,6 @@
 #include "ide.h"
 #include "kbd.h"
 #include "uart.h"
+#include "timer.h"
 
 #endif

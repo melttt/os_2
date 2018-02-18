@@ -5,13 +5,14 @@
 #include "lock_p.h"
 #include "proc.h"
 
+extern struct sched_class default_sched_class;
 struct sche_entity
 {
     struct rb_node rb_node;
     int prio;
     uint32_t vruntime;
-    uint32_t sum_exec_runtime;
-    uint32_t prev_sum_exec_runtime;
+    uint32_t last_time;
+    uint32_t start_time;
     int32_t on_rq;
 };
 
