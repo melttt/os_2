@@ -7,12 +7,15 @@
 #include "sche.h"
 #include "stdio.h"
 #include "mm_p.h"
+#include "cfs.h"
 struct proc_manager proc_manager;
 #define LOCK &proc_manager.lock
 #define ACQUIRE acquire(LOCK)
 #define RELEASE release(LOCK)
 
 void swtch(struct context **a, struct context *b);
+struct sche_class * sche_class = &default_sched_class; 
+
 
 struct proc*
 find_proc(uint32_t pid){
@@ -90,6 +93,9 @@ void init_sche()
     init_lock(LOCK, "lock");
     list_init(&proc_manager.ready);
     list_init(&proc_manager.sleep);
+
+
+
     proc_manager.n_process = 0;
     proc_manager.cur_use_pid = 0;
 }

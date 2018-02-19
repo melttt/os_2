@@ -7,8 +7,6 @@
 #define MALLOC(m) kmalloc(m)
 #define FREE(m) kfree(m)
 #define rb_entry2se(p) rb_entry(p, struct sche_entity, rb_node)
-#define ACQUIRE_PROC acquire(&cfs->lock);
-#define RELEASE_PROC release(&cfs->lock);
 
 int CFS_INFO(const char *msg, ... )
 {
@@ -64,6 +62,15 @@ static inline uint32_t max_vruntime(uint32_t min_vruntime, uint32_t vruntime)
 	return min_vruntime;
 }
 
+/*
+ *     
+ *     uint32_t min_vruntime;
+    struct rb_root rb_root;
+    struct rb_node *rb_leftmost;
+    uint32_t nr_running;
+    struct sche_entity *curr;
+    struct spinlock lock;
+*/
 
 void init_cfs(struct sche_entity* init_se)
 {
@@ -108,8 +115,7 @@ void init_entity(struct sche_entity *se, int prio)
 {
     se->prio = prio;
     se->on_rq = 0;
-    se->vruntime = cfs->min_vruntime;
-    se->last_time = se->start_time = 0;
+    //se->vruntime = ?;
 }
 
 void enqueue_entity(struct sche_entity *se, int flag)
@@ -176,13 +182,11 @@ void dequeue_entity(struct sche_entity *prev, struct sche_entity *se)
     {
         se->start_time = prev->last_time;
         cfs->curr = se;
-    }else{
-        se->start_time = get_time();
     }
 
     __dequeue_entity(se);
     se->on_rq = 0;
-    cfs->nr_running --;
+    cfs->nr_running -= 1;
     update_min_vruntime();
     RELEASE_PROC;
 }
@@ -198,7 +202,6 @@ calc_delta_time(uint32_t clock, uint32_t last_time)
 {
     return clock > last_time ? (clock - last_time) : (UINT32_MAX - last_time + clock);
 }
-
 static void update_curr(struct sche_entity *se)
 {
     uint32_t now = get_time();
@@ -271,7 +274,7 @@ int cfs_tick()
 }
 */
 
-struct sche_class default_sche_class = {
+struct sched_class default_sched_class = {
      .name = "cfs",
      .init = init_cfs,
      .enqueue = enqueue_entity,

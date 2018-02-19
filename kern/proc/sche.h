@@ -7,19 +7,20 @@
 
 #define MAX_PROC 40
 
-struct sched_class {
+struct sched_entity;
+struct sche_class {
     // the name of sched_class
     const char *name;
     // Init the run queue
-    void (*init)(struct run_queue *rq);
+    void (*init)(struct sche_entity);
     // put the proc into runqueue, and this function must be called with rq_lock
-    void (*enqueue)(struct run_queue *rq, struct proc_struct *proc);
+    void (*enqueue)(struct sche_entity *se, int flag);
     // get the proc out runqueue, and this function must be called with rq_lock
-    void (*dequeue)(struct run_queue *rq, struct proc_struct *proc);
+    void (*dequeue)(struct sche_entity *prev, struct sche_entity *se);
     // choose the next runnable task
-    struct proc_struct *(*pick_next)(struct run_queue *rq);
+    struct sche_entity *(*pick_next)();
     // dealer of the time-tick
-    void (*proc_tick)(struct run_queue *rq, struct proc_struct *proc);
+    void (*proc_tick)(struct sche_entity *se);
 };
 struct proc* get_proc();
 struct proc_manager{

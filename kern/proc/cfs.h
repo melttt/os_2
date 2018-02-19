@@ -18,7 +18,6 @@ struct sche_entity
 
 struct cfs{
     uint32_t min_vruntime;
-    uint32_t clock;
     struct rb_root rb_root;
     struct rb_node *rb_leftmost;
     uint32_t nr_running;
@@ -26,9 +25,7 @@ struct cfs{
     struct spinlock lock;
 };
 
-#define ACQUIRE_PROC acquire(&cfs->lock)
-#define RELEASE_PROC release(&cfs->lock)
 
-
+extern struct cfs *cfs;
 
 #endif

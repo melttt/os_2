@@ -3,5 +3,6 @@
 #include "defs.h"
 #include "param.h"
 #include "error.h"
+#include "stdarg.h"
 
 #endif
