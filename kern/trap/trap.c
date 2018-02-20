@@ -91,7 +91,7 @@ trap(struct trapframe *tf)
             if(get_cpu() == 0){
                 ticks ++;
                 ktime ++;
-                cprintf("ktime: %d\n",ktime);
+                //cprintf("ktime: %d\n",ktime);
                 /*
                    acquire(&tickslock);
                    ticks++;

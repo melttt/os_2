@@ -1,4 +1,3 @@
-
 DIR := $(shell pwd)
 BOOTLOADER_DIR := ./boot
 TOOLS_DIR := ./tools

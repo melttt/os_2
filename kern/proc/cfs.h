@@ -3,9 +3,9 @@
 #include "basic_p.h"
 #include "rbtree.h"
 #include "lock_p.h"
-#include "proc.h"
 
-extern struct sched_class default_sched_class;
+extern struct sche_class default_sche_class;
+
 struct sche_entity
 {
     struct rb_node rb_node;
@@ -27,5 +27,7 @@ struct cfs{
 
 
 extern struct cfs *cfs;
+#define MIN_PRIO 9
+#define MAX_PRIO 0
 
 #endif

@@ -1,5 +1,6 @@
 #ifndef _KERN_LOCK_SLEEPLOCK_H_
 #define _KERN_LOCK_SLEEPLOCK_H_
+#if 0
 #include "basic_p.h"
 #include "spinlock.h"
 // Long-term locks for processes
@@ -11,5 +12,6 @@ struct sleeplock {
   char *name;        // Name of lock.
   int pid;           // Process holding lock
 };
+#endif
 
 #endif

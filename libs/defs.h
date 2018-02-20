@@ -34,7 +34,7 @@ typedef uintptr_t size_t;
 
 /* used for page numbers */
 typedef size_t ppn_t;
-
+/*
 #define MIN(x, y) ({        \
         typeof(x) _min1 = (x);      \
         typeof(y) _min2 = (y);      \
@@ -46,9 +46,10 @@ typedef size_t ppn_t;
         typeof(y) _max2 = (y);      \
         (void) (&_max1 == &_max2);    \
         _max1 > _max2 ? _max1 : _max2; })
+*/
 
-//#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-//#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 
 /* *

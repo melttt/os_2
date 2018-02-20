@@ -1,13 +1,11 @@
-
-#ifndef __KERN_PROC_2_H_
-#define __KERN_PROC_2_H_
+#ifndef __KERN_PROC_H_
+#define __KERN_PROC_H_
 #include "defs.h"
 #include "list.h"
 #include "vmm.h"
 #include "x86.h" //struct trapframe
 #include "param.h"
 #include "cfs.h"
-#include "lock_p.h"
 
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
@@ -35,7 +33,6 @@ enum waitstate { WT_NO, SLEEP };
 #define clist2proc(ptr) to_struct(ptr, struct proc, plink)
 #define has_child(proc) (!list_empty(&proc->child))
 
-#define MAX_PROC 50
 struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
@@ -69,22 +66,11 @@ struct proc {
 */
 };
 
-struct proc_manager{
-    struct spinlock lock;
-    struct proc *init_proc;
-    struct proc *idle_proc;
-    uint32_t cur_use_pid;
-};
-
-extern struct proc_manager proc_manager;
-#define INIT_PROC (proc_manager.init_proc)
-#define IDLE_PROC (proc_manager.idle_proc)
-#define PROCM_ACQUIRE acquire(&proc_manager.lock)
-#define PROCM_RELEASE release(&proc_manager.lock)
-
-
-
 void proc_init(void);
+uint8_t do_exit(int8_t);
+int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
+bool do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+void wakeup_proc(struct proc *proc);
 
 #endif

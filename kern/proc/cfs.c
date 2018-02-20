@@ -6,16 +6,16 @@
 #include "stdio.h"
 #define MALLOC(m) kmalloc(m)
 #define FREE(m) kfree(m)
-#define rb_entry2se(p) rb_entry(p, struct sche_entity, rb_node)
 #define ACQUIRE_PROC acquire(&cfs->lock);
 #define RELEASE_PROC release(&cfs->lock);
+#define rb_entry2se(p) rb_entry(p, struct sche_entity, rb_node)
 
 int CFS_INFO(const char *msg, ... )
 {
 #if CFS_DEBUG
     cprintf(CFS_PRE);
     va_list ap;
-    int cnt;
+    int cnt = 0;
     va_start(ap, msg);
     vcprintf(msg, ap);
     va_end(ap);
@@ -41,7 +41,7 @@ static void __enqueue_entity(struct sche_entity *se);
 static void __dequeue_entity(struct sche_entity *se);
 static void update_min_vruntime();
 
-static inline int __se_cmp(struct sche_entity *a, struct sche_entity *b){
+static inline int se_cmp(struct sche_entity *a, struct sche_entity *b){
     return (int)(a->vruntime - b->vruntime) < 0;
 }
 
@@ -108,7 +108,7 @@ void init_entity(struct sche_entity *se, int prio)
 {
     se->prio = prio;
     se->on_rq = 0;
-    se->vruntime = cfs->min_vruntime;
+    se->vruntime = cfs ? cfs->min_vruntime : 0;
     se->last_time = se->start_time = 0;
 }
 
@@ -127,14 +127,12 @@ void enqueue_entity(struct sche_entity *se, int flag)
 
 static void __dequeue_entity(struct sche_entity *se)
 {
-    ACQUIRE_PROC;
     if(cfs->rb_leftmost == &se->rb_node){
         struct rb_node *next_node;
         next_node = rb_next(&se->rb_node);
         cfs->rb_leftmost = next_node;
     }
     rb_erase(&se->rb_node, &cfs->rb_root);
-    RELEASE_PROC;
 } 
 
 
@@ -201,6 +199,7 @@ calc_delta_time(uint32_t clock, uint32_t last_time)
 
 static void update_curr(struct sche_entity *se)
 {
+    ACQUIRE_PROC;
     uint32_t now = get_time();
     struct sche_entity *curr = cfs->curr;
     uint32_t delta_time;
@@ -215,10 +214,11 @@ static void update_curr(struct sche_entity *se)
     if(!delta_time)
         return;
 
-    se->last_time += delta_time;
+    se->last_time = now;
     se->vruntime += calc_delta_fair(delta_time, se);
 
     update_min_vruntime();
+    RELEASE_PROC;
 }
 
 static struct sche_entity *pick_first_entity()
@@ -229,6 +229,7 @@ static struct sche_entity *pick_first_entity()
 		return NULL;
 
 	return rb_entry2se(left);
+
 }
 int check_preempt_tick(struct sche_entity *curr)
 {
@@ -250,6 +251,14 @@ int check_preempt_tick(struct sche_entity *curr)
         return 0;
     if(delta > ideal_runtime)
         return 1;
+    return 0;
+}
+
+
+struct sche_entity*
+get_next_se(struct sche_entity* first)
+{
+    return rb_entry2se( (rb_next(&first->rb_node)) ) ;
 }
 
 /*
@@ -276,6 +285,8 @@ struct sche_class default_sche_class = {
      .init = init_cfs,
      .enqueue = enqueue_entity,
      .dequeue = dequeue_entity,
-     .pick_next = pick_first_entity,
+     .pick_first = pick_first_entity,
      .proc_tick = update_curr,
+     .init_se = init_entity,
+     .pick_next = get_next_se,
 };

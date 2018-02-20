@@ -135,6 +135,7 @@ kmalloc(int32_t n)
             if(!ret) goto alloc_page; 
         }else{
             ret = kmm_alloc(slab_allocator[select_slab(n)]);
+            
             if(!ret) goto ret_null; 
         }
     }
