@@ -64,18 +64,16 @@ static int (*syscalls[])(void) = {
 int 
 sys_exec()
 {
-    /*
     extern char _binary___user_user_test_start[];
     extern char _binary___user_user_test_size[];
     cprintf("sys_exec()\n");
     do_execve(" ", 1, (unsigned char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
-    */
     return 0;
 }
 int 
 sys_exit()
 {
-//    do_exit(0); 
+    do_exit(0); 
     return 0;
 }
 

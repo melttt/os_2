@@ -4,4 +4,5 @@
 #define G_DEBUG 
 #define CFS_DEBUG 1
 #define CFS_PRE "CFS==>"
+#define TEST_MSG "---->>>>>>>>>>>"
 #endif

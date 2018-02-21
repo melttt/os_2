@@ -2,6 +2,7 @@
 
 
 
+#include "stdio.h"
 #include "cpu.h"
 #include "cfs.h"
 #include "proc.h"
@@ -48,18 +49,17 @@ pick_first_proc()
 }
 
 int
-set_proc_prio(struct proc* proc, int prio)
-{
-   proc->se.prio = prio; 
-   return 0;
-}
-
-int
 get_proc_prio(struct proc* proc)
 {
     return proc->se.prio;
 }
 
+
+int
+set_proc_prio(struct proc* proc, int prio)
+{
+    return proc->se.prio = prio;
+}
 
 struct proc*
 get_proc_by_pid(int pid)
@@ -91,10 +91,9 @@ void sche()
 
     if(new)
     {
-        if(current->state == RUNNING || current->state == RUNNABLE)
-        {
+        cprintf(TEST_MSG"try put pid\n", current->pid);
+        if(current->pid != 0 )
             put_proc(current);
-        }
 
         new->state = RUNNING;
         CUR_PROC = new;

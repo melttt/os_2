@@ -79,12 +79,22 @@ struct proc_manager{
 extern struct proc_manager proc_manager;
 #define INIT_PROC (proc_manager.init_proc)
 #define IDLE_PROC (proc_manager.idle_proc)
+#define PROCM_LOCK (&proc_manager.lock)
 #define PROCM_ACQUIRE acquire(&proc_manager.lock)
 #define PROCM_RELEASE release(&proc_manager.lock)
+
+#define clist2proc(ptr) to_struct(ptr, struct proc, plink)
+#define has_child(proc) (!list_empty(&proc->child))
 
 
 
 void proc_init(void);
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
+bool do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+uint8_t do_exit(int8_t error_code);
+int do_wait();
+struct proc* fetch_child(struct proc* p);
+bool change_childs(struct proc* old, struct proc* new);
+bool add_child(struct proc* parent, struct proc* child);
 
 #endif

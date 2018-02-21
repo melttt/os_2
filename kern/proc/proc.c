@@ -17,6 +17,17 @@
 #include "proc.h"
 #include "sche.h"
 
+static int
+load_icode(unsigned char *binary, size_t size);
+
+static int
+kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags);
+
+static int
+user_main(void *arg);
+
+static int
+init_main(void *arg);
 
 struct proc_manager proc_manager;
 static void init_proc_manager()
@@ -34,6 +45,37 @@ get_pid_2()
     ret = proc_manager.cur_use_pid ++;
     PROCM_RELEASE;
     return ret;
+}
+
+struct proc*
+fetch_child(struct proc* p)
+{
+    list_entry_t *head = &p->child;
+    if(head->next != NULL)
+    {
+        struct proc *ret = list2proc(head->next);
+        list_del_init(head->next);
+        return ret;
+    }
+    return NULL;
+}
+
+
+bool
+change_childs(struct proc* old, struct proc* new)
+{
+    assert(old && new);
+    PROCM_ACQUIRE;
+
+    FOR_EACH_LIST(&old->child, le)
+    {
+        struct proc* child = list2proc(le);        
+        add_child(new, child);
+    }
+    FOR_EACH_END
+
+    PROCM_RELEASE;
+    return true;
 }
 
 
@@ -147,7 +189,7 @@ bad_fork_cleanup_proc:
 // kernel_thread - create a kernel thread using "fn" function
 // NOTE: the contents of temp trapframe tf will be copied to
 //       proc->tf in do_fork-->copy_thread function
-int
+static int
 kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     struct trapframe tf;
     memset(&tf, 0, sizeof(struct trapframe));
@@ -158,6 +200,21 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     extern char kernel_thread_entry[];
     tf.eip = (uint32_t)kernel_thread_entry;
     return do_fork(clone_flags, 0, &tf);
+}
+
+static int
+user_main(void *arg){
+    struct proc *current = CUR_PROC;
+    cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
+    cprintf("To U: \"%s\".\n", (const char *)arg);
+    asm volatile (
+            "int %0;"
+            : 
+            : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_exec)
+            : "memory");
+
+    panic("should not at here\n");
+    return 1;
 }
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
@@ -170,18 +227,14 @@ init_main(void *arg) {
             : 
             : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
             : "memory");
-    assert(cfs->nr_running == 1);
-    while(1);
-    /*
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "first USER program", 0);
-    cprintf("CUR_PID : %d\n", current->pid);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
     sche();
 
-    struct proc* chi = find_proc(2);
+    struct proc* chi = get_proc_by_pid(2);
     cprintf("pid == %d , status : %d parent_pid : %d \n",chi->pid, chi->state, chi->parent->pid);
     while(do_wait() != -1)
     {
@@ -192,7 +245,6 @@ init_main(void *arg) {
     panic("now no wait function\n");
 
     while(100);
-    */
     return 0;
 }
 void
@@ -226,7 +278,258 @@ proc_init(void){
     assert(get_proc_num() == 2);
 }
 
-int do_exit(int a)
+uint8_t
+do_exit(int8_t error_code)
 {
+    struct proc *current = CUR_PROC;
+    struct proc *idleproc = IDLE_PROC;
+    struct proc *initproc = INIT_PROC;
+
+    if (current == idleproc) {
+        panic("idleproc exit.\n");
+    }
+    if (current == initproc) {
+        panic("initproc exit.\n");
+    }
+    //release mm struct
+    struct mm_struct *mm = current->mm;
+    if (mm != NULL) {
+        lcr3(V2P(kpgdir));
+        if (mm_count_dec(mm) == 0) {
+            exit_mmap(mm);
+            put_pgdir(mm);
+            mm_destroy(mm);
+        }
+        current->mm = NULL;
+    }
+
+    change_childs(current, current->parent); 
+    current->exit_code = error_code;
+    current->state = ZOMBIE;
+
+    sche();
+    return 1;
+}
+
+
+int
+do_wait(void)
+{
+    struct proc *proc;
+    struct proc *cproc;
+    while(1)
+    {
+        PROCM_ACQUIRE;
+        proc = CUR_PROC;
+        cprintf("pid = %d\n",proc->pid);
+        if(!has_child(proc))
+        {
+            cprintf("NO CHILD\n");
+            PROCM_RELEASE;
+            return -1;
+        }
+        FOR_EACH_LIST(&proc->child, le)
+        {
+            cproc = clist2proc(le); 
+            if(cproc->state == ZOMBIE)
+            {
+                int32_t pid = cproc->pid;            
+                put_kstack(cproc);
+                kfree(cproc);
+                list_del_init(le);
+                PROCM_RELEASE;
+                return pid;
+            }
+        }
+        FOR_EACH_END
+
+        //sleep(proc, PROCM_LOCK);
+        panic("no sleep achieve\n");
+        PROCM_RELEASE;
+    }
+
+    panic("no no no no no you shouldn't be here~_~\n");
+    return 1;
+}
+
+bool
+do_execve(const char *name, size_t len, unsigned char *binary, size_t size)
+{
+    struct proc *proc = CUR_PROC; 
+    struct mm_struct *mm = proc->mm;
+
+    if(!(user_mem_check(mm, (uintptr_t)name, len, 0)))
+    {
+        return false;
+    }
+
+    if(len > PROC_NAME)
+    {
+        len = PROC_NAME;
+    }
+    strcpy(IDLE_PROC->name, name);
+
+
+    if(mm != NULL)
+    {
+        lcr3(V2P(kpgdir));
+        if (mm_count_dec(mm) == 0) {
+            exit_mmap(mm);
+            put_pgdir(mm);
+            mm_destroy(mm);
+        }
+        proc->mm = NULL;
+    }
+
+    int ret;
+    if((ret = load_icode(binary, size)) != 0){
+        panic("go to execve_exit");
+    }
     return 0;
+}
+
+static int
+load_icode(unsigned char *binary, size_t size)
+{
+    struct proc *current = CUR_PROC;
+    if(current->mm != NULL){
+        panic("load_icode: current->mm must be empty.\n");
+    }
+
+    int ret = -E_NO_MEM;
+    struct mm_struct *mm;
+    //(1) create a new mm for current process
+    if((mm = mm_create()) == NULL)
+    {
+        goto bad_mm;
+    }
+
+    //(2) create a new PDT, and mm->pgdir= kernel virtual addr of PDT
+    if(mm_setup_pgdir(mm) ==false)
+    {
+        goto bad_pgdir_cleanup_mm;
+    }
+
+    //(3) copy TEXT/DATA section, build BSS parts in binary to memory space of process
+    struct page *page;
+    struct elfhdr *elf = (struct elfhdr *)binary;
+    struct proghdr *ph = (struct proghdr *)(binary + elf->e_phoff);
+    //(3.1) This program is valid? 
+    if(elf->e_magic != ELF_MAGIC){
+        ret = -E_INVAL_ELF;
+        goto bad_elf_cleanup_pgdir;
+    }
+
+    uint32_t vm_flags, perm;
+    struct proghdr *ph_end = ph + elf->e_phnum;
+    for(; ph < ph_end ;ph ++)
+    {
+        //(3.2) find every program section headers
+        if (ph->p_type != ELF_PROG_LOAD) {
+            continue ;
+        }
+        if (ph->p_filesz > ph->p_memsz) {
+            ret = -E_INVAL_ELF;
+            goto bad_cleanup_mmap;
+        }
+        if (ph->p_filesz == 0) {
+            continue ;
+        }
+
+        //(3.3) call mm_map fun to setup the new vma ( ph->p_va, ph->p_memsz)
+        vm_flags = 0, perm = PTE_U;
+        if (ph->p_flags & ELF_PROG_FLAG_EXEC) vm_flags |= VM_EXEC;
+        if (ph->p_flags & ELF_PROG_FLAG_WRITE) vm_flags |= VM_WRITE;
+        if (ph->p_flags & ELF_PROG_FLAG_READ) vm_flags |= VM_READ;
+        if (vm_flags & VM_WRITE) perm |= PTE_W;
+        if ((ret = mm_map(mm, ph->p_va, ph->p_memsz, vm_flags, NULL)) != 0) {
+            goto bad_cleanup_mmap;
+        }
+
+        unsigned char *from = binary + ph->p_offset;
+        size_t off, size;
+        uintptr_t start = ph->p_va, end, la = ROUNDDOWN(start, PGSIZE);
+
+        ret = -E_NO_MEM;
+
+
+        //(3.4) alloc memory, and  copy the contents of every program section (from, from+end) to process's memory (la, la+end)
+        end = ph->p_va + ph->p_filesz;
+        //(3.4.1) copy TEXT/DATA section of bianry program
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_cleanup_mmap;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            memcpy(page2kva(page) + off, from, size);
+            start += size, from += size;
+        }
+
+        //(3.4.2) build BSS section of binary program
+        end = ph->p_va + ph->p_memsz;
+        if (start < la) {
+            /* ph->p_memsz == ph->p_filesz */
+            if (start == end) {
+                continue ;
+            }
+            off = start + PGSIZE - la, size = PGSIZE - off;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+            assert((end < la && start == end) || (end >= la && start == la));
+        }
+
+        while (start < end) {
+            if ((page = pgdir_alloc_page(mm->pgdir, la, perm)) == NULL) {
+                goto bad_cleanup_mmap;
+            }
+            off = start - la, size = PGSIZE - off, la += PGSIZE;
+            if (end < la) {
+                size -= la - end;
+            }
+            memset(page2kva(page) + off, 0, size);
+            start += size;
+        }
+    }
+
+    vm_flags = VM_READ | VM_WRITE | VM_STACK;
+    if ((ret = mm_map(mm, USERTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0) {
+        goto bad_cleanup_mmap;
+    }
+
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*2, (PTE_U | PTE_W | PTE_P));
+    pgdir_alloc_page(mm->pgdir, USERTOP - USTACKSIZE + 4096*3, (PTE_U | PTE_W | PTE_P));
+
+
+    //(5) set current process's mm, sr3, and set CR3 reg = physical addr of Page Directory
+    mm_count_inc(mm);
+    current->mm = mm;
+    current->cr3 = V2P(mm->pgdir);
+    lcr3(V2P(mm->pgdir));
+
+    //(6) setup trapframe for user environment
+    struct trapframe *tf = current->tf;
+    memset(tf, 0, sizeof(struct trapframe));
+    tf->cs = SEG_UCODE << 3 | DPL_USER;
+    tf->ds = tf->es = tf->ss = SEG_UDATA << 3 | DPL_USER;
+    tf->esp = USERTOP - 4;
+    tf->eip = elf->e_entry;
+
+    tf->eflags |= FL_IF;
+
+    ret = 0;
+    return ret;
+bad_mm:
+bad_pgdir_cleanup_mm:
+bad_elf_cleanup_pgdir:
+bad_cleanup_mmap:
+    panic("exec wrong\n");
+    return ret;
 }

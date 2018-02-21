@@ -78,6 +78,7 @@ int main() {
     asm volatile ("sti");
     while(1)
     {
+        cprintf("shce idle\n");
         sche();
     }
     
