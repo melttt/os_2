@@ -254,6 +254,11 @@ switchkvm(void)
 void 
 switchuvm(struct proc *p)
 {
+  if(p->pid == 1)
+  {
+      switchkvm();
+      return ;
+  }
   if(p == 0)
     panic("switchuvm: no process");
   if(p->kstack == 0)

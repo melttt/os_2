@@ -1,4 +1,3 @@
-#if 0
 #include "basic_p.h"
 #include "sleeplock.h"
 #include "proc.h"
@@ -47,4 +46,3 @@ holdingsleep(struct sleeplock *lk)
   return r;
 }
 
-#endif

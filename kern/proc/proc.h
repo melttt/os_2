@@ -56,6 +56,7 @@ struct proc {
     list_entry_t elm;
     list_entry_t plink;
     list_entry_t child;
+    list_entry_t sleep_elm;
 
     struct sche_entity se;
 /*
@@ -68,12 +69,13 @@ struct proc {
     struct inode *cwd;           // Current directory
 */
 };
-
 struct proc_manager{
     struct spinlock lock;
     struct proc *init_proc;
     struct proc *idle_proc;
     uint32_t cur_use_pid;
+    
+    list_entry_t *sleep_hash;
 };
 
 extern struct proc_manager proc_manager;
@@ -96,5 +98,7 @@ int do_wait();
 struct proc* fetch_child(struct proc* p);
 bool change_childs(struct proc* old, struct proc* new);
 bool add_child(struct proc* parent, struct proc* child);
+void sleep(void *chan, struct spinlock *lk);
+void wakeup(void *chan);
 
 #endif

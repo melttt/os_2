@@ -31,4 +31,5 @@ int get_proc_num();
 struct proc* get_proc_by_pid(int pid);
 void get_proc(struct proc *prev, struct proc *thi);
 void sche();
+void sche_nolock();
 #endif

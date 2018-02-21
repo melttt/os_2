@@ -33,6 +33,7 @@ init_sche(struct proc* proc)
 void
 put_proc(struct proc* proc)
 {
+    proc->state = RUNNABLE;
     sche_class->enqueue(&proc->se, 0);
 }
 
@@ -79,7 +80,52 @@ get_proc_by_pid(int pid)
     return NULL;
 }
 
+void sche_nolock()
+{
+    assert(PCPU->ncli == 1);
+    struct proc *idleproc = IDLE_PROC;
+    struct proc *current = CUR_PROC;
+    assert(current && idleproc);
+    struct proc *new = pick_first_proc(); 
 
+    if(new)
+    {
+        cprintf(TEST_MSG"try put pid :%x, new pid : %x\n", current->pid , new->pid);
+        cprintf("cfs->num : %x\n",cfs->nr_running);
+        if(current->pid != 0 && current->state != SLEEPING)
+            put_proc(current);
+
+        new->state = RUNNING;
+        CUR_PROC = new;
+        switchuvm(new);
+        get_proc(current ,new);
+        cprintf(TEST_MSG"switch before\n");
+        cprintf("%x %x\n",current->context, new->context);
+        swtch(&current->context, new->context);
+        switchkvm();
+    }else{
+        assert("now not\n");
+        if(current != idleproc)
+        {
+            new = idleproc;
+            if(current->state == RUNNABLE)
+            {
+                put_proc(current);
+            }
+            new->state = RUNNING;
+            switchkvm();
+            CUR_PROC = new;
+            get_proc(current ,new);
+            swtch(&current->context, idleproc->context);
+            switchkvm();
+        }else{
+            ;;;;;;;;;;
+        }
+    }
+      
+    
+    assert(PCPU->ncli == 1);
+}
 void sche()
 {
     PROCM_ACQUIRE;
@@ -91,14 +137,17 @@ void sche()
 
     if(new)
     {
-        cprintf(TEST_MSG"try put pid\n", current->pid);
-        if(current->pid != 0 )
+        cprintf(TEST_MSG"try put pid :%x, new pid : %x\n", current->pid , new->pid);
+        cprintf("cfs->num : %x\n",cfs->nr_running);
+        if(current->pid != 0 && current->state != SLEEPING)
             put_proc(current);
 
         new->state = RUNNING;
         CUR_PROC = new;
         switchuvm(new);
         get_proc(current ,new);
+        cprintf(TEST_MSG"switch before\n");
+        cprintf("%x %x\n",current->context, new->context);
         swtch(&current->context, new->context);
         switchkvm();
     }else{

@@ -16,6 +16,7 @@
 #include "cfs.h"
 #include "proc.h"
 #include "sche.h"
+#include "sleep_hash.h"
 
 static int
 load_icode(unsigned char *binary, size_t size);
@@ -36,6 +37,7 @@ static void init_proc_manager()
     proc_manager.cur_use_pid = 0;
     proc_manager.init_proc = NULL;
     proc_manager.idle_proc = NULL;
+    init_sleep_hash(&proc_manager.sleep_hash);
 }
 static uint32_t
 get_pid_2()
@@ -78,6 +80,15 @@ change_childs(struct proc* old, struct proc* new)
     return true;
 }
 
+bool
+add_child(struct proc* parent, struct proc* child)
+{
+    assert(parent && child);
+    list_del_init(&child->plink); 
+    child->parent = parent;
+    list_add_before(&parent->child, &child->plink);
+    return true;
+}
 
 static struct proc*
 alloc_proc(void)
@@ -97,6 +108,7 @@ alloc_proc(void)
         proc->mm = NULL;
         proc->wait_state = WT_NO;
         list_init(&proc->elm);
+        list_init(&proc->sleep_elm);
         list_init(&proc->child);
         list_init(&proc->plink);
         init_se(&(proc->se), MIN_PRIO);
@@ -104,15 +116,6 @@ alloc_proc(void)
     return proc;
 }
 
-bool
-add_child(struct proc* parent, struct proc* child)
-{
-    assert(parent && child);
-    list_del_init(&child->plink); 
-    child->parent = parent;
-    list_add_before(&parent->child, &child->plink);
-    return true;
-}
 void
 make_proc_runable(struct proc *proc) {
     assert(proc->state != RUNNABLE && proc->state != ZOMBIE);
@@ -251,6 +254,7 @@ void
 proc_init(void){
     init_proc_manager();
 
+    cprintf("sizeof(struct proc):%d\n", sizeof(struct proc));
     if ((IDLE_PROC = alloc_proc()) == NULL) {
         panic("cannot alloc idleproc.\n");
     }
@@ -285,6 +289,8 @@ do_exit(int8_t error_code)
     struct proc *idleproc = IDLE_PROC;
     struct proc *initproc = INIT_PROC;
 
+    sche();
+    cprintf("come back childer proc:%8x\n", current->pid);
     if (current == idleproc) {
         panic("idleproc exit.\n");
     }
@@ -306,6 +312,7 @@ do_exit(int8_t error_code)
     change_childs(current, current->parent); 
     current->exit_code = error_code;
     current->state = ZOMBIE;
+    wakeup(current->parent);
 
     sche();
     return 1;
@@ -343,8 +350,8 @@ do_wait(void)
         }
         FOR_EACH_END
 
-        //sleep(proc, PROCM_LOCK);
-        panic("no sleep achieve\n");
+        cprintf("no child go to sleeping proc:%8x\n", (int)proc);
+        sleep(proc, PROCM_LOCK);
         PROCM_RELEASE;
     }
 
@@ -532,4 +539,60 @@ bad_elf_cleanup_pgdir:
 bad_cleanup_mmap:
     panic("exec wrong\n");
     return ret;
+}
+
+
+// Atomically release lock and sleep on chan.
+// Reacquires lock when awakened.
+// should add ptable.lock before and after the sleep
+void
+sleep(void *chan, struct spinlock *lk)
+{
+    struct proc *proc = CUR_PROC;
+    if(proc == 0)
+        panic("sleep in no proc");
+
+    if(lk == 0)
+        panic("sleep without lk");
+
+    // Must acquire ptable.lock in order to
+    // change p->state and then call sched.
+    // Once we hold ptable.lock, we can be
+    // guaranteed that we won't miss any wakeup
+    // (wakeup runs with ptable.lock locked),
+    // so it's okay to release lk.
+    if(lk != PROCM_LOCK){  //DOC: sleeplock0
+        PROCM_ACQUIRE;
+        release(lk);
+    }
+
+    // Go to sleep.
+    proc->chan = chan;
+    proc->state = SLEEPING;
+
+    put_proc_in_sleep_hash(proc_manager.sleep_hash, chan, proc);
+    sche_nolock();
+
+    // Tidy up.
+    proc->chan = 0;
+
+    // Reacquire original lock.
+    if(lk != PROCM_LOCK){  //DOC: sleeplock2
+        PROCM_RELEASE;
+        acquire(lk);
+    }
+}
+
+
+// Wake up all processes sleeping on chan.
+void
+wakeup(void *chan)
+{
+    struct proc *proc = NULL;
+    PROCM_ACQUIRE;
+    while((proc = get_proc_in_sleep_hash_by_ptr(proc_manager.sleep_hash, chan)) != NULL)
+    {
+        put_proc(proc);
+    }
+    PROCM_RELEASE;
 }
