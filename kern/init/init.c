@@ -71,15 +71,16 @@ int main() {
 
     cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
 
-    int *c = kmalloc(4);
-    *c = 1;
-    cprintf("c : %x\n", c);
 
+#if SCHE_DEBUG
+    cprintf("****************************\n");
+    cprintf(SCHE_MSG" START schedule test\n");
+    cprintf("****************************\n");
+#endif
     asm volatile ("sti");
     while(1)
     {
-        cprintf("shce idle\n");
-        sche();
+        schedule(PROCM_LOCK);
     }
     
     

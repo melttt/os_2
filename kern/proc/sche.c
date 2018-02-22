@@ -1,7 +1,5 @@
 #include "basic_p.h"
 
-
-
 #include "stdio.h"
 #include "cpu.h"
 #include "cfs.h"
@@ -33,7 +31,6 @@ init_sche(struct proc* proc)
 void
 put_proc(struct proc* proc)
 {
-    proc->state = RUNNABLE;
     sche_class->enqueue(&proc->se, 0);
 }
 
@@ -46,7 +43,8 @@ get_proc(struct proc *prev, struct proc *this)
 struct proc*
 pick_first_proc()
 {
-    return se2proc(sche_class->pick_first()); 
+    struct sche_entity *se = sche_class->pick_first();
+    return se ? se2proc(se) : NULL; 
 }
 
 int
@@ -80,99 +78,67 @@ get_proc_by_pid(int pid)
     return NULL;
 }
 
-void sche_nolock()
+
+
+#if SCHE_DEBUG
+//enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+char *sche_state[6] = {
+    "UNUSED",
+    "EMBRYO",
+    "SLEEPING",
+    "RUNNABLE",
+    "RUNNING",
+    "ZOMBIE"
+};
+#endif
+void schedule(struct spinlock *lock)
 {
-    assert(PCPU->ncli == 1);
-    struct proc *idleproc = IDLE_PROC;
-    struct proc *current = CUR_PROC;
-    assert(current && idleproc);
-    struct proc *new = pick_first_proc(); 
+    if(lock != NULL && lock != PROCM_LOCK) 
+        panic("wrong lock:-)");
 
-    if(new)
+    if(lock == PROCM_LOCK) PROCM_ACQUIRE;
+
+    struct proc *new = pick_first_proc();
+    struct proc *curr = CUR_PROC;
+
+    if(new == NULL)
+        panic("sched no proc");
+
+    if(curr->state == RUNNING)
+        curr->state = RUNNABLE;
+
+    get_proc(curr, new);
+#if SCHE_DEBUG
+    if(curr->state == RUNNABLE && curr->pid != 0)
     {
-        cprintf(TEST_MSG"try put pid :%x, new pid : %x\n", current->pid , new->pid);
-        cprintf("cfs->num : %x\n",cfs->nr_running);
-        if(current->pid != 0 && current->state != SLEEPING)
-            put_proc(current);
+        put_proc(curr);
+        cprintf("pid %x , put", curr->pid);
+    }
+#else
+    if(curr->state == RUNNABLE)
+        put_proc(curr);
+#endif
 
-        new->state = RUNNING;
-        CUR_PROC = new;
-        switchuvm(new);
-        get_proc(current ,new);
-        cprintf(TEST_MSG"switch before\n");
-        cprintf("%x %x\n",current->context, new->context);
-        swtch(&current->context, new->context);
+    new->state = RUNNING;
+    CUR_PROC = new;
+#if SCHE_DEBUG
+    cprintf(SCHE_MSG"curr proc(pid = %x, state = %s),new proc(pid = %x, state = %s)\n", curr->pid,
+            sche_state[curr->state], new->pid, sche_state[new->state]); 
+#endif 
+    if(IS_KERN_PROC(new))
+    {
         switchkvm();
     }else{
-        assert("now not\n");
-        if(current != idleproc)
-        {
-            new = idleproc;
-            if(current->state == RUNNABLE)
-            {
-                put_proc(current);
-            }
-            new->state = RUNNING;
-            switchkvm();
-            CUR_PROC = new;
-            get_proc(current ,new);
-            swtch(&current->context, idleproc->context);
-            switchkvm();
-        }else{
-            ;;;;;;;;;;
-        }
-    }
-      
-    
-    assert(PCPU->ncli == 1);
-}
-void sche()
-{
-    PROCM_ACQUIRE;
-    assert(PCPU->ncli == 1);
-    struct proc *idleproc = IDLE_PROC;
-    struct proc *current = CUR_PROC;
-    assert(current && idleproc);
-    struct proc *new = pick_first_proc(); 
-
-    if(new)
-    {
-        cprintf(TEST_MSG"try put pid :%x, new pid : %x\n", current->pid , new->pid);
-        cprintf("cfs->num : %x\n",cfs->nr_running);
-        if(current->pid != 0 && current->state != SLEEPING)
-            put_proc(current);
-
-        new->state = RUNNING;
-        CUR_PROC = new;
         switchuvm(new);
-        get_proc(current ,new);
-        cprintf(TEST_MSG"switch before\n");
-        cprintf("%x %x\n",current->context, new->context);
-        swtch(&current->context, new->context);
-        switchkvm();
-    }else{
-        assert("now not\n");
-        if(current != idleproc)
-        {
-            new = idleproc;
-            if(current->state == RUNNABLE)
-            {
-                put_proc(current);
-            }
-            new->state = RUNNING;
-            switchkvm();
-            CUR_PROC = new;
-            get_proc(current ,new);
-            swtch(&current->context, idleproc->context);
-            switchkvm();
-        }else{
-            ;;;;;;;;;;
-        }
     }
       
-    
     assert(PCPU->ncli == 1);
-    PROCM_RELEASE;
+    swtch(&curr->context, new->context); 
+    assert(PCPU->ncli == 1);
+
+    switchkvm();
+
+    if(lock == PROCM_LOCK) PROCM_RELEASE;
 }
 
 

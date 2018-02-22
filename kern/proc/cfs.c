@@ -227,7 +227,6 @@ static struct sche_entity *pick_first_entity()
 
 	if (!left)
 		return NULL;
-
 	return rb_entry2se(left);
 
 }

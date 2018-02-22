@@ -84,6 +84,7 @@ extern struct proc_manager proc_manager;
 #define PROCM_LOCK (&proc_manager.lock)
 #define PROCM_ACQUIRE acquire(&proc_manager.lock)
 #define PROCM_RELEASE release(&proc_manager.lock)
+#define IS_KERN_PROC(p) (p->mm == NULL)
 
 #define clist2proc(ptr) to_struct(ptr, struct proc, plink)
 #define has_child(proc) (!list_empty(&proc->child))

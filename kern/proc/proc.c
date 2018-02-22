@@ -40,7 +40,7 @@ static void init_proc_manager()
     init_sleep_hash(&proc_manager.sleep_hash);
 }
 static uint32_t
-get_pid_2()
+get_pid()
 {
     uint32_t ret;
     PROCM_ACQUIRE;
@@ -117,7 +117,7 @@ alloc_proc(void)
 }
 
 void
-make_proc_runable(struct proc *proc) {
+make_proc_runnable(struct proc *proc) {
     assert(proc->state != RUNNABLE && proc->state != ZOMBIE);
     proc->state = RUNNABLE;
     put_proc(proc); 
@@ -175,11 +175,15 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
 
     proc->pgdir = proc->parent->pgdir;
     copy_thread(proc, stack, tf);
-    proc->pid = get_pid_2();
+    proc->pid = get_pid();
     set_proc_prio(proc, get_proc_prio(proc->parent));
-    make_proc_runable(proc);
+    make_proc_runnable(proc);
 
     ret = proc->pid;
+
+#if SCHE_DEBUG
+    cprintf(SCHE_MSG"pid : %x, fork ,pid : %x\n",proc->parent->pid, proc->pid);
+#endif
 fork_out:
     return ret;
 
@@ -235,7 +239,7 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
-    sche();
+    schedule(PROCM_LOCK);
 
     struct proc* chi = get_proc_by_pid(2);
     cprintf("pid == %d , status : %d parent_pid : %d \n",chi->pid, chi->state, chi->parent->pid);
@@ -254,13 +258,12 @@ void
 proc_init(void){
     init_proc_manager();
 
-    cprintf("sizeof(struct proc):%d\n", sizeof(struct proc));
     if ((IDLE_PROC = alloc_proc()) == NULL) {
         panic("cannot alloc idleproc.\n");
     }
 
     IDLE_PROC->context =  kmalloc(sizeof(struct context));
-    IDLE_PROC->pid = get_pid_2();
+    IDLE_PROC->pid = get_pid();
     strcpy(IDLE_PROC->name, "idle");
     IDLE_PROC->state = RUNNABLE;
     IDLE_PROC->pgdir = kpgdir;
@@ -275,7 +278,7 @@ proc_init(void){
     
     INIT_PROC = get_proc_by_pid(pid);
     strcpy((INIT_PROC)->name, "init");
-    cprintf("proc_init ok!\n");
+    cprintf(INITOK"proc_init ok!\n");
 
     assert(IDLE_PROC != NULL && (IDLE_PROC)->pid == 0);
     assert(INIT_PROC != NULL && (INIT_PROC)->pid == 1);
@@ -289,7 +292,7 @@ do_exit(int8_t error_code)
     struct proc *idleproc = IDLE_PROC;
     struct proc *initproc = INIT_PROC;
 
-    sche();
+    schedule(PROCM_LOCK);
     cprintf("come back childer proc:%8x\n", current->pid);
     if (current == idleproc) {
         panic("idleproc exit.\n");
@@ -313,8 +316,10 @@ do_exit(int8_t error_code)
     current->exit_code = error_code;
     current->state = ZOMBIE;
     wakeup(current->parent);
-
-    sche();
+#if SCHE_DEBUG
+    cprintf(SCHE_MSG"pid : %x, to_exit\n", current->pid);
+#endif
+    schedule(PROCM_LOCK);
     return 1;
 }
 
@@ -328,10 +333,8 @@ do_wait(void)
     {
         PROCM_ACQUIRE;
         proc = CUR_PROC;
-        cprintf("pid = %d\n",proc->pid);
         if(!has_child(proc))
         {
-            cprintf("NO CHILD\n");
             PROCM_RELEASE;
             return -1;
         }
@@ -350,7 +353,6 @@ do_wait(void)
         }
         FOR_EACH_END
 
-        cprintf("no child go to sleeping proc:%8x\n", (int)proc);
         sleep(proc, PROCM_LOCK);
         PROCM_RELEASE;
     }
@@ -530,6 +532,7 @@ load_icode(unsigned char *binary, size_t size)
     tf->eip = elf->e_entry;
 
     tf->eflags |= FL_IF;
+    load_tss(current);
 
     ret = 0;
     return ret;
@@ -569,9 +572,11 @@ sleep(void *chan, struct spinlock *lk)
     // Go to sleep.
     proc->chan = chan;
     proc->state = SLEEPING;
-
+#if SCHE_DEBUG
+    cprintf(SCHE_MSG"pid : %x, to_sleep\n", proc->pid);
+#endif
     put_proc_in_sleep_hash(proc_manager.sleep_hash, chan, proc);
-    sche_nolock();
+    schedule(NULL);
 
     // Tidy up.
     proc->chan = 0;
@@ -592,6 +597,10 @@ wakeup(void *chan)
     PROCM_ACQUIRE;
     while((proc = get_proc_in_sleep_hash_by_ptr(proc_manager.sleep_hash, chan)) != NULL)
     {
+#if SCHE_DEBUG
+    cprintf(SCHE_MSG"pid : %x, to_wakeup\n", proc->pid);
+#endif
+        proc->state = RUNNABLE;
         put_proc(proc);
     }
     PROCM_RELEASE;

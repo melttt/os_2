@@ -22,14 +22,13 @@ struct sche_class {
 };
 
 struct proc;
-void init_se(struct sche_entity *se, int prio);
 void init_sche(struct proc* proc);
+void init_se(struct sche_entity *se, int prio);
 void put_proc(struct proc* proc);
 int set_proc_prio(struct proc* proc, int prio);
 int get_proc_prio(struct proc* proc);
 int get_proc_num();
 struct proc* get_proc_by_pid(int pid);
 void get_proc(struct proc *prev, struct proc *thi);
-void sche();
-void sche_nolock();
+void schedule(struct spinlock *lock);
 #endif
