@@ -214,9 +214,9 @@ user_main(void *arg){
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
     assert(PCPU->ncli == 0);
-    assert(PCPU->intena == 0);
-    asm volatile("cli;sti");
-    while(1);
+//    assert(PCPU->intena == 1);
+  //  asm volatile("sti");
+  //  while(1);
     asm volatile (
             "int %0;"
             : 
@@ -230,6 +230,8 @@ user_main(void *arg){
 static int
 init_main(void *arg) {
     struct proc *current = CUR_PROC;
+    assert(PCPU->ncli == 0);
+    cprintf("%x\n", current);
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
     asm volatile (

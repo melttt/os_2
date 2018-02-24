@@ -144,6 +144,9 @@ void schedule(struct spinlock *lock)
 
     if(lock == PROCM_LOCK) PROCM_ACQUIRE;
 
+    assert(PCPU->ncli == 1);
+    if(readeflags()&FL_IF)
+        panic("sched interruptible");
     struct proc *new = pick_first_proc();
     struct proc *curr = CUR_PROC;
 
@@ -155,7 +158,7 @@ void schedule(struct spinlock *lock)
 
     get_proc(curr, new);
 #if SCHE_DEBUG
-    if(curr->state == RUNNABLE )
+    if(curr->state == RUNNABLE && curr->pid != 0)
     {
         put_proc(curr);
     }
@@ -176,9 +179,12 @@ void schedule(struct spinlock *lock)
     }else{
         switchuvm(new);
     }
+    int tmp;
+    tmp = PCPU->intena;
     assert(PCPU->ncli == 1);
     swtch(&curr->context, new->context); 
     assert(PCPU->ncli == 1);
+    PCPU->intena = tmp;
 
     switchkvm();
 

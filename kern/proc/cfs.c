@@ -244,6 +244,7 @@ int check_preempt_tick(struct sche_entity *curr)
     }
 
     se = pick_first_entity(cfs);
+    if(se == NULL) return 0;
     delta = curr->vruntime - se->vruntime;
 
     if(delta < 0)

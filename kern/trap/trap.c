@@ -96,7 +96,6 @@ trap(struct trapframe *tf)
             if(get_cpu() == 0){
                 ticks ++;
                 ktime ++;
-                sche_tick();
             //    cprintf("ktime: %d\n",ktime);
                 /*
                    acquire(&tickslock);
@@ -120,6 +119,7 @@ trap(struct trapframe *tf)
         case T_IRQ0 + IRQ_KBD:
             kbd_intr();
             lapiceoi();
+            sche_tick();
             break;
         case T_IRQ0 + IRQ_COM1:
             /*
