@@ -8,6 +8,7 @@
 extern int sys_put(void);
 extern int sys_exec(void);
 extern int sys_exit(void);
+extern int sys_pid(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
@@ -59,6 +60,7 @@ static int (*syscalls[])(void) = {
 [SYS_exit]    sys_exit,
 [SYS_exec]    sys_exec,
 [SYS_put]   sys_put,
+[SYS_pid]  sys_pid,
 };
 
 int 
@@ -87,6 +89,12 @@ syscall()
     } else {
         cprintf("unknown sys call\n");
     }
+}
+
+int sys_pid(void)
+{
+    cprintf("pid:%x\n",CUR_PROC->pid);
+    return 0;
 }
 
 int

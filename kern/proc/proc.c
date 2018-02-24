@@ -176,7 +176,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     proc->pgdir = proc->parent->pgdir;
     copy_thread(proc, stack, tf);
     proc->pid = get_pid();
-    set_proc_prio(proc, get_proc_prio(proc->parent));
+    set_proc_prio(proc, MAX_PRIO);
     make_proc_runnable(proc);
 
     ret = proc->pid;
@@ -213,7 +213,10 @@ static int
 user_main(void *arg){
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
-    cprintf("To U: \"%s\".\n", (const char *)arg);
+    assert(PCPU->ncli == 0);
+    assert(PCPU->intena == 0);
+    asm volatile("cli;sti");
+    while(1);
     asm volatile (
             "int %0;"
             : 
@@ -235,17 +238,31 @@ init_main(void *arg) {
             : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
             : "memory");
     size_t before = nr_free_pages();
-    int pid = kernel_thread(user_main, "first USER program", 0);
+    int pid = kernel_thread(user_main, "one", 0);
+    if (pid <= 0) {
+        panic("create first USER failed.\n");
+    }
+    pid = kernel_thread(user_main, "two", 0);
+    if (pid <= 0) {
+        panic("create first USER failed.\n");
+    }
+    pid = kernel_thread(user_main, "three", 0);
+    if (pid <= 0) {
+        panic("create first USER failed.\n");
+    }
+    pid = kernel_thread(user_main, "four", 0);
+    if (pid <= 0) {
+        panic("create first USER failed.\n");
+    }
+    pid = kernel_thread(user_main, "five", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
     schedule(PROCM_LOCK);
 
-    struct proc* chi = get_proc_by_pid(2);
-    cprintf("pid == %d , status : %d parent_pid : %d \n",chi->pid, chi->state, chi->parent->pid);
-    while(do_wait() != -1)
+    while((pid = do_wait()) != -1)
     {
-       cprintf("get a child\n");
+       cprintf("get a child,pid:%x\n", pid);
     }
     assert(before == nr_free_pages());
 
@@ -292,8 +309,6 @@ do_exit(int8_t error_code)
     struct proc *idleproc = IDLE_PROC;
     struct proc *initproc = INIT_PROC;
 
-    schedule(PROCM_LOCK);
-    cprintf("come back childer proc:%8x\n", current->pid);
     if (current == idleproc) {
         panic("idleproc exit.\n");
     }

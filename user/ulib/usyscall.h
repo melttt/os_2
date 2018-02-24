@@ -3,4 +3,5 @@
 
 int put(char);
 int exit();
+void show_pid(void);
 #endif

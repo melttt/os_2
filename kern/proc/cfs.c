@@ -240,7 +240,7 @@ int check_preempt_tick(struct sche_entity *curr)
     delta_time = curr->start_time - curr->last_time;
     if(delta_time > ideal_runtime)
     {
-        return 1;
+        //return 1;
     }
 
     se = pick_first_entity(cfs);
@@ -259,6 +259,7 @@ get_next_se(struct sche_entity* first)
 {
     return rb_entry2se( (rb_next(&first->rb_node)) ) ;
 }
+
 
 /*
 int cfs_tick()
@@ -288,4 +289,5 @@ struct sche_class default_sche_class = {
      .proc_tick = update_curr,
      .init_se = init_entity,
      .pick_next = get_next_se,
+     .is_sche = check_preempt_tick,
 };

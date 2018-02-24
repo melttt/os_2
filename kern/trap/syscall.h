@@ -28,5 +28,6 @@ int argint(int n, int *ip);
 #define SYS_close  21
 // Me
 #define SYS_put 22
+#define SYS_pid 23
 
 #endif

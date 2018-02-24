@@ -8,6 +8,7 @@
 #include "kdebug.h"
 #include "stdio.h"
 #include "syscall.h"
+#include "sche.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -72,6 +73,7 @@ trap(struct trapframe *tf)
 
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
+    cprintf("tf->eflags IF : %x\n", tf->eflags);
            syscall();
         /*
            if(proc->killed)
@@ -81,6 +83,9 @@ trap(struct trapframe *tf)
            if(proc->killed)
            exit();
            */
+#if SCHE_DEBUG
+    //sche_display();
+#endif
         return;
     }
     switch(tf->trapno){
@@ -91,7 +96,8 @@ trap(struct trapframe *tf)
             if(get_cpu() == 0){
                 ticks ++;
                 ktime ++;
-                //cprintf("ktime: %d\n",ktime);
+                sche_tick();
+            //    cprintf("ktime: %d\n",ktime);
                 /*
                    acquire(&tickslock);
                    ticks++;

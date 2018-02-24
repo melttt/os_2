@@ -12,6 +12,44 @@
 void swtch(struct context **a, struct context *b);
 struct sche_class * sche_class = &default_sche_class;
 
+
+#if SCHE_DEBUG
+//enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+char *sche_state[6] = {
+    "UNUSED",
+    "EMBRYO",
+    "SLEEPING",
+    "RUNNABLE",
+    "RUNNING",
+    "ZOMBIE"
+};
+#endif
+#if SCHE_DEBUG
+#include "rbtree.h"
+#define rb_entry2se(p) rb_entry(p, struct sche_entity, rb_node)
+void sche_display()
+{
+    struct rb_node *node = rb_first(&cfs->rb_root);
+    struct proc* proc = CUR_PROC;
+    cprintf("++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    cprintf("PID_SUM:%x\n", get_proc_num());
+    
+    cprintf("cur_proc:\n");
+    cprintf("pid:%x,vrt:%x,state:%s\n", proc->pid, proc->se.vruntime, sche_state[proc->state]);
+
+    cprintf("ready_proc:\n");
+    while(node != NULL)
+    {
+        proc = se2proc(rb_entry2se(node));
+        cprintf("pid:%x,vrt:%x,state:%s\n", proc->pid, proc->se.vruntime, sche_state[proc->state]);
+        node = rb_next(node);
+    }
+    cprintf("END_SUM\n");
+    cprintf("++++++++++++++++++++++++++++++++++++++++++++++++\n");
+}
+
+#endif
+
 void
 init_se(struct sche_entity *se, int prio)
 {
@@ -60,6 +98,22 @@ set_proc_prio(struct proc* proc, int prio)
     return proc->se.prio = prio;
 }
 
+void
+sche_tick()
+{
+    struct proc* proc = CUR_PROC;
+    sche_class->proc_tick(&proc->se);
+    if(sche_class->is_sche(&proc->se))
+    {
+        if(proc->state == RUNNING)
+        {
+            cprintf("yield curr pid : %x\n", proc->pid);
+            schedule(PROCM_LOCK);
+        }
+    }
+    
+}
+
 struct proc*
 get_proc_by_pid(int pid)
 {
@@ -80,19 +134,11 @@ get_proc_by_pid(int pid)
 
 
 
-#if SCHE_DEBUG
-//enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
-char *sche_state[6] = {
-    "UNUSED",
-    "EMBRYO",
-    "SLEEPING",
-    "RUNNABLE",
-    "RUNNING",
-    "ZOMBIE"
-};
-#endif
 void schedule(struct spinlock *lock)
 {
+#if SCHE_DEBUG
+    cprintf("**************************************************\n");
+#endif
     if(lock != NULL && lock != PROCM_LOCK) 
         panic("wrong lock:-)");
 
@@ -109,10 +155,9 @@ void schedule(struct spinlock *lock)
 
     get_proc(curr, new);
 #if SCHE_DEBUG
-    if(curr->state == RUNNABLE && curr->pid != 0)
+    if(curr->state == RUNNABLE )
     {
         put_proc(curr);
-        cprintf("pid %x , put", curr->pid);
     }
 #else
     if(curr->state == RUNNABLE)
@@ -131,13 +176,15 @@ void schedule(struct spinlock *lock)
     }else{
         switchuvm(new);
     }
-      
     assert(PCPU->ncli == 1);
     swtch(&curr->context, new->context); 
     assert(PCPU->ncli == 1);
 
     switchkvm();
 
+#if SCHE_DEBUG
+    cprintf("**************************************************\n");
+#endif
     if(lock == PROCM_LOCK) PROCM_RELEASE;
 }
 

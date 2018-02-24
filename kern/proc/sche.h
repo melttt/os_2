@@ -1,6 +1,6 @@
 #ifndef _KERN_PROC_SCHE_2_H_
 #define _KERN_PROC_SCHE_2_H_
-
+#include "basic_p.h"
 struct sche_class {
     // the name of sched_class
     const char *name;
@@ -19,6 +19,7 @@ struct sche_class {
     struct sche_entity* (*pick_next)(struct sche_entity *se);
 
     void (*init_se)(struct sche_entity *se, int prio);
+    int (*is_sche)(struct sche_entity *curr);
 };
 
 struct proc;
@@ -31,4 +32,8 @@ int get_proc_num();
 struct proc* get_proc_by_pid(int pid);
 void get_proc(struct proc *prev, struct proc *thi);
 void schedule(struct spinlock *lock);
+void sche_tick();
+#if SCHE_DEBUG
+void sche_display();
+#endif
 #endif

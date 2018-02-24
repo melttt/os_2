@@ -19,3 +19,9 @@
     movl $40, %ebx; \
     int $64; \
     ret
+.globl show_pid;
+  show_pid: \
+    movl $23, %eax; \
+    movl $40, %ebx; \
+    int $64; \
+    ret
