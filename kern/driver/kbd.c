@@ -233,9 +233,11 @@ kbd_proc_data(void) {
     return c;
 }
 
-void 
+int8_t
 kbd_intr(void) {
-    cprintf("kdb : %c\n",(char)kbd_proc_data());
+    int8_t tmp = (char)kbd_proc_data();
+    cprintf("kdb : %c\n", tmp);
+    return tmp;
 }
 void
 kbd_init(void)

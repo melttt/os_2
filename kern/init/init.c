@@ -81,6 +81,7 @@ int main() {
     while(1)
     {
         schedule(PROCM_LOCK);
+        sche_tick2();
     }
     
     

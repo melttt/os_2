@@ -33,7 +33,7 @@ uint32_t prio_to_vruntime[] = {
     [6] = 7,
     [7] = 8,
     [8] = 9,
-    [9] = 10,
+    [9] = 16,
 };
 
 struct cfs *cfs;
@@ -115,7 +115,10 @@ void init_entity(struct sche_entity *se, int prio)
 void enqueue_entity(struct sche_entity *se, int flag)
 {
     ACQUIRE_PROC;
-    se->vruntime = cfs->min_vruntime;
+
+
+    if(flag == 0)
+        se->vruntime = cfs->min_vruntime;
 
     //deal flag in the future
     //
@@ -172,7 +175,7 @@ void dequeue_entity(struct sche_entity *prev, struct sche_entity *se)
     ACQUIRE_PROC;
     if(prev)
     {
-        se->start_time = prev->last_time;
+        se->last_time = se->start_time = prev->last_time;
         cfs->curr = se;
     }else{
         se->start_time = get_time();
@@ -194,7 +197,7 @@ calc_delta_fair(uint32_t delta, struct sche_entity *se)
 static inline uint32_t
 calc_delta_time(uint32_t clock, uint32_t last_time)
 {
-    return clock > last_time ? (clock - last_time) : (UINT32_MAX - last_time + clock);
+    return clock >= last_time ? (clock - last_time) : (UINT32_MAX - last_time + clock);
 }
 
 static void update_curr(struct sche_entity *se)
@@ -210,14 +213,20 @@ static void update_curr(struct sche_entity *se)
     }
 
     delta_time = calc_delta_time(now, se->last_time);
+    //cprintf("now %x, last_time %x\n",now, se->last_time);
 
     if(!delta_time)
-        return;
+    {
+        delta_time = 1;
+        //RELEASE_PROC;
+        //return;
+    }
 
     se->last_time = now;
     se->vruntime += calc_delta_fair(delta_time, se);
 
     update_min_vruntime();
+    //cprintf("leftmost :%x, se->vruntime : %x, delta_time: %x ,calc_time :%x\n", cfs->min_vruntime, se->vruntime, delta_time, calc_delta_fair(delta_time, se));
     RELEASE_PROC;
 }
 

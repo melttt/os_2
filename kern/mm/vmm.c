@@ -283,6 +283,8 @@ switchuvm(struct proc *p)
         panic("switchuvm: no kstack");
     if(p->pgdir == 0)
         panic("switchuvm: no pgdir");
+    if(p->mm == 0)
+        panic("switchuvm: no mm\n");
 
     push_cli();
     struct cpu *cpu = PCPU;
@@ -295,7 +297,8 @@ switchuvm(struct proc *p)
     cpu->ts.iomb = (ushort) 0xFFFF;
     ltr(SEG_TSS << 3);
 
-    lcr3(V2P(p->pgdir));  // switch to process's address space
+    
+    lcr3(V2P(p->mm->pgdir));  // switch to process's address space
     pop_cli();
 }
 

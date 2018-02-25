@@ -93,7 +93,10 @@ syscall()
 
 int sys_pid(void)
 {
-    cprintf("pid:%x\n",CUR_PROC->pid);
+    static int pidarr[5] ={0};
+    pidarr[CUR_PROC->pid] ++;
+    //cprintf("pid:%x\n",CUR_PROC->pid);
+    cprintf("pid_2:%x,pid_3:%x,pid_4:%x\n", pidarr[2], pidarr[3], pidarr[4] );
     return 0;
 }
 

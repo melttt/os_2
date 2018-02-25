@@ -73,7 +73,6 @@ trap(struct trapframe *tf)
 
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
-    cprintf("tf->eflags IF : %x\n", tf->eflags);
            syscall();
         /*
            if(proc->killed)
@@ -105,6 +104,7 @@ trap(struct trapframe *tf)
                    */
             }
             lapiceoi();
+            sche_tick();
             break;
         case T_IRQ0 + IRQ_IDE0:
             //ideintr();
@@ -117,10 +117,19 @@ trap(struct trapframe *tf)
             // Bochs generates spurious IDE1 interrupts.
             break;
         case T_IRQ0 + IRQ_KBD:
-            kbd_intr();
-            lapiceoi();
-            sche_tick();
-            break;
+            {
+                char cc;
+                cc = kbd_intr();
+                lapiceoi();
+                if(cc == 'a')
+                {
+#if SCHE_DEBUG
+        sche_display();
+#endif
+                }
+                    ;
+                break;
+            }
         case T_IRQ0 + IRQ_COM1:
             /*
                uartintr();

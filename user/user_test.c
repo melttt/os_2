@@ -8,8 +8,8 @@ int main()
 
     while(1)
     {
-        //for(b = 0 ; b < 10000; b ++);
-        //show_pid();
+        for(b = 0 ; b < 10000; b ++);
+            show_pid();
     }
 
     exit();

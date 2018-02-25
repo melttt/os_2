@@ -67,9 +67,9 @@ init_sche(struct proc* proc)
 }
 
 void
-put_proc(struct proc* proc)
+put_proc(struct proc* proc, int a)
 {
-    sche_class->enqueue(&proc->se, 0);
+    sche_class->enqueue(&proc->se, a);
 }
 
 void
@@ -98,18 +98,23 @@ set_proc_prio(struct proc* proc, int prio)
     return proc->se.prio = prio;
 }
 
+void 
+sche_tick2()
+{
+    struct proc* proc = CUR_PROC;
+    sche_class->proc_tick(&proc->se);
+}
 void
 sche_tick()
 {
     struct proc* proc = CUR_PROC;
     sche_class->proc_tick(&proc->se);
+#if SCHE_DEBUG
+//    sche_display();
+#endif
     if(sche_class->is_sche(&proc->se))
     {
-        if(proc->state == RUNNING)
-        {
-            cprintf("yield curr pid : %x\n", proc->pid);
-            schedule(PROCM_LOCK);
-        }
+        schedule(PROCM_LOCK);
     }
     
 }
@@ -136,9 +141,6 @@ get_proc_by_pid(int pid)
 
 void schedule(struct spinlock *lock)
 {
-#if SCHE_DEBUG
-    cprintf("**************************************************\n");
-#endif
     if(lock != NULL && lock != PROCM_LOCK) 
         panic("wrong lock:-)");
 
@@ -158,27 +160,24 @@ void schedule(struct spinlock *lock)
 
     get_proc(curr, new);
 #if SCHE_DEBUG
-    if(curr->state == RUNNABLE && curr->pid != 0)
+    if(curr->state == RUNNABLE )
     {
-        put_proc(curr);
+        put_proc(curr, 1);
     }
 #else
     if(curr->state == RUNNABLE)
-        put_proc(curr);
+        put_proc(curr, 1);
 #endif
 
     new->state = RUNNING;
     CUR_PROC = new;
-#if SCHE_DEBUG
-    cprintf(SCHE_MSG"curr proc(pid = %x, state = %s),new proc(pid = %x, state = %s)\n", curr->pid,
-            sche_state[curr->state], new->pid, sche_state[new->state]); 
-#endif 
     if(IS_KERN_PROC(new))
     {
         switchkvm();
     }else{
         switchuvm(new);
     }
+
     int tmp;
     tmp = PCPU->intena;
     assert(PCPU->ncli == 1);
@@ -186,11 +185,16 @@ void schedule(struct spinlock *lock)
     assert(PCPU->ncli == 1);
     PCPU->intena = tmp;
 
-    switchkvm();
+    /*
+    new = CUR_PROC; 
+    if(IS_KERN_PROC(new))
+    {
+        switchkvm();
+    }else{
+        switchuvm(new);
+    }
+    */
 
-#if SCHE_DEBUG
-    cprintf("**************************************************\n");
-#endif
     if(lock == PROCM_LOCK) PROCM_RELEASE;
 }
 

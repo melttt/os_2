@@ -120,7 +120,7 @@ void
 make_proc_runnable(struct proc *proc) {
     assert(proc->state != RUNNABLE && proc->state != ZOMBIE);
     proc->state = RUNNABLE;
-    put_proc(proc); 
+    put_proc(proc, 0); 
 }
 
 // forkret -- the first kernel entry point of a new thread/process
@@ -252,6 +252,7 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
+    /*
     pid = kernel_thread(user_main, "four", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
@@ -260,6 +261,7 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
+    */
     schedule(PROCM_LOCK);
 
     while((pid = do_wait()) != -1)
@@ -618,7 +620,7 @@ wakeup(void *chan)
     cprintf(SCHE_MSG"pid : %x, to_wakeup\n", proc->pid);
 #endif
         proc->state = RUNNABLE;
-        put_proc(proc);
+        put_proc(proc, 1);
     }
     PROCM_RELEASE;
 }
