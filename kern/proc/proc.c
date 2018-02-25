@@ -226,6 +226,24 @@ user_main(void *arg){
     panic("should not at here\n");
     return 1;
 }
+
+static int put_a(int b)
+{
+    int ebp;
+    asm volatile("movl %%ebp, %0;"
+            :"=r"(ebp)       
+            :
+            :       
+            );
+
+    cprintf("ebp: %x, pp:%x\n",ebp, &b);
+    asm volatile (
+            "int %0;"
+            : 
+            : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
+            : "memory");
+    return 0;
+}
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
@@ -234,16 +252,14 @@ init_main(void *arg) {
     cprintf("%x\n", current);
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
-    asm volatile (
-            "int %0;"
-            : 
-            : "i" (T_SYSCALL),"b" ('q'),"a" (SYS_put)
-            : "memory");
+
+    put_a('K');
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "one", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
+    /*
     pid = kernel_thread(user_main, "two", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
@@ -252,7 +268,6 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
-    /*
     pid = kernel_thread(user_main, "four", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");

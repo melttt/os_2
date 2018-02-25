@@ -4,4 +4,5 @@
 int put(char);
 int exit();
 void show_pid(void);
+void sys_test(char a, char b, char c, char d, short e);
 #endif

@@ -73,6 +73,7 @@ trap(struct trapframe *tf)
 
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
+        cprintf("tf->ebp : %x\n", &(tf->ebp));
            syscall();
         /*
            if(proc->killed)
@@ -90,7 +91,7 @@ trap(struct trapframe *tf)
     switch(tf->trapno){
         case T_PGFLT:
              pgfault_handler(tf);
-            break;
+             break;
         case T_IRQ0 + IRQ_TIMER:
             if(get_cpu() == 0){
                 ticks ++;

@@ -4,6 +4,13 @@
 #include "param.h"
 void syscall();
 int argint(int n, int *ip);
+int argptr(int n, char **pp);
+int argstr(int n, char **pp);
+
+int get_arg_int(int n);
+char get_arg_char(int n);
+short get_arg_short(int n);
+void* get_arg_ptr(int n);
     // System call numbers
 #define SYS_fork    1
 #define SYS_exit    2
@@ -29,5 +36,7 @@ int argint(int n, int *ip);
 // Me
 #define SYS_put 22
 #define SYS_pid 23
+#define SYS_test 24
+
 
 #endif
