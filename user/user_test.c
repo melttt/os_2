@@ -1,8 +1,7 @@
-#include "usyscall.h"
-void sys_test_p(char a, char b, char c, char d, short e)
-{
-    sys_test(a, b, c, d, e);
-}
+#include "syslib.h"
+
+
+
 int main()
 {
     //put('q');
@@ -11,13 +10,23 @@ int main()
     char c= 'c';
     char d = 'd';
     short e = 777;
-    sys_test_p(a, b, c, d, e);
-    while(1)
+    user_test(a, b, c, d, e);
+    int x;
+
+    x = fork();
+    if(x != 0)
     {
-    //    for(b = 0 ; b < 10000; b ++);
-     //       show_pid();
+        put('p');
+        put('\n');
+        while(wait() != -1)
+        {
+            put('x');
+            put('\n');
+        }
+    }else{
+        put('c');
+        put('\n');
     }
 
-    exit();
     return 0;
 }

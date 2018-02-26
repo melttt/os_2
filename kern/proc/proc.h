@@ -93,7 +93,7 @@ extern struct proc_manager proc_manager;
 
 void proc_init(void);
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
-bool do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+bool do_execve(const char *name, size_t len, char *binary, size_t size);
 uint8_t do_exit(int8_t error_code);
 int do_wait();
 struct proc* fetch_child(struct proc* p);

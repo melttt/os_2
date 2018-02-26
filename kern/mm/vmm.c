@@ -465,6 +465,8 @@ mm_setup_pgdir(struct mm_struct *mm){
     return true;
 }
 
+static int
+dup_mmap(struct mm_struct *to, struct mm_struct *from);
 // mm_copy - process "proc" duplicate OR share process "current"'s mm according clone_flags
 //         - if clone_flags & CLONE_VM, then "share" ; else "duplicate"
 int
@@ -476,38 +478,34 @@ mm_copy(uint32_t clone_flags, struct proc *proc) {
         return 0;
     }
 
-    if (!(clone_flags & CLONE_VM)) {
+    if (clone_flags & CLONE_VM) {
         mm = oldmm;
         goto good_mm;
     }
 
-    panic("now no support copy mm\n");
-#if 0
     int ret = -E_NO_MEM;
     if ((mm = mm_create()) == NULL) {
         goto bad_mm;
     }
-    if (setup_pgdir(mm) != 0) {
+    if (mm_setup_pgdir(mm) != true) {
         goto bad_pgdir_cleanup_mm;
     }
 
-    lock_mm(oldmm);
+    push_cli();
     {
         ret = dup_mmap(mm, oldmm);
     }
-    unlock_mm(oldmm);
+    pop_cli();
 
     if (ret != 0) {
         goto bad_dup_cleanup_mmap;
     }
 
-#endif
 good_mm:
     mm_count_inc(mm);
     proc->mm = mm;
     proc->cr3 = V2P(mm->pgdir);
     return 0;
-#if 0
 bad_dup_cleanup_mmap:
     exit_mmap(mm);
     put_pgdir(mm);
@@ -515,11 +513,9 @@ bad_pgdir_cleanup_mm:
     mm_destroy(mm);
 bad_mm:
     return ret;
-#endif
 }
 
 
-#if 0
 static int
 dup_mmap(struct mm_struct *to, struct mm_struct *from) {
     assert(to != NULL && from != NULL);
@@ -554,20 +550,20 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
     assert(start % PGSIZE == 0 && end % PGSIZE == 0);
     assert(USER_ACCESS(start, end));
     do {
-        pte_t *ptep = get_pte(from, start, 0), *nptep;
+        pte_t *ptep = read_pte_addr(from, start, 0), *nptep;
         if (ptep == NULL) {
             start = ROUNDDOWN(start + PTSIZE, PTSIZE);
             continue ;
         }
         if (*ptep & PTE_P) {
-            if ((nptep = get_pte(to, start, 1)) == NULL) {
+            if ((nptep = read_pte_addr(to, start, 1)) == NULL) {
                 return -E_NO_MEM;
             }
         uint32_t perm = (*ptep & PTE_USER);
         //get page from ptep
-        struct Page *page = pte2page(*ptep);
+        struct page *page = pte2page(*ptep);
         // alloc a page for process B
-        struct Page *npage=alloc_page();
+        struct page *npage=alloc_page();
         assert(page!=NULL);
         assert(npage!=NULL);
         int ret=0;
@@ -584,8 +580,6 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
     } while (start != 0 && start < end);
     return 0;
 }
-
-#endif
 
 int
 mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
@@ -651,7 +645,6 @@ vmm_init(void) {
     cprintf(INITOK"init vmm ok!\n");
 }
 
-#define PTSIZE 4096*1024
 void
 unmap_range(pde_t *pgdir, uintptr_t start, uintptr_t end) {
     assert(start % PGSIZE == 0 && end % PGSIZE == 0);

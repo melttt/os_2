@@ -130,6 +130,8 @@ struct segdesc {
 #define NPDENTRIES      1024    // # directory entries per page directory
 #define NPTENTRIES      1024    // # PTEs per page table
 #define PGSIZE          4096    // bytes mapped by a page
+#define NPTEENTRY       10
+#define PTSIZE          (PGSIZE * NPTEENTRY)    // bytes mapped by a page directory entry
 
 #define PGSHIFT         12      // log2(PGSIZE)
 #define PTXSHIFT        12      // offset of PTX in a linear address
@@ -153,6 +155,8 @@ struct segdesc {
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
 #define PTE_FLAGS(pte)  ((uint)(pte) &  0xFFF)
 
+
+#define PTE_USER        (PTE_U | PTE_W | PTE_P)
 #define KSTACKPAGE          2                           // # of pages in kernel stack
 #define KSTACKSIZES          (KSTACKPAGE * PGSIZE)       // sizeof kernel stack
 #endif

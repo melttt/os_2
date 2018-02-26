@@ -73,8 +73,7 @@ trap(struct trapframe *tf)
 
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
-        cprintf("tf->ebp : %x\n", &(tf->ebp));
-           syscall();
+        syscall();
         /*
            if(proc->killed)
            exit();

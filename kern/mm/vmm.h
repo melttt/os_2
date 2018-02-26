@@ -96,5 +96,8 @@ void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
 void put_pgdir(struct mm_struct *mm);
 struct page* pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm);
 void load_tss(struct proc *p);
+int copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share);
+int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store);
+
 
 #endif
