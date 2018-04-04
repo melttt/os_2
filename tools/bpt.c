@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #define MALLOC_NODE(a) malloc_node(a) 
 #define GET_NODE_PTR(a) get_node_ptr(a)
+
 #endif 
 
 typedef int _off_t;
@@ -39,8 +40,8 @@ typedef struct node{
 }node ;
 
 
-static node* node22222[1000];
 #if TEST
+static node* node22222[1000];
 node* malloc_node(node **a)
 {
     static int cc = 0;
@@ -52,6 +53,8 @@ node* malloc_node(node **a)
 
 node* get_node_ptr(_off_t n)
 {
+    if(n == INFS) return NULL;
+    if(n < 0 || n > 1000) return NULL;
     return node22222[n];
 }
 #endif
@@ -59,6 +62,7 @@ node* get_node_ptr(_off_t n)
 /* Creates a new general node, which can be adapted
  * to serve as either a leaf or an internal node.
  */
+
 node* make_node(void)
 {
     node *new_node;
@@ -68,7 +72,7 @@ node* make_node(void)
     {
         return NULL;
     }
-    
+
     new_node->type = GENERAL_NODE;
     new_node->parent = INFS;
     new_node->num_keys = 0;
@@ -77,6 +81,7 @@ node* make_node(void)
     
     return new_node;
 }
+
 
 /* Helper function used in insert_into_parent
  * to find the index of the parent's pointer to 
@@ -89,7 +94,6 @@ node* make_leaf(void)
 
     return leaf; 
 }
-   
 
 
 /* Finds the appropriate place to
@@ -97,9 +101,13 @@ node* make_leaf(void)
  */
 int cut( int length ) {
 	if (length % 2 == 0)
+    {
 		return length/2;
+    }
 	else
+    {
 		return length/2 + 1;
+    }
 }
 
 /*-----------------------------------FIND----------------------------------------*/
@@ -168,7 +176,7 @@ _off_t find(node *root, int key) {
 
 
 
-/********************************************INSERT****************/
+/********************************************INSERT*****************************************/
 /* Helper function used in insert_into_parent
  * to find the index of the parent's pointer to 
  * the node to the left of the key to be inserted.
@@ -225,7 +233,7 @@ static node* insert_into_leaf(node * leaf, int key, _off_t value)
 	while (insertion_point < leaf->num_keys && leaf->keys[insertion_point] < key)
 		insertion_point++;
 
-	for (i = leaf->num_keys; i > insertion_point; i--) {
+	for(i = leaf->num_keys; i > insertion_point; i--) {
 		leaf->keys[i] = leaf->keys[i - 1];
 		leaf->vals[i] = leaf->vals[i - 1];
 	}
@@ -246,12 +254,12 @@ static node * insert_into_node(node * root, node * n,
 	int i;
 
 	for (i = n->num_keys; i > left_index; i--) {
-		n->vals[i + 1] = n->vals[i];
 		n->keys[i] = n->keys[i - 1];
+		n->vals[i + 1] = n->vals[i];
 	}
 
-	n->vals[left_index + 1] = right->where;
 	n->keys[left_index] = key;
+	n->vals[left_index + 1] = right->where;
 	n->num_keys++;
 	return root;
 }
@@ -259,12 +267,12 @@ static node * insert_into_node(node * root, node * n,
 
 
 static node * insert_into_parent(node * root, node * left, int key, node * right);
+
 /* Inserts a new key and pointer to a node
  * into a node, causing the node's size to exceed
  * the order, and causing the node to split into two.
  */
-static node * insert_into_node_after_splitting(node * root, node * old_node, int left_index, 
-		int key, node * right) {
+static node * insert_into_node_after_splitting(node * root, node * old_node, int left_index, int key, node * right) {
 
 	int i, j, split, k_prime;
 	node *new_node, *child;
@@ -282,7 +290,6 @@ static node * insert_into_node_after_splitting(node * root, node * old_node, int
 
 	temp_vals = malloc( (ORDER + 2) * sizeof(_off_t) );
 	if (temp_vals == NULL) {
-
 #if TEST
     printf("temp_vals node\n");
 #endif
@@ -366,7 +373,12 @@ static node * insert_into_parent(node * root, node * left, int key, node * right
 	/* Case: new root. */
 
 	if (parent == NULL)
+    {
+#if TEST
+        printf("insert new parent\n");
+#endif
 		return insert_into_new_root(left, key, right);
+    }
 
 	/* Case: leaf or node. (Remainder of
 	 * function body.)
@@ -401,6 +413,13 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 	int *temp_vals;
 	int insertion_index, split, new_key, i, j;
 
+    if(leaf->num_keys != ORDER)
+    {
+#if TEST
+        printf("insert split in case : leaf->num_keys != ORDER");
+#endif
+        return NULL;
+    }
 	new_leaf = make_leaf();
 
 	temp_keys = malloc((ORDER+1) * sizeof(int));
@@ -411,7 +430,7 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
         return NULL;
 	}
 
-	temp_vals = malloc((ORDER+1) * sizeof(_off_t) );
+	temp_vals = malloc((ORDER+1) * sizeof(_off_t));
 	if (temp_vals == NULL) {
 #if TEST
         printf("temp_vals == NULL\n");
@@ -421,7 +440,7 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 
 
 	insertion_index = 0;
-	while (insertion_index < ORDER && leaf->keys[insertion_index] < key)
+	while (insertion_index < leaf->num_keys && leaf->keys[insertion_index] < key)
 		insertion_index++;
 
 	for (i = 0, j = 0; i < leaf->num_keys; i++, j++) {
@@ -434,7 +453,7 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 	temp_vals[insertion_index] = value;
 
 	leaf->num_keys = 0;
-	split = cut(ORDER);
+	split = cut(ORDER + 1);
 
 
 	for(i = 0; i < split; i++) {
@@ -443,7 +462,7 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 		leaf->num_keys++;
 	}
 
-	for(i = split, j = 0; i < ORDER+1; i++, j++) {
+	for(i = split, j = 0; i < ORDER + 1; i++, j++) {
 		new_leaf->vals[j] = temp_vals[i];
 		new_leaf->keys[j] = temp_keys[i];
 		new_leaf->num_keys++;
@@ -515,7 +534,385 @@ node * insert(node * root, int key, _off_t value) {
 	return insert_into_leaf_after_splitting(root, leaf, key, value);
 }
 
+/*****************************************delete***********************************/
 
+
+
+
+static node * remove_entry_from_node(node * n, int key, _off_t value) {
+
+	int i, num_pointers;
+
+	// Remove the key and shift other keys accordingly.
+	i = 0;
+	while (n->keys[i] != key)
+		i++;
+
+	for (++i; i < n->num_keys; i++)
+		n->keys[i - 1] = n->keys[i];
+
+	// Remove the pointer and shift other pointers accordingly.
+	// First determine number of pointers.
+    //
+	num_pointers = IS_LEAF_NODE(n) ? n->num_keys : n->num_keys + 1;
+	i = 0;
+
+	while (n->vals[i] != value)
+		i++;
+	for (++i; i < num_pointers; i++)
+		n->vals[i - 1] = n->vals[i];
+
+	// One key fewer.
+	n->num_keys--;
+
+	// Set the other pointers to NULL for tidiness.
+	// A leaf uses the last pointer to point to the next leaf.
+	if (IS_LEAF_NODE(n))
+    {
+		for (i = n->num_keys; i < ORDER; i++)
+			n->vals[i] = INFS;
+    }
+	else
+    {
+		for (i = n->num_keys + 1; i < ORDER + 1; i++)
+			n->vals[i] = INFS;
+    }
+
+	return n;
+}
+
+
+
+static node * adjust_root(node * root) {
+
+	node * new_root;
+
+	/* Case: nonempty root.
+	 * Key and pointer have already been deleted,
+	 * so nothing to be done.
+	 */
+
+	if (root->num_keys > 0)
+		return root;
+
+	/* Case: empty root. 
+	 */
+
+	// If it has a child, promote 
+	// the first (only) child
+	// as the new root.
+
+	if (IS_GENERAL_NODE(root)) {
+		new_root = GET_NODE_PTR(root->vals[0]);
+		new_root->parent = INFS;
+	}
+
+	// If it is a leaf (has no children),
+	// then the whole tree is empty.
+
+	else
+		new_root = NULL;
+
+	free(root);
+
+	return new_root;
+}
+
+/* Utility function for deletion.  Retrieves
+ * the index of a node's nearest neighbor (sibling)
+ * to the left if one exists.  If not (the node
+ * is the leftmost child), returns -1 to signify
+ * this special case.
+ */
+int get_neighbor_index( node * n ) {
+
+	int i;
+	/* Return the index of the key to the left
+	 * of the pointer in the parent pointing
+	 * to n.  
+	 * If n is the leftmost child, this means
+	 * return -1.
+	 */
+	for (i = 0; i <= GET_NODE_PTR(n->parent)->num_keys; i++)
+		if (GET_NODE_PTR(n->parent)->vals[i] == n->where)
+			return i - 1;
+
+	// Error state.
+#if TEST
+	printf("Search for nonexistent pointer to node in parent.\n");
+	printf("Node:  %#lx\n", (unsigned long)n);
+#endif
+    //magic num =_+!
+    return -3;
+}
+
+
+
+node * delete_entry( node * root, node * n, int key, _off_t value );
+
+/* Coalesces a node that has become
+ * too small after deletion
+ * with a neighboring node that
+ * can accept the additional entries
+ * without exceeding the maximum.
+ */
+node * coalesce_nodes(node * root, node * n, node * neighbor, int neighbor_index, int k_prime) {
+
+	int i, j, neighbor_insertion_index, n_end;
+	node * tmp;
+
+	/* Swap neighbor with node if node is on the
+	 * extreme left and neighbor is to its right.
+	 */
+	if (neighbor_index == -1) {
+		tmp = n;
+		n = neighbor;
+		neighbor = tmp;
+	}
+
+	/* Starting point in the neighbor for copying
+	 * keys and pointers from n.
+	 * Recall that n and neighbor have swapped places
+	 * in the special case of n being a leftmost child.
+	 */
+
+	neighbor_insertion_index = neighbor->num_keys;
+
+	/* Case:  nonleaf node.
+	 * Append k_prime and the following pointer.
+	 * Append all pointers and keys from the neighbor.
+	 */
+
+	if (IS_GENERAL_NODE(n)) {
+
+		/* Append k_prime.
+		 */
+		neighbor->keys[neighbor_insertion_index] = k_prime;
+		neighbor->num_keys ++;
+
+		n_end = n->num_keys;
+
+		for (i = neighbor_insertion_index + 1, j = 0; j < n_end; i++, j++) {
+			neighbor->keys[i] = n->keys[j];
+			neighbor->vals[i] = n->vals[j];
+			neighbor->num_keys ++;
+			n->num_keys --;
+		}
+
+		/* The number of pointers is always
+		 * one more than the number of keys.
+		 */
+
+		neighbor->vals[i] = n->vals[j];
+		/* All children must now point up to the same parent.
+		 */
+
+		for (i = 0; i < neighbor->num_keys + 1; i++) {
+			tmp = GET_NODE_PTR(neighbor->vals[i]);
+			tmp->parent = neighbor->where;
+		}
+	}
+
+	/* In a leaf, append the keys and pointers of
+	 * n to the neighbor.
+	 * Set the neighbor's last pointer to point to
+	 * what had been n's right neighbor.
+	 */
+
+	else {
+		for (i = neighbor_insertion_index, j = 0; j < n->num_keys; i++, j++) {
+			neighbor->keys[i] = n->keys[j];
+			neighbor->vals[i] = n->vals[j];
+			neighbor->num_keys ++;
+		}
+		//neighbor->vals[order - 1] = n->vals[order - 1];
+	}
+
+	root = delete_entry(root, GET_NODE_PTR(n->parent), k_prime, n->where);
+
+	free(n); 
+	return root;
+}
+
+/* Redistributes entries between two nodes when
+ * one has become too small after deletion
+ * but its neighbor is too big to append the
+ * small node's entries without exceeding the
+ * maximum
+ */
+node * redistribute_nodes(node * root, node * n, node * neighbor, int neighbor_index, 
+		int k_prime_index, int k_prime) {  
+
+	int i;
+	node * tmp;
+
+	/* Case: n has a neighbor to the left. 
+	 * Pull the neighbor's last key-pointer pair over
+	 * from the neighbor's right end to n's left end.
+	 */
+	if (neighbor_index != -1) {
+		if (IS_GENERAL_NODE(n))
+			n->vals[n->num_keys + 1] = n->vals[n->num_keys];
+
+		for (i = n->num_keys; i > 0; i--) {
+			n->keys[i] = n->keys[i - 1];
+			n->vals[i] = n->vals[i - 1];
+		}
+
+		if (IS_GENERAL_NODE(n)) {
+			n->vals[0] = neighbor->vals[neighbor->num_keys];
+			tmp = GET_NODE_PTR(n->vals[0]);
+			tmp->parent = n->where;
+			neighbor->vals[neighbor->num_keys] = INFS;
+			n->keys[0] = k_prime;
+			GET_NODE_PTR(n->parent)->keys[k_prime_index] = neighbor->keys[neighbor->num_keys - 1];
+
+		}
+		else {
+			n->vals[0] = neighbor->vals[neighbor->num_keys - 1];
+			neighbor->vals[neighbor->num_keys - 1] = INF;
+			n->keys[0] = neighbor->keys[neighbor->num_keys - 1];
+			GET_NODE_PTR(n->parent)->keys[k_prime_index] = n->keys[0];
+		}
+	}
+
+	/* Case: n is the leftmost child.
+	 * Take a key-pointer pair from the neighbor to the right.
+	 * Move the neighbor's leftmost key-pointer pair
+	 * to n's rightmost position.
+	 */
+
+	else {  
+		if (IS_LEAF_NODE(n)) {
+			n->keys[n->num_keys] = neighbor->keys[0];
+			n->vals[n->num_keys] = neighbor->vals[0];
+			GET_NODE_PTR(n->parent)->keys[k_prime_index] = neighbor->keys[1];
+		}
+		else {
+			n->keys[n->num_keys] = k_prime;
+			n->vals[n->num_keys + 1] = neighbor->vals[0];
+			tmp = GET_NODE_PTR(n->vals[n->num_keys + 1]);
+			tmp->parent = n->where;
+			GET_NODE_PTR(n->parent)->keys[k_prime_index] = neighbor->keys[0];
+		}
+		for (i = 0; i < neighbor->num_keys - 1; i++) {
+			neighbor->keys[i] = neighbor->keys[i + 1];
+			neighbor->vals[i] = neighbor->vals[i + 1];
+		}
+		if (IS_GENERAL_NODE(n))
+			neighbor->vals[i] = neighbor->vals[i + 1];
+	}
+
+	/* n now has one more key and one more pointer;
+	 * the neighbor has one fewer of each.
+	 */
+
+	n->num_keys++;
+	neighbor->num_keys--;
+
+	return root;
+}
+
+
+/* Deletes an entry from the B+ tree.
+ * Removes the record and its key and pointer
+ * from the leaf, and then makes all appropriate
+ * changes to preserve the B+ tree properties.
+ */
+node * delete_entry( node * root, node * n, int key, _off_t value ) {
+
+	int min_keys;
+	node * neighbor;
+    _off_t neighbor_off_t;
+	int neighbor_index;
+	int k_prime_index, k_prime;
+	int capacity;
+
+	// Remove key and pointer from node.
+
+	n = remove_entry_from_node(n, key, value);
+
+	/* Case:  deletion from the root. 
+	 */
+
+	if (n == root) 
+		return adjust_root(root);
+
+
+	/* Case:  deletion from a node below the root.
+	 * (Rest of function body.)
+	 */
+
+	/* Determine minimum allowable size of node,
+	 * to be preserved after deletion.
+	 */
+
+	min_keys = IS_LEAF_NODE(n) ? cut(ORDER) : cut(ORDER + 1) - 1;
+
+	/* Case:  node stays at or above minimum.
+	 * (The simple case.)
+	 */
+
+	if (n->num_keys >= min_keys)
+		return root;
+
+	/* Case:  node falls below minimum.
+	 * Either coalescence or redistribution
+	 * is needed.
+	 */
+
+	/* Find the appropriate neighbor node with which
+	 * to coalesce.
+	 * Also find the key (k_prime) in the parent
+	 * between the pointer to node n and the pointer
+	 * to the neighbor.
+	 */
+
+	neighbor_index = get_neighbor_index(n);
+
+	k_prime_index = neighbor_index == -1 ? 0 : neighbor_index;
+
+	k_prime = GET_NODE_PTR(n->parent)->keys[k_prime_index];
+
+	neighbor_off_t = neighbor_index == -1 ? GET_NODE_PTR(n->parent)->vals[1] : 
+		GET_NODE_PTR(n->parent)->vals[neighbor_index];
+
+    neighbor = GET_NODE_PTR(neighbor_off_t);
+
+	capacity = IS_LEAF_NODE(n) ? ORDER : ORDER - 1;
+
+	/* Coalescence. */
+
+	if (neighbor->num_keys + n->num_keys <= capacity)
+		return coalesce_nodes(root, n, neighbor, neighbor_index, k_prime);
+
+	/* Redistribution. */
+	else
+		return redistribute_nodes(root, n, neighbor, neighbor_index, k_prime_index, k_prime);
+}
+
+
+
+
+
+
+/* Master deletion function.
+ */
+node * delete(node * root, int key) {
+
+	node * key_leaf;
+	_off_t  value_off_t;
+
+	value_off_t = find(root, key);
+
+	key_leaf = find_leaf(root, key);
+
+	if (value_off_t != INFS && key_leaf != NULL) {
+
+		root = delete_entry(root, key_leaf, key, value_off_t);
+	}
+	return root;
+}
 
 
 
@@ -584,7 +981,7 @@ void print_tree(node *root)
         for(i = 0 ; i < n->num_keys ; i ++)
         {
             printf("keys:%d ", n->keys[i]);
-            printf("vals:%lx ", (unsigned long)n->vals[i]);
+            printf("vals:%d ", (unsigned long)n->vals[i]);
         }
 
         if(IS_GENERAL_NODE(n))
@@ -597,7 +994,7 @@ void print_tree(node *root)
         {
             //printf("lx ", (unsigned long)n->vals[ORDER - 1]);
         }else{
-            printf("vals:%lx ", (unsigned long)n->vals[n->num_keys]);
+            printf("vals:%d ", (unsigned long)n->vals[n->num_keys]);
         }
         printf("| ");
 
@@ -605,18 +1002,33 @@ void print_tree(node *root)
     printf("\n");
 }
 
-
-
 void test()
 {
     printf("start test\n");
     node *root = NULL;
     for(int i = 0 ; i < 22 ; i ++)
         root = insert(root, i, i);
-
-    printf("TEST INSERT\n");
+    printf("TEST INSERT\n\n");
     print_tree(root);
-
+    printf("TEST FIND\n\n");
+    printf("key:3 -> val:%d\n", find(root, 3));
+    printf("key:8 -> val:%d\n", find(root, 8));
+    printf("REMOVE 3\n\n");
+    root =  delete(root, 3);
+    print_tree(root);
+    printf("REMOVE 2\n\n");
+    root =  delete(root, 2);
+    print_tree(root);
+    printf("REMOVE 1\n\n");
+    root =  delete(root, 1);
+    print_tree(root);
+    printf("REMOVE 4\n\n");
+    root =  delete(root, 4);
+    print_tree(root);
+    root =  delete(root, 0);
+    root =  delete(root, 5);
+    root =  delete(root, 6);
+    print_tree(root);
 }
 int main()
 {
@@ -630,11 +1042,7 @@ int main()
     printf("size of node :%d \n", sizeof(node));
 //    printf("fs.img 's size = %d \n", get_file_size("fs.img")/1024/1024);
 
-
     test();
-
-
-
     return 0;
 }
 
