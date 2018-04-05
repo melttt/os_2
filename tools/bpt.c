@@ -11,11 +11,10 @@
 #include <stdlib.h>
 #define MALLOC_NODE(a) malloc_node(a) 
 #define GET_NODE_PTR(a) get_node_ptr(a)
-
 #endif 
 
 typedef int _off_t;
-#define ORDER 6
+#define ORDER 5
 #define KEYLEN ORDER
 #define VALLEN (KEYLEN+1)
 
@@ -31,31 +30,39 @@ typedef int _off_t;
 #define F_VALUE(c) (c)
 typedef struct node{
     char type;    //type: 0(general) 1(leaf)
-    char empty1;
-    short num_keys;
+    char num_keys;
+    short empty1;
     _off_t parent;
     _off_t keys[KEYLEN];
     _off_t vals[VALLEN];
     _off_t where;
+    _off_t next;
+    int empty2;
 }node ;
 
-
+extern node* get_node();
+extern int ext_nums;
+int last_ext;
 #if TEST
-static node* node22222[1000];
+static node* node22222[240000];
 node* malloc_node(node **a)
 {
+    extern int ext_nums;
     static int cc = 0;
-    *a = (node*)malloc(sizeof(node));
+    *a = get_node(); //(node*)malloc(sizeof(node));
     (*a)->where = cc ++;
-    node22222[(*a)->where] = *a;
     return *a;
 }
 
+
+extern void read_ext_r(int n, void *buf);
+node __node[64];
 node* get_node_ptr(_off_t n)
 {
     if(n == INFS) return NULL;
-    if(n < 0 || n > 1000) return NULL;
-    return node22222[n];
+    read_ext_r(n / 64 + 1 ,__node);
+
+    return &__node[n % 64];
 }
 #endif
     
@@ -261,6 +268,7 @@ static node * insert_into_node(node * root, node * n,
 	n->keys[left_index] = key;
 	n->vals[left_index + 1] = right->where;
 	n->num_keys++;
+    
 	return root;
 }
 
@@ -272,6 +280,19 @@ static node * insert_into_parent(node * root, node * left, int key, node * right
  * into a node, causing the node's size to exceed
  * the order, and causing the node to split into two.
  */
+
+void debugnode(node * a)
+{
+    int i = 0;
+    for(i = 0 ; i < a->num_keys ; i ++)
+    {
+        printf("key %d , val %d| ", a->keys[i], a->vals[i]);
+    }
+    if(IS_GENERAL_NODE(a))
+    printf("val %d", a->vals[i]);
+    printf("\n");
+    
+}
 static node * insert_into_node_after_splitting(node * root, node * old_node, int left_index, int key, node * right) {
 
 	int i, j, split, k_prime;
@@ -339,14 +360,15 @@ static node * insert_into_node_after_splitting(node * root, node * old_node, int
 		new_node->keys[j] = temp_keys[i];
 		new_node->num_keys++;
 	}
-
 	new_node->vals[j] = temp_vals[i];
+
 
 	free(temp_vals);
 	free(temp_keys);
 
 
 	new_node->parent = old_node->parent;
+
 	for (i = 0; i <= new_node->num_keys; i++) {
 		child = GET_NODE_PTR(new_node->vals[i]);
 		child->parent = new_node->where;
@@ -392,11 +414,14 @@ static node * insert_into_parent(node * root, node * left, int key, node * right
 	/* Simple case: the new key fits into the node.
 	 */
 	if (parent->num_keys + 1 <= ORDER)
+    {
 		return insert_into_node(root, parent, left_index, key, right);
+    }
 
 	/* Harder case:  split a node in order
 	 * to preserve the B+ tree properties.
 	 */
+
 	return insert_into_node_after_splitting(root, parent, left_index, key, right);
 }
 
@@ -468,6 +493,8 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 		new_leaf->num_keys++;
 	}
 
+
+
 	free(temp_vals);
 	free(temp_keys);
 
@@ -478,9 +505,14 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
 
 
 	for (i = leaf->num_keys; i < ORDER ; i++)
+    {
 		leaf->vals[i] = INFS;
+
+    }
 	for (i = new_leaf->num_keys; i < ORDER; i++)
+    {
 		new_leaf->vals[i] = INFS;
+    }
 
 	new_leaf->parent = leaf->parent;
 	new_key = new_leaf->keys[0];
@@ -518,11 +550,13 @@ node * insert(node * root, int key, _off_t value) {
 	 * (Rest of function body.)
 	 */
 
+
 	leaf = find_leaf(root, key);
 
 	/* Case: leaf has room for key and pointer.
 	 */
 
+    printf("find ok\n");
 	if (leaf->num_keys + 1 <= ORDER) {
 		leaf = insert_into_leaf(leaf, key, value);
 		return root;
@@ -1006,8 +1040,24 @@ void test()
 {
     printf("start test\n");
     node *root = NULL;
-    for(int i = 0 ; i < 22 ; i ++)
+    for(int i = 130000 ; i > 0 ; i --)
+    {
+
         root = insert(root, i, i);
+        printf("index : %d \n", 130000 - i);
+    }
+    /*
+    for(int i = 0 ; i < 13000 ; i ++)
+    {
+
+        printf("----------st--------\n");
+        printf("index : %d \n",  i);
+        root = insert(root, i, i);
+    }
+    printf("-------2010----find\n");
+        printf("index 2010 vals: %d \n", find(root, 2010));
+        */
+    /*
     printf("TEST INSERT\n\n");
     print_tree(root);
     printf("TEST FIND\n\n");
@@ -1029,6 +1079,79 @@ void test()
     root =  delete(root, 5);
     root =  delete(root, 6);
     print_tree(root);
+    */
+}
+
+
+// 4K
+#define EXT_SIZE (512*8)
+int fd;
+int node_st_bl = 0;
+int ext_nums = 0;
+void read_ext_r(int n, void *buf)
+{
+    lseek(fd, EXT_SIZE * n , 0);
+    read(fd, buf, EXT_SIZE);
+}
+
+void write_ext_r(int n, void *buf)
+{
+    lseek(fd, EXT_SIZE * n , 0);
+    write(fd, buf, EXT_SIZE);
+}
+
+int calc_ext_nums();
+inline int calc_ext_nums()
+{
+    int ext_num;
+    ext_num = get_file_size("fs.img") / EXT_SIZE;
+    return ext_num;
+}
+
+
+int node_nums = 0;
+node* get_node()
+{
+    static int __len = 64;
+    static node __node[64];
+    static int i = 0;
+
+    if(__len == 64)
+    {
+        if(node_st_bl) write_ext_r(node_st_bl, __node); 
+        node_st_bl ++;
+        if(node_st_bl >= last_ext) 
+        {
+            exit(2);
+            return NULL;
+        }
+        __len = 0;
+        read_ext_r(node_st_bl, __node);
+    }
+    printf("get_node : %d\n", ++i);
+    memset(&__node[__len ], 0 , sizeof(node));
+    return &__node[__len ++];
+}
+
+void mkfs()
+{
+    fd = open("fs.img",O_RDWR);
+    ext_nums = calc_ext_nums();  
+    printf("ext_nums : %d\n", ext_nums);
+    last_ext = ext_nums - 1;
+    node *tmp;
+
+    node *root = NULL;
+    int i = 0;
+    while(node_st_bl < last_ext)
+    {
+       root = insert(root, last_ext, last_ext);
+       last_ext --; 
+       printf("index : %d, last_ext : %d node_st_bl: %d , root_len : %d\n", i ++, last_ext, node_st_bl, root->num_keys);
+    }
+
+    printf("all_num: %d ext_num : %d, node_num : %d",ext_nums ,ext_nums - last_ext, node_st_bl);
+
 }
 int main()
 {
@@ -1040,9 +1163,13 @@ int main()
 
 
     printf("size of node :%d \n", sizeof(node));
+    
 //    printf("fs.img 's size = %d \n", get_file_size("fs.img")/1024/1024);
 
-    test();
+
+    mkfs();
+
+//    test();
     return 0;
 }
 
