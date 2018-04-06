@@ -6,14 +6,14 @@
 #include <string.h>
 
 #define TEST 1
-
+#define TEST2 0
 #if TEST
 #include <stdlib.h>
 #define MALLOC_NODE(a) malloc_node(a) 
 #define GET_NODE_PTR(a) get_node_ptr(a)
 #endif 
 
-typedef int _off_t;
+typedef unsigned int _off_t;
 #define ORDER 5
 #define KEYLEN ORDER
 #define VALLEN (KEYLEN+1)
@@ -42,28 +42,128 @@ typedef struct node{
 
 extern node* get_node();
 extern int ext_nums;
+
 int last_ext;
 #if TEST
-static node* node22222[240000];
+
+
+extern void write_ext_r(int n, void *buf);
+extern void read_ext_r(int n, void *buf);
+
+
+
+
+node *nodes[200000];
+int nodes_len = 0;
+
+void init_nodes()
+{
+    for(int i = 0 ; i < nodes_len ; i ++)
+    {
+        nodes[i] = NULL;
+        printf("init nodes\n");
+        exit(3);
+    }
+}
+
+
+extern int fd;
+void clear_nodes()
+{
+    static int k = 0;
+    k ++;
+    node _123[64];
+//    printf("nodes_len : %d\n", nodes_len);
+    for(int i = 0 ; i < nodes_len ; i ++)
+    {
+        int sec = nodes[i]->where; 
+        //printf("sec : %d nodes[i] %p\n", sec, nodes[i]);
+
+        read_ext_r(1 + sec / 64 ,_123);
+        memcpy(&_123[sec % 64] , nodes[i] , sizeof(node)); 
+        //strcpy(&_123[sec % 64], nodes[i]);
+        write_ext_r(1 + sec / 64 ,_123);
+        free(nodes[i]);
+        nodes[i] = NULL;
+    }
+        int z = fsync(fd);
+    nodes_len = 0;
+}
+
+node* find_nodes(_off_t n )
+{
+
+#if TEST2
+
+    printf("find n : %d\n", n );
+#endif
+    for(int i = 0 ; i < nodes_len ; i ++)
+    {
+        if(nodes[i]->where == n)
+        {
+            return nodes[i];
+        }
+    }
+    return NULL;
+}
+
+void add_nodes(node * n)
+{
+    nodes[nodes_len ++] = n;
+}
+
 node* malloc_node(node **a)
 {
-    extern int ext_nums;
+    
     static int cc = 0;
-    *a = get_node(); //(node*)malloc(sizeof(node));
+    *a = (node*)malloc(sizeof(node));
+    if(*a == NULL)
+    {
+        exit(2);
+    }
+    //memcpy( *a, get_node(), sizeof(node));
+    get_node();
     (*a)->where = cc ++;
+    (*a)->parent = INFS;
+    add_nodes(*a);
+
     return *a;
 }
 
 
-extern void read_ext_r(int n, void *buf);
-node __node[64];
 node* get_node_ptr(_off_t n)
 {
-    if(n == INFS) return NULL;
-    read_ext_r(n / 64 + 1 ,__node);
+#if TEST2
+    printf("get_node_ptr off_t : %d\n", n);
+#endif
+    node _123[64];
+    if(n == INFS)
+    {
+        return NULL;   
+    }
+    node *tmp;
+    if(tmp = find_nodes(n))
+        return tmp;
 
-    return &__node[n % 64];
+    tmp = malloc(sizeof(node));
+    if(tmp == NULL)
+    {
+        printf("tmp : NULL\n");
+        exit(2);
+    }
+    
+    read_ext_r(1 + n / 64 ,_123);
+    memcpy(tmp, &_123[n % 64], sizeof(node)); 
+    if(n != tmp->where)
+    {
+        printf("++++++++++++++ wrong, tmp->where : %d tmp->parent : %d\n", tmp->where, tmp->parent);
+    }
+    add_nodes(tmp);
+
+    return tmp;
 }
+
+
 #endif
     
 /* Creates a new general node, which can be adapted
@@ -88,6 +188,7 @@ node* make_node(void)
     
     return new_node;
 }
+
 
 
 /* Helper function used in insert_into_parent
@@ -133,12 +234,25 @@ static node* find_leaf(node *root, int key) {
 		return c;
 	}
 
+    /*if(key == 130918)
+    {
+        extern void print_tree(node *a);
+        print_tree(root);
+    }
+    */
 	while (IS_GENERAL_NODE(c)) {
-#if TEST
+#if TEST2
+        printf("num_keys : %d type : %d", c->num_keys, c->type);
         printf("[");
         for (i = 0; i < c->num_keys - 1; i++)
             printf("%d ", c->keys[i]);
         printf("%d] ", c->keys[i]);
+        printf("\nvals:");
+        for(i = 0 ; i < c->num_keys ; i ++)
+            printf(" %d ", c->vals[i]);
+        if(c->num_keys)
+            printf(" %d ", c->vals[c->num_keys]);
+
 #endif
 
 		i = 0;
@@ -147,13 +261,15 @@ static node* find_leaf(node *root, int key) {
 			else break;
 		}
 
-#if TEST
+#if TEST2
 		printf("%d ->\n", i);
 #endif
 		c = (node *)GET_NODE_PTR(c->vals[i]);
+#if TEST2
+#endif
 	}
 
-#if TEST
+#if TEST2
     printf("Leaf [");
     for (i = 0; i < c->num_keys - 1; i++)
         printf("%d ", c->keys[i]);
@@ -294,6 +410,7 @@ void debugnode(node * a)
     
 }
 static node * insert_into_node_after_splitting(node * root, node * old_node, int left_index, int key, node * right) {
+    //printf("insert into node splitting\n");
 
 	int i, j, split, k_prime;
 	node *new_node, *child;
@@ -311,7 +428,7 @@ static node * insert_into_node_after_splitting(node * root, node * old_node, int
 
 	temp_vals = malloc( (ORDER + 2) * sizeof(_off_t) );
 	if (temp_vals == NULL) {
-#if TEST
+#if TEST2
     printf("temp_vals node\n");
 #endif
 
@@ -320,7 +437,7 @@ static node * insert_into_node_after_splitting(node * root, node * old_node, int
 	temp_keys = malloc( (ORDER + 1) * sizeof(int) );
 	if (temp_keys == NULL) {
 
-#if TEST
+#if TEST2
     printf("temp_keys node\n");
 #endif
 
@@ -386,6 +503,7 @@ static node * insert_into_node_after_splitting(node * root, node * old_node, int
  * Returns the root of the tree after insertion.
  */
 static node * insert_into_parent(node * root, node * left, int key, node * right) {
+    //printf("insert into parent\n");
 
 	int left_index;
 	node * parent;
@@ -433,6 +551,7 @@ static node * insert_into_parent(node * root, node * left, int key, node * right
  */
 static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_off_t value) {
 
+    //printf("insert_into_leaf_after_splitting\n");
 	node *new_leaf;
 	int *temp_keys;
 	int *temp_vals;
@@ -556,7 +675,6 @@ node * insert(node * root, int key, _off_t value) {
 	/* Case: leaf has room for key and pointer.
 	 */
 
-    printf("find ok\n");
 	if (leaf->num_keys + 1 <= ORDER) {
 		leaf = insert_into_leaf(leaf, key, value);
 		return root;
@@ -672,7 +790,7 @@ int get_neighbor_index( node * n ) {
 			return i - 1;
 
 	// Error state.
-#if TEST
+#if TEST2
 	printf("Search for nonexistent pointer to node in parent.\n");
 	printf("Node:  %#lx\n", (unsigned long)n);
 #endif
@@ -1090,13 +1208,14 @@ int node_st_bl = 0;
 int ext_nums = 0;
 void read_ext_r(int n, void *buf)
 {
-    lseek(fd, EXT_SIZE * n , 0);
+    memset(buf , 0 , EXT_SIZE);
+    lseek(fd, EXT_SIZE * n , SEEK_SET);
     read(fd, buf, EXT_SIZE);
 }
 
 void write_ext_r(int n, void *buf)
 {
-    lseek(fd, EXT_SIZE * n , 0);
+    lseek(fd, EXT_SIZE * n , SEEK_SET);
     write(fd, buf, EXT_SIZE);
 }
 
@@ -1122,20 +1241,56 @@ node* get_node()
         node_st_bl ++;
         if(node_st_bl >= last_ext) 
         {
+            printf("node_st_bl >= last_ext");
             exit(2);
             return NULL;
         }
         __len = 0;
         read_ext_r(node_st_bl, __node);
     }
-    printf("get_node : %d\n", ++i);
-    memset(&__node[__len ], 0 , sizeof(node));
+#if TEST2
+    printf("get_node : %d\n", i++);
+#endif
     return &__node[__len ++];
 }
 
+
+void check_node(int i, int root)
+{
+        init_nodes();
+        clear_nodes();
+        int j = 0;
+        init_nodes();
+        node * rootn = GET_NODE_PTR(root);
+        print_tree(rootn);
+        clear_nodes();
+        if(i  > 139)
+        {
+            printf("nonono\n");
+            exit(3);
+        }
+#if 0
+    int k = 0, j ;
+    init_nodes();
+    node * rootn = GET_NODE_PTR(root);
+    while(k <= i /*i <= ext_nums - 1*/)
+    {
+        j = find(rootn, k);
+        if(j == -1)
+        {
+            printf("nonono : %d k : %d\n", i, k);
+            exit(3);
+        }
+        k ++;
+    }
+    clear_nodes();
+    printf("%d ok!\n", i);
+#endif
+}
+int qqq;
 void mkfs()
 {
-    fd = open("fs.img",O_RDWR);
+    fd = open("fs.img",O_RDWR | O_SYNC);
     ext_nums = calc_ext_nums();  
     printf("ext_nums : %d\n", ext_nums);
     last_ext = ext_nums - 1;
@@ -1143,13 +1298,45 @@ void mkfs()
 
     node *root = NULL;
     int i = 0;
+    int root_fs = -1;
     while(node_st_bl < last_ext)
     {
-       root = insert(root, last_ext, last_ext);
-       last_ext --; 
-       printf("index : %d, last_ext : %d node_st_bl: %d , root_len : %d\n", i ++, last_ext, node_st_bl, root->num_keys);
+        init_nodes();
+        if(root_fs != -1)
+        {
+            root = GET_NODE_PTR(root_fs);
+        }
+        if(i == 136)
+            i = 136;
+        qqq = i;
+        printf("---------insert---key : %d , vals : %d--------- %d\n",  i, i , root ? root->num_keys : -1);
+//        printf("find 1 before : %d\n",find(root , 1));
+        root = insert(root, i, i);
+        root_fs = root->where;
+        printf("find 1 : %d\n",find(root , 1));
+        clear_nodes();
+        //printf("--------------------------------------------------------\n");
+        //check_node(i, root_fs);
+        //printf("--------------------------------------------------------\n");
+        last_ext --; 
+        i ++;
+
+
+        if(i == 300)
+            exit(2);
+        /*
+        if(i == 153)
+            exit(2);
+            */
     }
 
+    /*
+    while(i >=0 )
+    {
+         printf("%d key : %d val : %d\n",i , i, find(root, i));
+         i --;
+    }
+    */
     printf("all_num: %d ext_num : %d, node_num : %d",ext_nums ,ext_nums - last_ext, node_st_bl);
 
 }
