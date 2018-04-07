@@ -54,6 +54,7 @@ extern void read_ext_r(int n, void *buf);
 
 
 node *nodes[200000];
+node nodess[64*3000];
 int nodes_len = 0;
 
 void init_nodes()
@@ -68,6 +69,26 @@ void init_nodes()
 
 
 extern int fd;
+void clear_nodes2()
+{
+    static int k = 0;
+    k ++;
+    node _123[64];
+//    printf("nodes_len : %d\n", nodes_len);
+    for(int i = 0 ; i < nodes_len ; i ++)
+    {
+        int sec = nodes[i]->where; 
+        //printf("sec : %d nodes[i] %p\n", sec, nodes[i]);
+
+        read_ext_r(1 + sec / 64 ,_123);
+        memcpy(&_123[sec % 64] , nodes[i] , sizeof(node)); 
+        //strcpy(&_123[sec % 64], nodes[i]);
+        write_ext_r(1 + sec / 64 ,_123);
+        free(nodes[i]);
+        nodes[i] = NULL;
+    }
+    nodes_len = 0;
+}
 void clear_nodes()
 {
     static int k = 0;
@@ -86,7 +107,6 @@ void clear_nodes()
         free(nodes[i]);
         nodes[i] = NULL;
     }
-        int z = fsync(fd);
     nodes_len = 0;
 }
 
@@ -514,9 +534,6 @@ static node * insert_into_parent(node * root, node * left, int key, node * right
 
 	if (parent == NULL)
     {
-#if TEST
-        printf("insert new parent\n");
-#endif
 		return insert_into_new_root(left, key, right);
     }
 
@@ -1208,15 +1225,18 @@ int node_st_bl = 0;
 int ext_nums = 0;
 void read_ext_r(int n, void *buf)
 {
-    memset(buf , 0 , EXT_SIZE);
-    lseek(fd, EXT_SIZE * n , SEEK_SET);
-    read(fd, buf, EXT_SIZE);
+    //memset(buf , 0 , EXT_SIZE);
+    //lseek(fd, EXT_SIZE * n , SEEK_SET);
+    //read(fd, buf, EXT_SIZE);
+    memcpy(buf , &nodess[n * 64], EXT_SIZE);
+
 }
 
 void write_ext_r(int n, void *buf)
 {
-    lseek(fd, EXT_SIZE * n , SEEK_SET);
-    write(fd, buf, EXT_SIZE);
+    //lseek(fd, EXT_SIZE * n , SEEK_SET);
+    //write(fd, buf, EXT_SIZE);
+    memcpy( &nodess[n * 64], buf ,EXT_SIZE);
 }
 
 int calc_ext_nums();
@@ -1237,7 +1257,7 @@ node* get_node()
 
     if(__len == 64)
     {
-        if(node_st_bl) write_ext_r(node_st_bl, __node); 
+        if(node_st_bl) i = i;//write_ext_r(node_st_bl, __node); 
         node_st_bl ++;
         if(node_st_bl >= last_ext) 
         {
@@ -1246,7 +1266,7 @@ node* get_node()
             return NULL;
         }
         __len = 0;
-        read_ext_r(node_st_bl, __node);
+        //read_ext_r(node_st_bl, __node);
     }
 #if TEST2
     printf("get_node : %d\n", i++);
@@ -1257,6 +1277,7 @@ node* get_node()
 
 void check_node(int i, int root)
 {
+    /*
         init_nodes();
         clear_nodes();
         int j = 0;
@@ -1269,21 +1290,23 @@ void check_node(int i, int root)
             printf("nonono\n");
             exit(3);
         }
-#if 0
+        */
+#if 1
     int k = 0, j ;
-    init_nodes();
-    node * rootn = GET_NODE_PTR(root);
     while(k <= i /*i <= ext_nums - 1*/)
     {
+    init_nodes();
+    node * rootn = GET_NODE_PTR(root);
         j = find(rootn, k);
-        if(j == -1)
+        if(j == -1 && j != k)
         {
             printf("nonono : %d k : %d\n", i, k);
             exit(3);
         }
         k ++;
+    clear_nodes2();
+    //    printf("find : j : %d\n", j);
     }
-    clear_nodes();
     printf("%d ok!\n", i);
 #endif
 }
@@ -1306,29 +1329,26 @@ void mkfs()
         {
             root = GET_NODE_PTR(root_fs);
         }
-        if(i == 136)
-            i = 136;
         qqq = i;
-        printf("---------insert---key : %d , vals : %d--------- %d\n",  i, i , root ? root->num_keys : -1);
 //        printf("find 1 before : %d\n",find(root , 1));
+        if(i % 1000 == 0)
+            printf("insert : %d\n", i);
         root = insert(root, i, i);
         root_fs = root->where;
-        printf("find 1 : %d\n",find(root , 1));
         clear_nodes();
-        //printf("--------------------------------------------------------\n");
         //check_node(i, root_fs);
+        //printf("--------------------------------------------------------\n");
         //printf("--------------------------------------------------------\n");
         last_ext --; 
         i ++;
 
 
-        if(i == 300)
-            exit(2);
         /*
         if(i == 153)
             exit(2);
             */
     }
+    printf("finish node\n");
 
     /*
     while(i >=0 )
@@ -1337,6 +1357,7 @@ void mkfs()
          i --;
     }
     */
+        check_node(i - 1, root_fs);
     printf("all_num: %d ext_num : %d, node_num : %d",ext_nums ,ext_nums - last_ext, node_st_bl);
 
 }
