@@ -60,8 +60,8 @@ ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
-export
-os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel swap.img
+
+os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel fs.img
 	dd if=/dev/zero of=os.img count=10000
 	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
 	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc
@@ -88,6 +88,7 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) tstMake #$(USER_TEST_FILE)
 
 tstMake :
 	$(MAKE) -C ./user
+	$(MAKE) -C ./tools
 	
 #$(USER_TEST_FILE) : $(USER_OBJS)
 #	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -98,23 +99,23 @@ CPUS := 4
 endif
 
 
-swap.img : 
+fs.img : 
 	dd if=/dev/zero of=$@ bs=1M count=512
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=swap.img,media=disk,cache=writeback 
+QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=fs.img,media=disk,cache=writeback 
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 
-qemu: os.img swap.img
+qemu: os.img fs.img
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)  
 
-qemu-gdb:  os.img swap.img $(TOOLS_DIR)/.gdbinit
+qemu-gdb:  os.img fs.img $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 define f_clean
 	rm -f $(BOOTLOADER_DIR)/*.o $(BOOTLOADER_DIR)/*.asm $(BOOTLOADER_DIR)/*.d $(BOOTLOADER_DIR)/bootblock
-	rm -f os.img swap.img
+	rm -f os.img fs.img
 	rm -f ./kern/kernel ./kern/*.sym ./kern/*.asm
 	rm -f $(OBJS) $(D_OBJS)
 	rm -f $(USER_OBJS) $(USER_D_FILE) $(USER_TEST_FILE)
