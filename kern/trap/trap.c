@@ -10,6 +10,8 @@
 #include "syscall.h"
 #include "sche.h"
 
+//TEST ide_2
+#include "ide_2.h"
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -107,11 +109,12 @@ trap(struct trapframe *tf)
             sche_tick();
             break;
         case T_IRQ0 + IRQ_IDE0:
-            //ideintr();
+            ideintr();
             lapiceoi();
             break;
         case T_IRQ0 + IRQ_IDE1:
-            //ideintr();
+            cprintf("1");
+            ideintr();
             lapiceoi();
 
             // Bochs generates spurious IDE1 interrupts.

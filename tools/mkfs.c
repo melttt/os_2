@@ -289,7 +289,7 @@ void mkfs(char cmd)
     
 }
 
-int main(int ac ,char *av)
+int main(int ac ,char **av)
 {
     if(ac != 2)
     {
@@ -302,9 +302,10 @@ int main(int ac ,char *av)
             printf("error size of node or supernode\n exit ...");
             return 1;
         }
-        printf("size of node :%d \n", sizeof(node));
+        printf("size of node :%d %s\n", sizeof(node), av[1]);
+        
 
-        mkfs(av[1]);
+        mkfs(av[1][0]);
 
     }
 

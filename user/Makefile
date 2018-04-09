@@ -10,7 +10,10 @@ USER_OBJS += $(patsubst %.S,%.o,$(USER_S_FILE))
 USER_D_FILE := $(patsubst %.o,%.d,$(USER_OBJS)) 
 USER_TEST_FILE := $(USER_DIR)/user_test
 
+LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
+
 INCLUDEFLAGS:=-I./ulib -I../libs
+
 CFLAGS :=$(INCLUDEFLAGS)  -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables
 $(USER_TEST_FILE) : $(USER_OBJS)  ../libs/syslib.o 
 	@echo 'aha'

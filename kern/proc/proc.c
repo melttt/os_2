@@ -19,6 +19,9 @@
 #include "sleep_hash.h"
 #include "syslib.h"
 
+//test disk
+#include "ide_2.h"
+
 static int
 load_icode(char *binary, size_t size);
 
@@ -188,6 +191,16 @@ init_main(void *arg) {
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
+
+    ideinit();
+    char tmp[4096];
+    for(int x = 0 ; x < 4096 ; x ++)
+        tmp[x] = (char)x ;
+    idestart(tmp);
+    cprintf("ide test ok\n");
+
+
+    while(1);
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "one", 0);
     if (pid <= 0) {

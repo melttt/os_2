@@ -48,7 +48,7 @@ int main() {
     idtinit();
 
     kbd_init();
-    ide_init();
+  //  ide_init();
    /* 
     char test[513];
     int i;

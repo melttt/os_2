@@ -8,7 +8,6 @@ TOOLS_S_FILE := $(shell find $(TOOLS_DIR) -name "*.S")
 TOOLS_OBJS := $(patsubst %.c,%.o,$(TOOLS_C_FILE))
 TOOLS_OBJS += $(patsubst %.S,%.o,$(TOOLS_S_FILE))
 TOOLS_D_FILE := $(patsubst %.o,%.d,$(TOOLS_OBJS)) 
-TOOLS_TEST_FILE := $(TOOLS_DIR)/user_test
 
 INCLUDEFLAGS:= -I../libs
 #CFLAGS :=$(INCLUDEFLAGS)  -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables
@@ -16,15 +15,15 @@ INCLUDEFLAGS:= -I../libs
 
 
 
-mkfs : $(TOOLS_OBJS) fs.img
+mkfs : $(TOOLS_OBJS) 
 	gcc -o $@ $(TOOLS_C_FILE)
 
-fs.img : 
-	@echo making fs.img......
-	dd if=/dev/zero of=fs.img bs=1M count=512
-	@echo fs.img ok!
+#fs.img : 
+#	@echo making fs.img......
+#	dd if=/dev/zero of=fs.img bs=1M count=512
+#	@echo fs.img ok!
 
 clean:
 	rm -rf $(TOOLS_OBJS)
-	rm -rf mkfs fs.img
+	rm -rf mkfs 
 

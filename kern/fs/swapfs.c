@@ -8,6 +8,7 @@
 #include "pmm.h"
 void
 swapfs_init(void) {
+    /*
     char buf[512] = {0};
     static_assert((PGSIZE % SECTSIZE) == 0);
     if (!ide_device_valid(SWAP_DEV_NO)) {
@@ -16,6 +17,7 @@ swapfs_init(void) {
     max_swap_offset = ide_device_size(SWAP_DEV_NO) / (PGSIZE / SECTSIZE);
     buf[256] = SWAP_MAGIC_NUM;
     ide_write_secs(SWAP_DEV_NO, 0, buf,1 );
+    */
 }
 
 int

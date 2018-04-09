@@ -123,6 +123,7 @@ define f_clean
 	rm -f ./tags
 endef
 clean: 
+	$(MAKE) clean -C ./tools
 	$(f_clean)
 
 .ONESHELL:
