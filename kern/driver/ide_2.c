@@ -10,6 +10,7 @@
 #include "proc.h"
 #include "trap.h"
 #include "ioapic.h"
+#include "iobuf.h"
 
 #define SECTOR_SIZE   512
 
@@ -23,9 +24,12 @@
 #define IDE_CMD_RDMUL 0xc4
 #define IDE_CMD_WRMUL 0xc5
 
+#define DEFAULT_DEV 1
 
-static struct spinlock idelock;
 int havedisk1;
+
+extern int
+iderw(void *b, int len, int blockn , int flags);
 
 static int
 idewait(int checkerr)
@@ -44,7 +48,8 @@ ideinit(void)
 {
     int i;
 
-    init_lock(&idelock, "ide");
+    iobuf_manager_init();
+
     ioapicenable(IRQ_IDE0, 0);
     idewait(0);
 
@@ -63,25 +68,25 @@ ideinit(void)
 }
 
 
-
-
-
-
-
 // Start the request for b.  Caller must hold idelock.
 void
-idestart(void* buf)
+idestart(iobuf* buf)
 {
-    if(buf == 0)
+    if(buf == NULL)
         panic("idestart");
     /*
        if(b->blockno >= FSSIZE)
        panic("incorrect blockno");
        */
     //  int sector_per_block =  1;
-    int sector = 1;//b->blockno * sector_per_block;
-    //int read_cmd =  IDE_CMD_READ;// :  IDE_CMD_RDMUL;
-    int write_cmd =  IDE_CMD_WRITE;// : IDE_CMD_WRMUL;
+    iobuf *tmp;
+
+
+    int sector = buf->blockno;
+
+    //note !!!
+    int read_cmd =  IDE_CMD_READ;// :  IDE_CMD_RDMUL;
+    int write_cmd =  buf->flags ;// : IDE_CMD_WRMUL;
     //if (sector_per_block > 7) panic("idestart");
 
     idewait(0);
@@ -90,18 +95,16 @@ idestart(void* buf)
     outb(0x1f3, sector & 0xff);
     outb(0x1f4, (sector >> 8) & 0xff);
     outb(0x1f5, (sector >> 16) & 0xff);
-    outb(0x1f6, 0xe0 | ((1/*b->dev*/&1)<<4) | ((sector>>24)&0x0f));
-    outb(0x1f7, write_cmd);
-    outsl(0x1f0, buf, 4096/4);
+    outb(0x1f6, 0xe0 | ((DEFAULT_DEV&1)<<4) | ((sector>>24)&0x0f));
 
-/*
-  if(b->flags & B_DIRTY){
-    outb(0x1f7, write_cmd);
-    outsl(0x1f0, b->data, BSIZE/4);
-  } else {
-    outb(0x1f7, read_cmd);
-  }
-  */
+    if(buf->flags == B_WRITE)
+    {
+        outb(0x1f7, write_cmd);
+        outsl(0x1f0, buf, 4096/4);
+    }else if(buf->flags == B_READ)
+    {
+        outb(0x1f7, read_cmd);
+    }
 }
 
 
@@ -110,42 +113,47 @@ void
 ideintr(void)
 {
     cprintf("ideintr\n");
+    static int e = 0;
+    e ++;
+    if(e == 8)
+    {
 
+        iobuf *tmp = iobuf_deal_next_data();
+        if(tmp)
+            idestart(tmp);
+
+    }
 }
 
 
-/*
-void
-iderw(struct buf *b)
+int
+iderw(void *b, int len, int blockn , int flags)
 {
-  struct buf **pp;
 
- // if(!holdingsleep(&b->lock))
-    panic("iderw: buf not locked");
- // if((b->flags & (B_VALID|B_DIRTY)) == B_VALID)
-    panic("iderw: nothing to do");
- // if(b->dev != 0 && !havedisk1)
-    panic("iderw: ide disk 1 not present");
+    iobuf *tmp;
+    assert(len == IOBUF_SIZE);
+    if((flags & (B_WRITE|B_READ)) == 0)
+        panic("iderw: nothing to do");
+    if(!havedisk1)
+        panic("iderw: ide disk 1 not present");
 
-  acquire(&idelock);  //DOC:acquire-lock
+    iobuf_acquire_data(b ,len , DEFAULT_DEV, blockn ,flags);
+    // Append b to idequeue.
+    ACQUIRE_IOBUF_M();
 
-  // Append b to idequeue.
-  b->qnext = 0;
-  for(pp=&idequeue; *pp; pp=&(*pp)->qnext)  //DOC:insert-queue
-    ;
+    tmp = CUR_IOBUF;
+    // Start disk if necessary.
+    if(tmp != NULL)
+    {
+        RELEASE_IOBUF_M();
+        idestart(tmp);
+        ACQUIRE_IOBUF_M();
+    }
+    // Wait for request to finish.
+    while(tmp->flags != B_OK){
+        sleep(b, &idelock);
+    }
 
-  *pp = b;
-
-  // Start disk if necessary.
-  if(idequeue == b)
-    idestart(b);
-
-  // Wait for request to finish.
-  while((b->flags & (B_VALID|B_DIRTY)) != B_VALID){
-    sleep(b, &idelock);
-  }
-
-  release(&idelock);
+    RELEASE_IOBUF_M();
 }
 
-*/

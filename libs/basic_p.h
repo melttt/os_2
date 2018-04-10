@@ -4,5 +4,6 @@
 #include "param.h"
 #include "error.h"
 #include "stdarg.h"
+#include "string.h"
 
 #endif
