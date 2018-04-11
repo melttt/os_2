@@ -181,6 +181,9 @@ user_main(void *arg){
     return 1;
 }
 
+
+
+
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
@@ -195,12 +198,32 @@ init_main(void *arg) {
     ideinit();
     char tmp[4096];
     for(int x = 0 ; x < 4096 ; x ++)
-        tmp[x] = (char)x ;
-    idestart(tmp);
+    {
+        if(x < 16)
+            tmp[x] = '-';
+        else if(x >= 4096 - 16)
+            tmp[x] = '+';
+        else 
+            tmp[x] = '7' ;
+
+    }
+
+    //memset(tmp ,0 ,sizeof(tmp));
+    iderw(tmp, 4096, 0, B_WRITE);
+    cprintf("ide write\n");
+    
+    /*
+    for(int x = 0 ; x < 4096 ; x ++)
+    {
+        cprintf("%c ",tmp[x]);
+    }
+    */
+    
     cprintf("ide test ok\n");
 
 
     while(1);
+/******TEST**********/
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "one", 0);
     if (pid <= 0) {

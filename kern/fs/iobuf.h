@@ -9,6 +9,7 @@ typedef struct{
     uint32_t blockno;
     uint32_t buf_len;
     uint8_t *buf;//[IOBUF_SIZE];
+    uint8_t *read_buf;
     QueueNode node;
 }iobuf;
 
@@ -16,14 +17,13 @@ typedef struct{
 typedef struct{
     Queue free_queue;
     Queue ready_queue;
-    volatile iobuf *cur_iobuf;
+    iobuf *cur_iobuf;
 
     int add_factor;
     struct spinlock lock;
 
     //history records
     int history_records[HISTORY_RECODE_LEN];
-
 
 }iobuf_manager_t;
 
@@ -42,8 +42,7 @@ extern iobuf_manager_t iobuf_manager;
 #define CUR_IOBUF (iobuf_manager.cur_iobuf)
 
 void iobuf_manager_init();
-int iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,int flags);
-int iobuf_release_data();
+iobuf* iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,int flags);
 iobuf* iobuf_deal_next_data();
 
 

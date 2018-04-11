@@ -4,25 +4,7 @@
 #include "kdebug.h"
 #include "mm_p.h"
 #include "iobuf.h"
-
-/*
-struct buf {
-  int flags;
-  uint dev;
-  uint blockno;
-  struct sleeplock lock;
-  uint refcnt;
-  struct buf *prev; // LRU cache list
-  struct buf *next;
-  struct buf *qnext; // disk queue
-  uchar data[BSIZE];
-};
-
-#define B_VALID 0x2  // buffer has been read from disk
-#define B_DIRTY 0x4  // buffer needs to be written to disk
-*/
-
-
+#include "stdio.h"
 
 
 #define NODE2IOBUF(a) to_struct(a, iobuf, node)  
@@ -116,12 +98,11 @@ static void iobuf_adjust_free_queue()
             tmpbuf = NODE2IOBUF(tmp);
             iobuf_free(tmpbuf);
         }
-
     }
     RELEASE_IOBUF_M();
 }
 
-int iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,int flags)
+iobuf* iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,int flags)
 {
     iobuf *tmp;
     assert(len == IOBUF_SIZE);
@@ -136,57 +117,64 @@ int iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,int 
         iobuf_adjust_free_queue();
     }
 
-    assert(SIZE_IOBUF_FREE_QUEUE() > 0);
     ACQUIRE_IOBUF_M();    
+    assert(SIZE_IOBUF_FREE_QUEUE() > 0);
     tmp = NODE2IOBUF(POP_IOBUF_FREE_QUEUE());  
     tmp->dev = ndev;
     tmp->blockno = blockno;
     tmp->flags = flags;
     if(flags == B_WRITE)
         memcpy(tmp->buf ,buf ,len);
+    if(flags == B_READ)
+        tmp->read_buf = buf;
+
     PUSH_IOBUF_READY_QUEUE(tmp); 
 
     RELEASE_IOBUF_M();
-    return 0;
+
+    if(CUR_IOBUF == NULL)
+    {
+        return iobuf_deal_next_data();
+    }
+
+    return NULL;
 }
 
-int iobuf_release_data()
+static int iobuf_release_data()
 {
 
-    ACQUIRE_IOBUF_M();
-    if(iobuf_manager.cur_iobuf != NULL)
+    iobuf *cur;
+    cur = iobuf_manager.cur_iobuf;
+    if(cur != NULL)
     {
+        if(cur->flags == B_READ)
+            memcpy(cur->read_buf , cur->buf ,IOBUF_SIZE);
         iobuf_manager.cur_iobuf->flags = B_OK;
-        PUSH_IOBUF_FREE_QUEUE(iobuf_manager.cur_iobuf);
+        PUSH_IOBUF_FREE_QUEUE(((iobuf*)iobuf_manager.cur_iobuf));
         iobuf_manager.cur_iobuf = NULL;
     }
-    RELEASE_IOBUF_M();
     return 0;
 }
 
 iobuf* iobuf_deal_next_data()
 {
-    if(SIZE_IOBUF_READY_QUEUE() == 0) 
-        return NULL;
-    iobuf *tmp;
+    iobuf *tmp = NULL;
+
     ACQUIRE_IOBUF_M();
-    
-    tmp = NODE2IOBUF(POP_IOBUF_READY_QUEUE());  
 
-    if(iobuf_manager.cur_iobuf != NULL)
+    if(CUR_IOBUF)
     {
-        iobuf_manager.cur_iobuf->flags = B_OK;
-        PUSH_IOBUF_FREE_QUEUE(iobuf_manager.cur_iobuf);
-        iobuf_manager.cur_iobuf = NULL;
+        iobuf_release_data();
     }
-
-    iobuf_manager.cur_iobuf = tmp; 
+    if(SIZE_IOBUF_READY_QUEUE() != 0)
+    {
+        tmp = NODE2IOBUF(POP_IOBUF_READY_QUEUE());  
+        iobuf_manager.cur_iobuf = tmp; 
+    }
 
     RELEASE_IOBUF_M();
     return tmp;
 }
-
-
 
 
 void iobuf_manager_init()

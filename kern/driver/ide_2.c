@@ -43,6 +43,7 @@ idewait(int checkerr)
   return 0;
 }
 
+
 void
 ideinit(void)
 {
@@ -79,14 +80,13 @@ idestart(iobuf* buf)
        panic("incorrect blockno");
        */
     //  int sector_per_block =  1;
-    iobuf *tmp;
 
 
     int sector = buf->blockno;
 
     //note !!!
-    int read_cmd =  IDE_CMD_READ;// :  IDE_CMD_RDMUL;
-    int write_cmd =  buf->flags ;// : IDE_CMD_WRMUL;
+    int read_cmd =  IDE_CMD_RDMUL;// :  IDE_CMD_RDMUL;
+    int write_cmd =  IDE_CMD_WRMUL ; //buf->flags ; : IDE_CMD_WRMUL;
     //if (sector_per_block > 7) panic("idestart");
 
     idewait(0);
@@ -100,11 +100,12 @@ idestart(iobuf* buf)
     if(buf->flags == B_WRITE)
     {
         outb(0x1f7, write_cmd);
-        outsl(0x1f0, buf, 4096/4);
+        outsl(0x1f0, buf->buf, IOBUF_SIZE/4);
     }else if(buf->flags == B_READ)
     {
         outb(0x1f7, read_cmd);
     }
+    cprintf("start over\n");
 }
 
 
@@ -112,22 +113,22 @@ idestart(iobuf* buf)
 void
 ideintr(void)
 {
-    cprintf("ideintr\n");
     static int e = 0;
     e ++;
-    if(e == 8)
+    if(idewait(1) >= 0 && CUR_IOBUF->flags == B_READ)
+        insl(0x1f0, CUR_IOBUF->buf , IOBUF_SIZE/4);
+    if(e == 1)
     {
-
         iobuf *tmp = iobuf_deal_next_data();
         if(tmp)
-            idestart(tmp);
-
+            idestart((iobuf*)tmp);
+        e = 0;
     }
 }
 
 
 int
-iderw(void *b, int len, int blockn , int flags)
+iderw(void *b, int len, int blockn, int flags)
 {
 
     iobuf *tmp;
@@ -146,14 +147,17 @@ iderw(void *b, int len, int blockn , int flags)
     if(tmp != NULL)
     {
         RELEASE_IOBUF_M();
-        idestart(tmp);
+        idestart((iobuf*)tmp);
         ACQUIRE_IOBUF_M();
     }
     // Wait for request to finish.
+    assert(tmp != NULL);
     while(tmp->flags != B_OK){
-        sleep(b, &idelock);
+//        cprintf("tmp : %x\n", tmp);
+        ;//sleep(b, IOBUF_LOCK);
     }
 
     RELEASE_IOBUF_M();
+    return 1;
 }
 

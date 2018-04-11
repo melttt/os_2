@@ -202,13 +202,16 @@ calc_delta_time(uint32_t clock, uint32_t last_time)
 
 static void update_curr(struct sche_entity *se)
 {
-    ACQUIRE_PROC;
-    uint32_t now = get_time();
-    struct sche_entity *curr = cfs->curr;
+    uint32_t now ;
+    struct sche_entity *curr;
     uint32_t delta_time;
 
+    ACQUIRE_PROC;
+    curr = cfs->curr;
+    now = get_time();
     if(!curr) 
     {
+        RELEASE_PROC;
         return ;
     }
 

@@ -72,7 +72,7 @@ pgfault_handler(struct trapframe *tf) {
 void
 trap(struct trapframe *tf)
 {
-
+    
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
         syscall();
@@ -97,7 +97,7 @@ trap(struct trapframe *tf)
             if(get_cpu() == 0){
                 ticks ++;
                 ktime ++;
-            //    cprintf("ktime: %d\n",ktime);
+    //            cprintf("ktime: %d\n",ktime);
                 /*
                    acquire(&tickslock);
                    ticks++;
@@ -110,6 +110,7 @@ trap(struct trapframe *tf)
             break;
         case T_IRQ0 + IRQ_IDE0:
             ideintr();
+
             lapiceoi();
             break;
         case T_IRQ0 + IRQ_IDE1:
