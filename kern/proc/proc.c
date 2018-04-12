@@ -183,7 +183,32 @@ user_main(void *arg){
 
 
 
+char testsz[4096];
+void testide()
+{
+    cprintf("             ");
+    for(int i = 0 ; i < 128 * 1024 ;  i ++)
+    {
+        *(int*)testsz = i;
+        iderw(testsz, 4096 , 8 * i, B_WRITE);
+        cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
+    }
+    cprintf("write okk\b\n"); 
+    cprintf("             ");
+    for(int i = 0 ; i < 128 * 1024 ;  i ++)
+    {
+        iderw(testsz, 4096 , 8 * i, B_READ);
+        if(*(int*)testsz == i)
+            cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
+        else{
+            cprintf("read wrong in %d\n", i);
+        }
+    }
 
+    cprintf("read okk\b\n"); 
+
+
+}
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
@@ -196,32 +221,9 @@ init_main(void *arg) {
 
 
     ideinit();
-    char tmp[4096];
-    for(int x = 0 ; x < 4096 ; x ++)
-    {
-        if(x < 16)
-            tmp[x] = '-';
-        else if(x >= 4096 - 16)
-            tmp[x] = '+';
-        else 
-            tmp[x] = '7' ;
 
-    }
-
-    //memset(tmp ,0 ,sizeof(tmp));
-    iderw(tmp, 4096, 0, B_WRITE);
-    cprintf("ide write\n");
-    
-    /*
-    for(int x = 0 ; x < 4096 ; x ++)
-    {
-        cprintf("%c ",tmp[x]);
-    }
-    */
-    
+    testide();
     cprintf("ide test ok\n");
-
-
     while(1);
 /******TEST**********/
     size_t before = nr_free_pages();

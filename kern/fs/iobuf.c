@@ -87,8 +87,10 @@ static void iobuf_adjust_free_queue()
         for(int i = 0 ; i < num ; i ++)
         {
            temp = iobuf_malloc();
+           assert(temp != NULL);
            PUSH_IOBUF_FREE_QUEUE(temp);
         }
+        cprintf("que_len:%d\n",SIZE_IOBUF_FREE_QUEUE());
         
     }else{
         for(int i = 0 ; i < -ret ; i ++)
@@ -98,6 +100,7 @@ static void iobuf_adjust_free_queue()
             tmpbuf = NODE2IOBUF(tmp);
             iobuf_free(tmpbuf);
         }
+        cprintf("free iobuf\n");
     }
     RELEASE_IOBUF_M();
 }
@@ -117,6 +120,8 @@ iobuf* iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,i
         iobuf_adjust_free_queue();
     }
 
+    if(IOBUF_LOCK->locked != 0)
+        cprintf("acquire_data : IOBUFLOCK : %d\n", IOBUF_LOCK->locked);
     ACQUIRE_IOBUF_M();    
     assert(SIZE_IOBUF_FREE_QUEUE() > 0);
     tmp = NODE2IOBUF(POP_IOBUF_FREE_QUEUE());  
@@ -139,7 +144,8 @@ iobuf* iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,i
 
     return NULL;
 }
-
+int debug_nblock = 0;
+int debug_cur_p;
 static int iobuf_release_data()
 {
 
@@ -150,6 +156,9 @@ static int iobuf_release_data()
         if(cur->flags == B_READ)
             memcpy(cur->read_buf , cur->buf ,IOBUF_SIZE);
         iobuf_manager.cur_iobuf->flags = B_OK;
+
+        debug_nblock = iobuf_manager.cur_iobuf->blockno;
+        debug_cur_p = (int)iobuf_manager.cur_iobuf;
         PUSH_IOBUF_FREE_QUEUE(((iobuf*)iobuf_manager.cur_iobuf));
         iobuf_manager.cur_iobuf = NULL;
     }

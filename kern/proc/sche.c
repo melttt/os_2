@@ -152,8 +152,17 @@ void schedule(struct spinlock *lock)
     struct proc *new = pick_first_proc();
     struct proc *curr = CUR_PROC;
 
+
     if(new == NULL)
+    {
+        if(curr->pid == 0)
+        {
+            if(lock == PROCM_LOCK) PROCM_RELEASE;
+            return;
+        }
+        cprintf("now pid:%d \n", curr->pid);
         panic("sched no proc");
+    }
 
     if(curr->state == RUNNING)
         curr->state = RUNNABLE;

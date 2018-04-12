@@ -80,8 +80,12 @@ int main() {
     asm volatile ("sti");
     while(1)
     {
-        schedule(PROCM_LOCK);
-        sche_tick2();
+        if(get_proc_num() != 0)
+        {
+            schedule(PROCM_LOCK);
+            sche_tick2();
+        }
+
     }
     
     

@@ -68,7 +68,7 @@ ideinit(void)
     cprintf("havedisk : %d\n", havedisk1);
 }
 
-
+int debug_start;
 // Start the request for b.  Caller must hold idelock.
 void
 idestart(iobuf* buf)
@@ -80,7 +80,7 @@ idestart(iobuf* buf)
        panic("incorrect blockno");
        */
     //  int sector_per_block =  1;
-
+    ACQUIRE_IOBUF_M();
 
     int sector = buf->blockno;
 
@@ -105,7 +105,8 @@ idestart(iobuf* buf)
     {
         outb(0x1f7, read_cmd);
     }
-    cprintf("start over\n");
+    debug_start = buf->blockno;
+    RELEASE_IOBUF_M();
 }
 
 
@@ -113,20 +114,17 @@ idestart(iobuf* buf)
 void
 ideintr(void)
 {
-    static int e = 0;
-    e ++;
     if(idewait(1) >= 0 && CUR_IOBUF->flags == B_READ)
         insl(0x1f0, CUR_IOBUF->buf , IOBUF_SIZE/4);
-    if(e == 1)
-    {
-        iobuf *tmp = iobuf_deal_next_data();
-        if(tmp)
-            idestart((iobuf*)tmp);
-        e = 0;
-    }
+    wakeup(CUR_IOBUF);
+    iobuf *tmp = iobuf_deal_next_data();
+    if(tmp)
+        idestart((iobuf*)tmp);
 }
 
-
+int debug_wait;
+extern int debug_nblock;
+extern int debug_cur_p;
 int
 iderw(void *b, int len, int blockn, int flags)
 {
@@ -150,11 +148,28 @@ iderw(void *b, int len, int blockn, int flags)
         idestart((iobuf*)tmp);
         ACQUIRE_IOBUF_M();
     }
+    debug_wait = tmp->blockno;
+    int k = 0;
     // Wait for request to finish.
     assert(tmp != NULL);
     while(tmp->flags != B_OK){
 //        cprintf("tmp : %x\n", tmp);
-        ;//sleep(b, IOBUF_LOCK);
+        sleep(tmp, IOBUF_LOCK);
+        k++;
+        /*
+        RELEASE_IOBUF_M();
+        k ++;
+        if(k == 40)
+        {
+            
+            cprintf("debug_wait:%d, debug_start:%d, debug_end:%d\n ", debug_wait, debug_start, debug_nblock);
+            cprintf("tmp:%x, debug_end_p:%x, tmp->flags : %d", (int)tmp, (int)debug_cur_p, tmp->flags);
+            cprintf("tmp->blockno :%d\n",tmp->blockno);
+            cprintf("dead in here\n");
+            k = 0;
+        }
+        ACQUIRE_IOBUF_M();
+        */
     }
 
     RELEASE_IOBUF_M();
