@@ -38,7 +38,7 @@ extern iobuf_manager_t iobuf_manager;
 #define IOBUF_LOCK (&(iobuf_manager.lock))
 #define ACQUIRE_IOBUF_M() (acquire(IOBUF_LOCK))
 #define RELEASE_IOBUF_M() (release(IOBUF_LOCK))
-#define IOBUF_SIZE 4096
+#define IOBUF_SIZE FS_BUF_SIZE
 #define CUR_IOBUF (iobuf_manager.cur_iobuf)
 
 void iobuf_manager_init();

@@ -7,4 +7,5 @@
 #define TEST_MSG ">>>>>>>>>>>>>>>"
 #define SCHE_DEBUG 1
 #define SCHE_MSG "---------->"
+#define FS_BUF_SIZE 4096
 #endif

@@ -70,7 +70,7 @@ ideinit(void)
 
 int debug_start;
 // Start the request for b.  Caller must hold idelock.
-void
+static void
 idestart(iobuf* buf)
 {
     if(buf == NULL)
@@ -122,9 +122,10 @@ ideintr(void)
         idestart((iobuf*)tmp);
 }
 
-int debug_wait;
-extern int debug_nblock;
-extern int debug_cur_p;
+
+
+
+
 int
 iderw(void *b, int len, int blockn, int flags)
 {
@@ -148,31 +149,25 @@ iderw(void *b, int len, int blockn, int flags)
         idestart((iobuf*)tmp);
         ACQUIRE_IOBUF_M();
     }
-    debug_wait = tmp->blockno;
-    int k = 0;
     // Wait for request to finish.
     assert(tmp != NULL);
     while(tmp->flags != B_OK){
-//        cprintf("tmp : %x\n", tmp);
         sleep(tmp, IOBUF_LOCK);
-        k++;
-        /*
-        RELEASE_IOBUF_M();
-        k ++;
-        if(k == 40)
-        {
-            
-            cprintf("debug_wait:%d, debug_start:%d, debug_end:%d\n ", debug_wait, debug_start, debug_nblock);
-            cprintf("tmp:%x, debug_end_p:%x, tmp->flags : %d", (int)tmp, (int)debug_cur_p, tmp->flags);
-            cprintf("tmp->blockno :%d\n",tmp->blockno);
-            cprintf("dead in here\n");
-            k = 0;
-        }
-        ACQUIRE_IOBUF_M();
-        */
     }
 
     RELEASE_IOBUF_M();
     return 1;
 }
 
+int
+ide_read(void *b, int blockn)
+{
+    //do sth 
+    return iderw(b, IOBUF_SIZE, blockn, B_READ);    
+}
+int
+ide_write(void *b, int blockn)
+{
+    //do sth 
+    return iderw(b ,IOBUF_SIZE, blockn, B_WRITE);
+}

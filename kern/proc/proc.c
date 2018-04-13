@@ -20,8 +20,7 @@
 #include "syslib.h"
 
 //test disk
-#include "ide_2.h"
-
+#include "cache.h"
 static int
 load_icode(char *binary, size_t size);
 
@@ -183,6 +182,7 @@ user_main(void *arg){
 
 
 
+/*
 char testsz[4096];
 void testide()
 {
@@ -190,14 +190,14 @@ void testide()
     for(int i = 0 ; i < 128 * 1024 ;  i ++)
     {
         *(int*)testsz = i;
-        iderw(testsz, 4096 , 8 * i, B_WRITE);
+        ide_write(testsz, i);
         cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
     }
     cprintf("write okk\b\n"); 
     cprintf("             ");
     for(int i = 0 ; i < 128 * 1024 ;  i ++)
     {
-        iderw(testsz, 4096 , 8 * i, B_READ);
+        ide_read(testsz, i);
         if(*(int*)testsz == i)
             cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
         else{
@@ -209,6 +209,10 @@ void testide()
 
 
 }
+*/
+
+char testdisk[4096];
+char testdisk2[4096];
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
@@ -220,10 +224,25 @@ init_main(void *arg) {
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
 
-    ideinit();
-
-    testide();
+    cache_init();
+    for(int xx = 0 ; xx < 4096 ; xx ++)
+    {
+        testdisk[xx] = '7';
+        testdisk[xx] = testdisk2[xx] = '6';
+    }
+    for(int xx = 0 ; xx < 4096 ; xx ++)
+    {
+        *(int*)testdisk = xx;
+        cache_write(xx , testdisk);
+        cache_read(xx, testdisk2);
+        cprintf("test num: %x\n", *(int*)testdisk2);
+        cache_fsyn();
+    }
+    
+//    testide();
     cprintf("ide test ok\n");
+
+
     while(1);
 /******TEST**********/
     size_t before = nr_free_pages();

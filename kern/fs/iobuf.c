@@ -144,8 +144,6 @@ iobuf* iobuf_acquire_data(void *buf ,int len , uint32_t ndev, uint32_t blockno,i
 
     return NULL;
 }
-int debug_nblock = 0;
-int debug_cur_p;
 static int iobuf_release_data()
 {
 
@@ -157,8 +155,6 @@ static int iobuf_release_data()
             memcpy(cur->read_buf , cur->buf ,IOBUF_SIZE);
         iobuf_manager.cur_iobuf->flags = B_OK;
 
-        debug_nblock = iobuf_manager.cur_iobuf->blockno;
-        debug_cur_p = (int)iobuf_manager.cur_iobuf;
         PUSH_IOBUF_FREE_QUEUE(((iobuf*)iobuf_manager.cur_iobuf));
         iobuf_manager.cur_iobuf = NULL;
     }
