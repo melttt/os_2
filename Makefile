@@ -145,12 +145,13 @@ ifeq ($(msg),"")
 else
 	echo "nonono";
 endif
+
+
 #if [ -n $(msg) ]; then 
 #echo "asd" 
 #else 
 #echo "aha" 
 #fi 
-
 
 
 #export C_INCLUDE_PATH="$(C_PATH)"

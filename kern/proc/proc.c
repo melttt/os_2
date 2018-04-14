@@ -225,19 +225,36 @@ init_main(void *arg) {
 
 
     cache_init();
-    for(int xx = 0 ; xx < 4096 ; xx ++)
+    cprintf("12345678");
+    cprintf("page num : %x\n", nr_free_pages());
+    for(int xx = 0 ; xx < 128 * 1024; xx ++)
     {
-        testdisk[xx] = '7';
-        testdisk[xx] = testdisk2[xx] = '6';
-    }
-    for(int xx = 0 ; xx < 4096 ; xx ++)
-    {
+        *(int*)testdisk = xx;
         *(int*)testdisk = xx;
         cache_write(xx , testdisk);
         cache_read(xx, testdisk2);
-        cprintf("test num: %x\n", *(int*)testdisk2);
-        cache_fsyn();
+        cprintf("\b\b\b\b\b\b\b\b%08x", *(int*)testdisk2);
+        if(xx % 1000 == 0)
+            cache_fsyn();
     }
+    
+    cprintf("read test12345678");
+    for(int xx = 0 ; xx < 128 * 1024 ; xx ++)
+    {
+        cache_read(xx, testdisk2);
+        if(xx != *(int*)testdisk2)
+        {
+            cprintf("wrong\n : %d %d\n", xx, *(int*)testdisk2);
+        }else{
+            cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b%08x|", *(int*)testdisk2);
+
+            cprintf("%08x",nr_free_pages() );
+        }
+
+        if(xx % 1000 == 0)
+            cache_fsyn();
+    }
+
     
 //    testide();
     cprintf("ide test ok\n");

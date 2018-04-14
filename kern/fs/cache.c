@@ -10,7 +10,9 @@
 #include "timer.h"
 
 
+#define LOG_CACHE(x, ...)  cprintf(x, ##__VA_ARGS__)
 #define CACHE_SIZE FS_BUF_SIZE
+#define CACHE_NUM_PER_SEC (CACHE_SIZE / SEC_SIZE) 
 
 #define BIT_VALID 1
 #define BIT_DIRTY 2
@@ -51,9 +53,6 @@ static _cache_manager cache_manager;
 #define ACQUIRE_CACHE acquire(CACHE_LOCK)
 #define RELEASE_CACHE release(CACHE_LOCK)
 
-
-
-
 int cache_init()
 {
     ideinit();
@@ -72,9 +71,14 @@ int cache_init()
     return 0;
 }
 
-
+static int cache_reduce_list();
 static cache_t* cache_malloc()
 {
+    if(cache_manager.capacity >= cache_manager.limit) 
+    {
+        cache_reduce_list();
+    }
+
     cache_t *t = kmalloc(sizeof(cache_t));
     t->buf = kmalloc(CACHE_SIZE);
     assert(t->buf != NULL);
@@ -91,24 +95,25 @@ static void cache_free(cache_t *t)
 }
 
 
-static cache_t* cache_add(int sec, void *buf)
+static cache_t* cache_add(int sec, void *buf, int flags)
 {
     cache_t* t = cache_malloc(); 
     assert(t);
-    memcpy(t->buf, buf, CACHE_SIZE);       
+    if(flags == BIT_WRITE)
+        memcpy(t->buf, buf, CACHE_SIZE);       
     t->sec = sec;
-    
+
     ACQUIRE_CACHE; 
     HASH_ADD_INT(CACHE_HASH_HEAD, sec, t); 
     RELEASE_CACHE;
-    
+
     return t;
 }
 
 static cache_t* cache_find(int sec)
 {
     cache_t* t = NULL;
-    
+
     ACQUIRE_CACHE;
     HASH_FIND_INT(CACHE_HASH_HEAD, &sec, t);
     RELEASE_CACHE;
@@ -142,34 +147,38 @@ static int cache_reduce_list()
     if(cache_manager.capacity < cache_manager.limit) return 0;
     index = 0;
     ACQUIRE_CACHE;
-    le  = list_next(CACHE_UNFSYN_LIST_P);
+    le  = list_next(CACHE_INVALID_LIST_P);
     while(true) 
     {
         tmp = le;
-        //reduce 1/10 lists
-        if(le == CACHE_UNFSYN_LIST_P || index == cache_manager.limit / 10)
+        //reduce 1/6 lists
+        if(le == CACHE_INVALID_LIST_P || index >= cache_manager.invalid_num / 6)
+        {
             break;
+        }
         le = list_next(le);
         t = list2cache(tmp);
-        assert(t->flags == BIT_INVALID || t->flags == BIT_WRITING);
-        if(t->flags == BIT_INVALID)
+        assert(t->flags == BIT_READ || t->flags == BIT_INVALID || t->flags == BIT_WRITING);
+        if(t->flags == BIT_INVALID || t->flags == BIT_READ)
         {
             list_del_init(&t->list);
+            RELEASE_CACHE;
             cache_delete(t->sec);
-            cache_free(t);     
+            ACQUIRE_CACHE;
             index ++;
-            CACHE_UNFSYN_NUM_C(-1);
+            CACHE_INVALID_NUM_C(-1);
             CACHE_CAPACITY_C(-1);
         }
+
     }
     RELEASE_CACHE;
-
+//    LOG_CACHE("capacity: %d \n unfsyn : %d \n invalid : %d\n", cache_manager.capacity ,cache_manager.unfsyn_num ,cache_manager.invalid_num);
     return 1;
 }
 int cache_write(int sec, void *buf)
 {
     cache_t *t;
-    t = cache_add(sec , buf);     
+    t = cache_add(sec , buf, BIT_WRITE);     
 
     ACQUIRE_CACHE;
     t->flags = BIT_WRITE;
@@ -178,7 +187,7 @@ int cache_write(int sec, void *buf)
     CACHE_UNFSYN_NUM_C(1);
     CACHE_CAPACITY_C(1);
     RELEASE_CACHE;
-     
+
     //not write
     //ide_write(buf , sec);
     return 1;
@@ -189,17 +198,17 @@ int cache_read(int sec, void *buf)
 {
     cache_t *t;
     assert(buf && sec >= 0);
-    if((t = cache_find(sec)) != 0) 
+    if((t = cache_find(sec)) != NULL) 
     {
         ACQUIRE_CACHE;  
         memcpy(buf ,t->buf ,CACHE_SIZE);
 
         RELEASE_CACHE;
     }else{
-        t = cache_malloc();
-        assert(t);
-        ide_read(buf, sec);
+        t = cache_add(sec , buf, BIT_READ);
 
+        assert(t && cache_manager.capacity < 8000);
+        ide_read(buf, sec * (CACHE_NUM_PER_SEC));
         ACQUIRE_CACHE;
         t->flags = BIT_READ;
         //insert unfsyn list
@@ -243,39 +252,39 @@ LABEL_BEGIN:
         {
             t->flags = BIT_WRITING;
             RELEASE_CACHE;
-            ide_write(t->buf, t->sec);
+            ide_write(t->buf, t->sec * (CACHE_NUM_PER_SEC));
             goto LABEL_BEGIN;
         }
-        
+
     }
     RELEASE_CACHE;
 
-/*
- * maybe will wrong
-    FOR_EACH_LIST(CACHE_UNFSYN_LIST_P, le)
-    {
-        t = list2cache(le);
-        ACQUIRE_CACHE;
-        
-        list_del_init(t->list);    
-        CACHE_UNFSYN_NUM_C(-1);
+    /*
+     * maybe will wrong
+     FOR_EACH_LIST(CACHE_UNFSYN_LIST_P, le)
+     {
+     t = list2cache(le);
+     ACQUIRE_CACHE;
 
-        list_add_before(CACHE_INVALID_LIST_P ,&t->list);
-        CACHE_INVALID_NUM_C(1);
+     list_del_init(t->list);    
+     CACHE_UNFSYN_NUM_C(-1);
 
-        if(t->flags & BIT_DIRTY)
-        {
-            t->flags &= ~BIT_DIRTY;
-            RELEASE_CACHE;
-            ide_write(t->buf, t->sec);            
-            ACQUIRE_CACHE;
-        }
-        t->flags = BIT_INVALID;
+     list_add_before(CACHE_INVALID_LIST_P ,&t->list);
+     CACHE_INVALID_NUM_C(1);
 
-        RELEASE_CACHE;
-    }
-    FOR_EACH_END
-    */
+     if(t->flags & BIT_DIRTY)
+     {
+     t->flags &= ~BIT_DIRTY;
+     RELEASE_CACHE;
+     ide_write(t->buf, t->sec);            
+     ACQUIRE_CACHE;
+     }
+     t->flags = BIT_INVALID;
+
+     RELEASE_CACHE;
+     }
+     FOR_EACH_END
+     */
     return 0;
 }
 

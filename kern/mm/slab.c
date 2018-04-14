@@ -75,6 +75,45 @@ kmm_slab_destroy(kmm_slab_t slab)
 }
 
 
+//user for kmm_slab, only to fix the bug
+bool
+kmm_slab_grow_only_in_slab(kmm_cache_t cache)
+{
+    assert(!HODING_CACHE(cache));
+    //note that
+    kmm_slab_t slab = (kmm_slab_t)MALLOC(BUFSIZE); 
+    size_t var;
+    size_t size = cache->size + sizeof(struct bufctl);
+
+    if(slab == NULL){
+        goto slab_fail;
+    } 
+    
+    slab->cache = cache;
+    if(!(slab->buffer = MALLOC(BUFSIZE)))
+    {
+        goto buf_fail;
+    }
+
+    slab->free_count = BUFSIZE / size;
+    list_init(&slab->list);
+    slab->next_free = NULL;
+    for(var = 0 ; var < slab->free_count ; var ++)
+    {
+        kmm_slab_add_buf(slab, slab->buffer + size*var);
+    }
+    ACQUIRE_SLAB(slab);
+    adjust_slab_list(cache, slab, KMM_FREE_LIST);
+    RELEASE_SLAB(slab);
+    return true;
+buf_fail:
+    FREE(slab);
+slab_fail:
+    return false;
+}
+
+
+
 bool
 kmm_slab_grow(kmm_cache_t cache)
 {
@@ -168,12 +207,23 @@ kmm_alloc(kmm_cache_t cache)
     {
         slab = to_slab(l_free->next);  
     }else{
-        RELEASE_CACHE(cache);
-        if(!kmm_slab_grow(cache))
+        //just for fix bug ,mainly in else statement
+        if(cache->size == sizeof(struct kmm_slab))
         {
-            return NULL;
+            RELEASE_CACHE(cache);
+            if(!kmm_slab_grow_only_in_slab(cache))
+            {
+                return NULL;
+            }
+            ACQUIRE_CACHE(cache);
+        }else{
+            RELEASE_CACHE(cache);
+            if(!kmm_slab_grow(cache))
+            {
+                return NULL;
+            }
+            ACQUIRE_CACHE(cache);
         }
-        ACQUIRE_CACHE(cache);
         slab = to_slab(l_free->next);
     }
     buf = kmm_pull_buf(slab);

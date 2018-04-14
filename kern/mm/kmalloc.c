@@ -114,13 +114,11 @@ kfree(void *n)
         free_pages(n);
     }
 }
-
 void* 
 kmalloc(int32_t n)
 {
     void *ret = NULL;
     if(n <= 0) return NULL;
-
     if(slab_allocator_activated == false || n > slab_size_map[SLAB_NORMAL - 1])
     {
         return alloc_pages( (PGSIZE + n - 1) / PGSIZE );

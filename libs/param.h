@@ -8,4 +8,6 @@
 #define SCHE_DEBUG 1
 #define SCHE_MSG "---------->"
 #define FS_BUF_SIZE 4096
+#define SEC_SIZE 512
+extern int debug_xx;
 #endif
