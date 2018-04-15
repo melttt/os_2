@@ -178,15 +178,30 @@ static int cache_reduce_list()
 int cache_write(int sec, void *buf)
 {
     cache_t *t;
-    t = cache_add(sec , buf, BIT_WRITE);     
+    if((t = cache_find(sec)) != NULL)
+    {
+        ACQUIRE_CACHE;  
+        memcpy(t->buf ,buf ,CACHE_SIZE);
+        if(t->flags != BIT_WRITE)
+        {
+            list_del_init(&t->list);
+            list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
+            t->flags = BIT_WRITE;
+            CACHE_UNFSYN_NUM_C(1);
+            CACHE_INVALID_NUM_C(-1);
+        }
+        RELEASE_CACHE;
+    }else{
+        t = cache_add(sec , buf, BIT_WRITE);     
 
-    ACQUIRE_CACHE;
-    t->flags = BIT_WRITE;
-    //insert unfsyn list
-    list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
-    CACHE_UNFSYN_NUM_C(1);
-    CACHE_CAPACITY_C(1);
-    RELEASE_CACHE;
+        ACQUIRE_CACHE;
+        t->flags = BIT_WRITE;
+        //insert unfsyn list
+        list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
+        CACHE_UNFSYN_NUM_C(1);
+        CACHE_CAPACITY_C(1);
+        RELEASE_CACHE;
+    }
 
     //not write
     //ide_write(buf , sec);
@@ -202,6 +217,15 @@ int cache_read(int sec, void *buf)
     {
         ACQUIRE_CACHE;  
         memcpy(buf ,t->buf ,CACHE_SIZE);
+        if(t->flags == BIT_INVALID)
+        {
+
+            list_del_init(&t->list);
+            list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
+            t->flags = BIT_READ;
+            CACHE_UNFSYN_NUM_C(1);
+            CACHE_INVALID_NUM_C(-1);
+        }
 
         RELEASE_CACHE;
     }else{
@@ -254,6 +278,8 @@ LABEL_BEGIN:
             RELEASE_CACHE;
             ide_write(t->buf, t->sec * (CACHE_NUM_PER_SEC));
             goto LABEL_BEGIN;
+        }else{
+            t->flags = BIT_INVALID;  
         }
 
     }

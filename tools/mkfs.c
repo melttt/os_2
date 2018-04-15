@@ -20,7 +20,7 @@
 
 
 typedef struct supernode{
-    char boot_loader[512];
+    char boot_loader[513];
     unsigned int magic_num;
     /****meta_extent_num****/
     _off_t mext_st;
@@ -99,7 +99,7 @@ void write_n_ext(_off_t n, void *buf)
     fsync(fd);   
 }
 
-node* malloc_node(node **a)
+static node* malloc_node(node **a)
 {
     if(mext_c >= _TRY)
     {
@@ -120,14 +120,14 @@ node* malloc_node(node **a)
     return (*a);
 }
 
-node* free_node(node *a)
+static void free_node(node *a)
 {
     a->next = fs_supernode.where_mext_free_next;
     fs_supernode.where_mext_free_next = a->where;
     fs_supernode.mext_free_nums ++;
 }
 
-node* get_node_ptr(_off_t n)
+static node* get_node_ptr(_off_t n)
 {
     if(n >= 0 && n < _TRY)
         return &mext[n];
@@ -263,6 +263,7 @@ void mkfs(char cmd)
 
         //easy test
         int i = cur_ext_id + 1;
+
         while(i < ext_nums)
         {
             if(bpt_find(root, i) == -1)
@@ -274,6 +275,8 @@ void mkfs(char cmd)
         }
         printf("mkfs 1...ok!\n");
         printf("cur_ext_id + 1 : %d,  mext_id : %d\n", cur_ext_id + 1, mext_id);
+
+
 
         fs_supernode.ext_st = cur_ext_id + 1;
         fs_supernode.where_mext_root = root->where;
