@@ -18,12 +18,16 @@ INCLUDEFLAGS:= -I../libs
 mkfs : $(TOOLS_OBJS) 
 	gcc -o $@ $(TOOLS_C_FILE)
 
-#fs.img : 
-#	@echo making fs.img......
-#	dd if=/dev/zero of=fs.img bs=1M count=512
-#	@echo fs.img ok!
+test : mkfs fs.img
+
+fs.img : 
+	@echo making fs.img......
+	dd if=/dev/zero of=fs.img bs=1M count=512
+	@echo fs.img ok!
 
 clean:
 	rm -rf $(TOOLS_OBJS)
 	rm -rf mkfs 
+
+
 
