@@ -8,6 +8,7 @@
 #include "list.h"
 #include "ide_2.h"
 #include "timer.h"
+#include "cache.h"
 
 
 #define LOG_CACHE(x, ...)  cprintf(x, ##__VA_ARGS__)
@@ -95,14 +96,12 @@ static void cache_free(cache_t *t)
 }
 
 
-static cache_t* cache_add(int sec, void *buf, int flags)
+static cache_t* cache_add(int sec)
 {
     cache_t* t = cache_malloc(); 
     assert(t);
-    if(flags == BIT_WRITE)
-        memcpy(t->buf, buf, CACHE_SIZE);       
-    t->sec = sec;
 
+    t->sec = sec;
     ACQUIRE_CACHE; 
     HASH_ADD_INT(CACHE_HASH_HEAD, sec, t); 
     RELEASE_CACHE;
@@ -175,33 +174,28 @@ static int cache_reduce_list()
 //    LOG_CACHE("capacity: %d \n unfsyn : %d \n invalid : %d\n", cache_manager.capacity ,cache_manager.unfsyn_num ,cache_manager.invalid_num);
     return 1;
 }
-int cache_write(int sec, void *buf)
+int cache_write(int sec ,int off ,void *buf ,int len )
 {
     cache_t *t;
-    if((t = cache_find(sec)) != NULL)
+    assert(len + off >= 0 && len + off <= CACHE_SIZE);
+    if((t = cache_find(sec)) == NULL)
     {
-        ACQUIRE_CACHE;  
-        memcpy(t->buf ,buf ,CACHE_SIZE);
-        if(t->flags != BIT_WRITE)
-        {
-            list_del_init(&t->list);
-            list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
-            t->flags = BIT_WRITE;
-            CACHE_UNFSYN_NUM_C(1);
-            CACHE_INVALID_NUM_C(-1);
-        }
-        RELEASE_CACHE;
-    }else{
-        t = cache_add(sec , buf, BIT_WRITE);     
-
-        ACQUIRE_CACHE;
-        t->flags = BIT_WRITE;
-        //insert unfsyn list
-        list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
-        CACHE_UNFSYN_NUM_C(1);
-        CACHE_CAPACITY_C(1);
-        RELEASE_CACHE;
+        cache_read(sec ,off, buf ,len);
     }
+
+    t = cache_find(sec);
+    assert(t);
+    ACQUIRE_CACHE;  
+    memcpy(((char*)t->buf + off) ,buf ,len );
+    if(t->flags != BIT_WRITE)
+    {
+        list_del_init(&t->list);
+        list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
+        t->flags = BIT_WRITE;
+        CACHE_UNFSYN_NUM_C(1);
+        CACHE_INVALID_NUM_C(-1);
+    }
+    RELEASE_CACHE;
 
     //not write
     //ide_write(buf , sec);
@@ -209,17 +203,16 @@ int cache_write(int sec, void *buf)
 }
 
 
-int cache_read(int sec, void *buf)
+int cache_read(int sec ,int off ,void *buf ,int len)
 {
     cache_t *t;
     assert(buf && sec >= 0);
     if((t = cache_find(sec)) != NULL) 
     {
         ACQUIRE_CACHE;  
-        memcpy(buf ,t->buf ,CACHE_SIZE);
+        memcpy(buf ,((char*)t->buf + off) ,len);
         if(t->flags == BIT_INVALID)
         {
-
             list_del_init(&t->list);
             list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
             t->flags = BIT_READ;
@@ -229,17 +222,17 @@ int cache_read(int sec, void *buf)
 
         RELEASE_CACHE;
     }else{
-        t = cache_add(sec , buf, BIT_READ);
+        t = cache_add(sec);
 
         assert(t && cache_manager.capacity < 8000);
-        ide_read(buf, sec * (CACHE_NUM_PER_SEC));
+        ide_read(t->buf ,sec * (CACHE_NUM_PER_SEC));
         ACQUIRE_CACHE;
         t->flags = BIT_READ;
         //insert unfsyn list
         list_add_before(CACHE_UNFSYN_LIST_P, &t->list);
         CACHE_UNFSYN_NUM_C(1);
         CACHE_CAPACITY_C(1);
-        memcpy(t->buf, buf, CACHE_SIZE);
+        memcpy(buf ,((char*)t->buf + off) ,len);
         RELEASE_CACHE;
 
     }

@@ -19,8 +19,8 @@
 #include "sleep_hash.h"
 #include "syslib.h"
 
-//test disk
-#include "cache.h"
+#include "ext.h"
+
 static int
 load_icode(char *binary, size_t size);
 
@@ -224,6 +224,8 @@ init_main(void *arg) {
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
 
+    ext_init();
+    /*
     cache_init();
     cprintf("12345678");
     cprintf("page num : %x\n", nr_free_pages());
@@ -259,6 +261,7 @@ init_main(void *arg) {
 //    testide();
     cprintf("ide test ok\n");
 
+    */
 
     while(1);
 /******TEST**********/

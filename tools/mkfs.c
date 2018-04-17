@@ -7,6 +7,11 @@
 #include <string.h>
 
 #include "bplustree.h"
+#define FILE_PATH "fs.img"
+typedef unsigned int uint;
+
+
+
 #define SUPER_NODE_MAGIC_NUM 0x32f490c8
 #define EXTENT_MAGIC_NUM 0x8bd94107
 #define EXT_SIZE (512*8)
@@ -22,8 +27,6 @@
 #endif
 
 
-#define FILE_PATH "fs.img"
-typedef unsigned int uint;
 #define DEFAULE_ME_START_SEC 1
 #define DEFAULT_SP_START_SEC 0
 typedef struct supernode{
@@ -90,7 +93,6 @@ inline int calc_ext_nums()
     return ext_num;
 }
 
-
 //global variates
 typedef struct{
     uint ext_nums;
@@ -101,14 +103,9 @@ typedef struct{
 _mkfs_info mkfs_info;
 #define ME_NOW (mkfs_info.me_now)
 
-
 #define MKFS_FD ((mkfs_info.fd))
-
-_off_t mext_id = 1;
-_off_t mext_st;
 #define ESTIMATE_LEN (MEXTS*1800)
 node mext[ESTIMATE_LEN];
-int mext_c = 0;
 
 static void read_n_ext(_off_t n, void *buf)
 {
@@ -122,10 +119,11 @@ static void write_n_ext(_off_t n, void *buf)
     fsync(MKFS_FD);   
 }
 
+
 static node* malloc_node(node **a)
 {
     static uint pos = 0;
-    if(mext_c >= ESTIMATE_LEN)
+    if(pos >= ESTIMATE_LEN)
     {
         printf("malloc_node over extent\n");
         exit(2);
@@ -261,7 +259,7 @@ void test_mext()
         if((tmp = bpt_find(root, bg)) == -1)
         {
             printf("%d find error\n", bg);
-            exit(2);
+//            exit(2);
         }else{
             read_n_ext(tmp, xx);
 
@@ -273,6 +271,31 @@ void test_mext()
     printf("pass test!\n");
 }
 
+void test_mext2()
+{
+    int bg =  fs_supernode.e_st_ext;
+    int ed = fs_supernode.e_all_nums + bg;
+    char xx[4096];
+    int tmp = bg;
+
+    node *root = get_node_ptr(fs_supernode.me_root);
+    int test[] = {5,2,7,4,345,534,1234,6745};
+
+    for(int i = 0 ; i < sizeof(test) /sizeof(int) ; i ++)
+    {
+        root = bpt_delete(root ,bg + test[i]);
+    }
+
+    for( ; tmp < ed ; tmp ++ )
+    {
+        if((bpt_find(root, tmp)) == -1)
+        {
+            printf("delete:%d\n", tmp); 
+        }
+    }
+
+    printf("pass test!\n");
+}
 int init_mkfs_info()
 {
     int ret;
@@ -334,7 +357,8 @@ void mkfs(char* cmd)
 
     }else{
         load_mext();
-        test_mext();
+   //     test_mext();
+        test_mext2();
 
     }
 
@@ -362,3 +386,4 @@ int main(int ac ,char **av)
 
     return 0;
 }
+
