@@ -65,14 +65,25 @@ typedef struct _extent{
     _off_t e_where;
 }_extent;
 
-/*
 static void test(int bg, int ed)
 {
-    _extent *ex;
-    int i = 0;
-    cprintf("123456781234567812");
+//    _extent *ex;
+//    int i = 0;
+    cprintf("123456781234");
     while(bg < ed)
     {
+            begin_op();
+            node *root = get_node_ptr(sp.me_root);
+            int ret = bpt_find_near(root, bg);
+            end_op();
+            if(ret == bg)
+            {
+                cprintf("\b\b\b\b\b\b\b\b\b\b\b\bret:%08d", ret);
+            }else{
+                panic("ret : %d\n", ret);
+            }
+            bg ++;
+/*
         if(i % 1000 == 0)
         begin_op();
         ex = mapping_file(bg, 0);
@@ -85,9 +96,9 @@ static void test(int bg, int ed)
         i ++;
         if(i % 1000 == 0)
         end_op();
+        */
     }
 }
-*/
 void ext_init()
 {
         cache_init();
@@ -101,12 +112,8 @@ void ext_init()
         {
             cprintf("me_ext_nums : %d\n me_all_nums : %d\n", sp.me_ext_nums, sp.me_all_nums);
             cprintf("ext_st : %d \n ext_all_nums : %d\n", sp.e_st_ext ,sp.e_all_nums);
-        //    test(sp.e_st_ext, sp.e_st_ext + sp.e_all_nums);
-            begin_op();
-            node *root = get_node_ptr(sp.me_root);
-            int ret = bpt_find_near(root, 12345);
-            end_op();
-            cprintf("ret : %d\n", ret);
+            test(sp.e_st_ext, sp.e_st_ext + sp.e_all_nums);
+            
         }else{
             cprintf("invalid\n");
         }

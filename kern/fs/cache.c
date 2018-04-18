@@ -13,7 +13,6 @@
 #include "cpu.h"
 #include "lock_p.h"
 
-
 #define LOG_CACHE(x, ...)  cprintf(x, ##__VA_ARGS__)
 #define CACHE_SIZE FS_BUF_SIZE
 #define CACHE_NUM_PER_SEC (CACHE_SIZE / SEC_SIZE) 
@@ -39,8 +38,6 @@ typedef struct{
     int tick;
     int limit;
     int capacity;
-    list_entry_t unfsyn_list; 
-    int unfsyn_num;
     list_entry_t invalid_list;
     int invalid_num;
     struct spinlock lock; 
@@ -51,8 +48,6 @@ typedef struct{
 static _cache_manager cache_manager; 
 #define CACHE_CAPACITY_C(a) (cache_manager.capacity += a)
 #define CACHE_HASH_HEAD (cache_manager.UT_hash_head)
-#define CACHE_UNFSYN_LIST_P (&cache_manager.unfsyn_list)
-#define CACHE_UNFSYN_NUM_C(a) (cache_manager.unfsyn_num += a)
 
 #define CACHE_INVALID_NUM_C(a) (cache_manager.invalid_num += a)
 #define CACHE_INVALID_LIST_P (&cache_manager.invalid_list)
@@ -62,7 +57,7 @@ static _cache_manager cache_manager;
 
 #define CACHE_LIST(a) (&cache_manager.arr_list[a])
 
- list_entry_t* get_list()
+list_entry_t* get_list()
 {
     return CACHE_LIST(CUR_PROC->pid);
 }
@@ -74,8 +69,6 @@ int cache_init()
     cache_manager.capacity = 0; 
     cache_manager.tick = 0;
 
-    list_init(CACHE_UNFSYN_LIST_P);
-    cache_manager.unfsyn_num = 0;
     list_init(CACHE_INVALID_LIST_P);
     cache_manager.invalid_num = 0;
 
@@ -199,7 +192,6 @@ static int cache_reduce_list()
 
         index ++;
     }
-    cprintf("index : %d , capacity:%d, invalid: %d\n", index ,cache_manager.capacity, cache_manager.invalid_num);
 
     RELEASE_CACHE;
 //    LOG_CACHE("capacity: %d \n unfsyn : %d \n invalid : %d\n", cache_manager.capacity ,cache_manager.unfsyn_num ,cache_manager.invalid_num);
@@ -216,13 +208,9 @@ void* mapping_file(int sec ,int off)
         t = cache_add(sec);
         assert(t && cache_manager.capacity <= 8000);
         ide_read(t->buf ,t->sec *(CACHE_NUM_PER_SEC));
-        acquiresleep(&t->lock);
     }
-
-    while(t->using_pid != NON_PID && t->using_pid != CUR_PROC->pid)
-    {
+    if(t->flags != BIT_VALID)
         acquiresleep(&t->lock);
-    }
 
     t->using_pid = CUR_PROC->pid;
     ACQUIRE_CACHE;  
@@ -260,6 +248,7 @@ int end_op()
 {
     list_entry_t *tmp, *next, *list = CACHE_LIST(CUR_PROC->pid);    
     cache_t *cache;
+    int i = 0;
     
     for(next = list_next(list) ; next != list ;  )
     {
@@ -278,6 +267,7 @@ int end_op()
         list_add_before(CACHE_INVALID_LIST_P, tmp);
         RELEASE_CACHE;
         releasesleep(&cache->lock);
+        i ++;
     }
     return 1;
 
