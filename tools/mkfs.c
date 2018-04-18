@@ -6,8 +6,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "bplustree.h"
-#define FILE_PATH "fs.img"
+#include "../libs/bplustree.h"
+#define FILE_PATH "../fs.img"
 typedef unsigned int uint;
 
 
@@ -281,6 +281,15 @@ void test_mext2()
     node *root = get_node_ptr(fs_supernode.me_root);
     int test[] = {5,2,7,4,345,534,1234,6745};
 
+
+    bpt_delete(root ,bg + 0);
+    int ret;
+    ret = bpt_find_near(root ,bg + 0);
+    printf("ret : %d\n", ret);
+    bpt_delete(root ,bg + 3);
+    ret = bpt_find_near(root ,bg + 3);
+    printf("ret : %d\n", ret);
+    /*
     for(int i = 0 ; i < sizeof(test) /sizeof(int) ; i ++)
     {
         root = bpt_delete(root ,bg + test[i]);
@@ -293,6 +302,7 @@ void test_mext2()
             printf("delete:%d\n", tmp); 
         }
     }
+    */
 
     printf("pass test!\n");
 }

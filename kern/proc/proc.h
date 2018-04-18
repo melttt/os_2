@@ -59,6 +59,8 @@ struct proc {
     list_entry_t sleep_elm;
 
     struct sche_entity se;
+
+
 /*
     list_entry_t list_link;                     // Process link list 
     list_entry_t hash_link;                     // Process hash list

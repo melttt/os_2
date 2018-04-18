@@ -181,7 +181,21 @@ _off_t bpt_find(node *root, int key) {
 	else
 		return c->vals[i];
 }
+_off_t bpt_find_near(node *root, _off_t near){
+	node *c = find_leaf(root, near);
+    int i;
+    int ret;
+	if (c == NULL) return INFS;
+    ret = c->keys[0];
+    for(i = 0 ; i < c->num_keys ; i ++)
+        if(c->keys[i] >= near)
+        {
+            ret = c->keys[i];
+            break;
+        }
 
+    return ret;
+}
 
 
 /********************************************INSERT*****************************************/

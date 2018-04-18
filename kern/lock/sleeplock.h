@@ -12,4 +12,12 @@ struct sleeplock {
   int pid;           // Process holding lock
 };
 
+void
+initsleeplock(struct sleeplock *lk, char *name);
+void
+acquiresleep(struct sleeplock *lk);
+void
+releasesleep(struct sleeplock *lk);
+bool
+holdingsleep(struct sleeplock *lk);
 #endif

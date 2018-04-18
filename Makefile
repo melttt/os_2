@@ -54,7 +54,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
-CFLAGS :=$(INCLUDEFLAGS) $(USER_INCLUDE) -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables
+CFLAGS :=$(INCLUDEFLAGS) $(USER_INCLUDE) -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables -Wno-error=char-subscripts
 
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
