@@ -1,6 +1,7 @@
 #ifndef __KERN_FS_EXT_H_
 #define __KERN_FS_EXT_H_
 
+#include "lock_p.h"
 
 #ifndef uint
 #define uint unsigned int
@@ -33,7 +34,7 @@ typedef struct supernode{
     _off_t me_root;
 
     uint me_all_nums; 
-    uint me_free_nums;
+    volatile uint me_free_nums;
     uint me_free_next_me;
      
     /****ext****/
@@ -52,11 +53,21 @@ typedef struct supernode{
     /****inode****/
     uint inode_nums;
     _off_t inode_free_next_ext;
-    
-    //other
-    char is_valid;
 
 }supernode;
+
+typedef struct {
+    char valid;
+    supernode sp;    
+    struct spinlock lock;
+}_ext_manager;
+
+extern _ext_manager ext_manager;
+#define EXT_M_SP (&ext_manager.sp)
+#define EXT_M_VALID (ext_manager.valid)
+#define EXT_M_LOCK (&ext_manager.lock)
+#define ACQUIRE_SP acquire(EXT_M_LOCK)
+#define RELEASE_SP release(EXT_M_LOCK)
 
 typedef struct extent{
     uint magic_num;

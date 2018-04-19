@@ -119,7 +119,7 @@ static void write_n_ext(_off_t n, void *buf)
     fsync(MKFS_FD);   
 }
 
-
+int poss = 0;
 static node* malloc_node(node **a)
 {
     static uint pos = 0;
@@ -139,15 +139,17 @@ static node* malloc_node(node **a)
         ME_NOW ++;
     }
     
+    poss ++;
     fs_supernode.me_all_nums ++;
     return (*a);
 }
-
+int pocc = 0;
 static void free_node(node *a)
 {
     a->next = fs_supernode.me_free_next_me;
     fs_supernode.me_free_next_me = a->where;
     fs_supernode.me_free_nums ++;
+    pocc ++;
 }
 
 
@@ -208,7 +210,7 @@ void write_fs_to_disk()
     _off_t ed = st + fs_supernode.me_ext_nums;
     write_n_ext(DEFAULT_SP_START_SEC, &fs_supernode);
 
-    printf("start write to disk");
+    printf("start write to disk st:%d, ed:%d\n", st, ed);
     for(k = 0 ; st < ed ; st += 1, k += MEXTS )
     {
         write_n_ext(st, &mext[k]); 
@@ -337,18 +339,36 @@ void mkfs(char* cmd)
 
         //end of ext
         off_t cur_ext = exts - 1;
-
+        int st = 37;
+        printf("cur ext_%d\n", cur_ext);
         //insert node
-        for(;ME_NOW < cur_ext ; cur_ext --)
+    #if 1
+        for(;ME_NOW < cur_ext ; cur_ext --, st ++)
         {
             tmp_extent->e_where = cur_ext;
-            root = bpt_insert(root, cur_ext , cur_ext); 
+            root = bpt_insert(root, st , st); 
+            write_n_ext(cur_ext, tmp_extent);
+            if(bpt_find(root, st) == st)
+                printf("index: %d  need : %d xx : %d\n", exts - cur_ext - 1,poss ,pocc );
+            else
+                printf("axv\n");
+//                printf("\b\b\b\b\b\b\b\b%08d", cur_ext);
+        }
+    #endif
+    #if 0
+        for(;ME_NOW < cur_ext ; cur_ext --, st ++)
+        {
+            tmp_extent->e_where = cur_ext;
+            root = bpt_insert(root, st , st); 
             write_n_ext(cur_ext, tmp_extent);
             if(bpt_find(root, cur_ext) == cur_ext)
-                printf("\b\b\b\b\b\b\b\b%08d", cur_ext);
+                printf("index: %d  need : %d xx : %d\n", exts - cur_ext - 1,poss ,pocc );
+//                printf("\b\b\b\b\b\b\b\b%08d", cur_ext);
         }
+    #endif
         printf("\n");
 
+        printf("me_now : %d, cur ext_%d\n",ME_NOW, cur_ext);
         
         //write supernode
         fs_supernode.me_st_ext = DEFAULE_ME_START_SEC;
@@ -365,6 +385,7 @@ void mkfs(char* cmd)
         printf("mkfs ok....final\n");
         printf("info:\n me_ext_num : %d me_all_num : %d \n e_st : %d  e_nums : %d \n all_exts : %d \n",fs_supernode.me_ext_nums ,fs_supernode.me_all_nums, fs_supernode.e_st_ext, fs_supernode.e_all_nums ,exts );
 
+        printf("need %d\n , %d\n", poss, pocc);
     }else{
         load_mext();
    //     test_mext();

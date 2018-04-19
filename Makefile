@@ -100,7 +100,7 @@ endif
 
 
 fs.img : 
-	dd if=/dev/zero of=$@ bs=1M count=512
+	dd if=/dev/zero of=$@ bs=1M count=20
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=fs.img,media=disk,cache=writeback 
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \

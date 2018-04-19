@@ -72,7 +72,6 @@ pgfault_handler(struct trapframe *tf) {
 void
 trap(struct trapframe *tf)
 {
-    
     if(tf->trapno == T_SYSCALL){
         cpus[get_cpu()].cur_proc->tf = tf;
         syscall();
