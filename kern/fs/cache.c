@@ -198,8 +198,7 @@ static int cache_reduce_list()
     return 1;
 }
 
-int xxx = 0;
-void* mapping_file(int sec ,int off)
+void* mapping_file(uint sec ,uint off)
 {
     cache_t *t;
     void *ret = NULL;
@@ -222,7 +221,6 @@ void* mapping_file(int sec ,int off)
 
         list_del_init(&t->list);
         list_add_before(get_list(), &t->list);
-        xxx ++;
         t->flags = BIT_VALID;
     }
     ret = ((char*)t->buf + off);
@@ -234,7 +232,7 @@ void* mapping_file(int sec ,int off)
 
 
 
-int begin_op()
+int begin_cache()
 {
     list_entry_t  *list = CACHE_LIST(CUR_PROC->pid);    
     
@@ -249,7 +247,7 @@ int begin_op()
 
 
 
-int end_op()
+int end_cache()
 {
     list_entry_t *tmp, *next, *list = CACHE_LIST(CUR_PROC->pid);    
     cache_t *cache;
@@ -272,10 +270,8 @@ int end_op()
         list_add_before(CACHE_INVALID_LIST_P, tmp);
         RELEASE_CACHE;
         releasesleep(&cache->lock);
-        xxx --;
         i ++;
     }
-    assert(xxx == 0);
     assert(list_empty(list));
     return 1;
 

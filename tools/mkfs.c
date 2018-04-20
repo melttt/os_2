@@ -98,10 +98,12 @@ typedef struct{
     uint ext_nums;
     int fd;  
     uint me_now;
-
+    int me_pos;
 }_mkfs_info;
+
 _mkfs_info mkfs_info;
 #define ME_NOW (mkfs_info.me_now)
+#define ME_POS (mkfs_info.me_pos)
 
 #define MKFS_FD ((mkfs_info.fd))
 #define ESTIMATE_LEN (MEXTS*1800)
@@ -119,37 +121,33 @@ static void write_n_ext(_off_t n, void *buf)
     fsync(MKFS_FD);   
 }
 
-int poss = 0;
 static node* malloc_node(node **a)
 {
-    static uint pos = 0;
-    if(pos >= ESTIMATE_LEN)
+    if(ME_POS >= ESTIMATE_LEN)
     {
         printf("malloc_node over extent\n");
         exit(2);
     }
 
-    *a = &mext[pos];
-    (*a)->where = pos;
+    *a = &mext[ME_POS];
+    (*a)->next = NIA;
+    (*a)->where = ME_POS;
 
-    pos ++;
+    ME_POS ++;
 
-    if(pos % MEXTS == 0)
+    if(ME_POS % MEXTS == 0)
     {
         ME_NOW ++;
     }
     
-    poss ++;
     fs_supernode.me_all_nums ++;
     return (*a);
 }
-int pocc = 0;
 static void free_node(node *a)
 {
     a->next = fs_supernode.me_free_next_me;
     fs_supernode.me_free_next_me = a->where;
     fs_supernode.me_free_nums ++;
-    pocc ++;
 }
 
 
@@ -261,7 +259,7 @@ void test_mext()
         if((tmp = bpt_find(root, bg)) == -1)
         {
             printf("%d find error\n", bg);
-//            exit(2);
+            exit(2);
         }else{
             read_n_ext(tmp, xx);
 
@@ -339,37 +337,33 @@ void mkfs(char* cmd)
 
         //end of ext
         off_t cur_ext = exts - 1;
-        int st = 37;
-        printf("cur ext_%d\n", cur_ext);
+
         //insert node
-    #if 1
-        for(;ME_NOW < cur_ext ; cur_ext --, st ++)
+        printf("1234561234567");
+
+        for(;ME_NOW * 5 / 4 < cur_ext ; cur_ext --)
         {
             tmp_extent->e_where = cur_ext;
-            root = bpt_insert(root, st , st); 
-            write_n_ext(cur_ext, tmp_extent);
-            if(bpt_find(root, st) == st)
-                printf("index: %d  need : %d xx : %d\n", exts - cur_ext - 1,poss ,pocc );
-            else
-                printf("axv\n");
-//                printf("\b\b\b\b\b\b\b\b%08d", cur_ext);
-        }
-    #endif
-    #if 0
-        for(;ME_NOW < cur_ext ; cur_ext --, st ++)
-        {
-            tmp_extent->e_where = cur_ext;
-            root = bpt_insert(root, st , st); 
+            root = bpt_insert(root, cur_ext, cur_ext); 
             write_n_ext(cur_ext, tmp_extent);
             if(bpt_find(root, cur_ext) == cur_ext)
-                printf("index: %d  need : %d xx : %d\n", exts - cur_ext - 1,poss ,pocc );
-//                printf("\b\b\b\b\b\b\b\b%08d", cur_ext);
+                printf("\b\b\b\b\b\b\b\b\b\b\b\b\bindex:%07d",cur_ext);
+            else
+                printf("insert error, no find\n");
         }
-    #endif
         printf("\n");
 
-        printf("me_now : %d, cur ext_%d\n",ME_NOW, cur_ext);
-        
+
+        //padding the rest of room
+        node *t;
+        for( ; ME_NOW < cur_ext + 1 ;)
+        {
+            malloc_node(&t);
+            free_node(t);
+        }
+
+
+        printf("me_now : %d, ext start %d\n",ME_NOW, cur_ext + 1);
         //write supernode
         fs_supernode.me_st_ext = DEFAULE_ME_START_SEC;
         fs_supernode.me_root = root->where;
@@ -385,11 +379,10 @@ void mkfs(char* cmd)
         printf("mkfs ok....final\n");
         printf("info:\n me_ext_num : %d me_all_num : %d \n e_st : %d  e_nums : %d \n all_exts : %d \n",fs_supernode.me_ext_nums ,fs_supernode.me_all_nums, fs_supernode.e_st_ext, fs_supernode.e_all_nums ,exts );
 
-        printf("need %d\n , %d\n", poss, pocc);
     }else{
         load_mext();
-   //     test_mext();
-        test_mext2();
+        test_mext();
+        //test_mext2();
 
     }
 

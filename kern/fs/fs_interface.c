@@ -1,0 +1,233 @@
+#include "basic_p.h"
+#include "kmalloc.h"
+#include "kdebug.h"
+#include "stdio.h"
+#include "cache.h"
+
+#include "bplustree.h"
+#include "fs_interface.h"
+_fs_manager fs_manager;
+
+
+//m_ext
+inline static void* get_me(int n)
+{
+   assert(FS_M_VALID == 1);
+   return  mapping_file(FS_M_SP->me_st_ext + n / MEXTS , n % MEXTS * sizeof(node));
+}
+
+static node* malloc_node(node **a)
+{
+    _off_t next_pos;
+    
+    if(FS_M_SP->me_free_nums == 0) 
+        panic("malloc_node no enough room\n");
+
+    ACQUIRE_SP;
+    next_pos = FS_M_SP->me_free_next_me;
+    RELEASE_SP;
+    (*a) = get_me(next_pos);    
+    ACQUIRE_SP;
+    FS_M_SP->me_free_next_me = (*a)->next;
+    FS_M_SP->me_free_nums --;
+    RELEASE_SP;
+
+    (*a)->next = NIA; 
+    (*a)->num_keys = 0;
+    (*a)->parent = NIA;
+    return (*a);
+}
+
+static void free_node(node *a)
+{
+    _off_t tmp;
+    ACQUIRE_SP;
+    tmp = FS_M_SP->me_free_next_me;
+    a->next = tmp;
+    FS_M_SP->me_free_next_me = a->where;
+    FS_M_SP->me_free_nums ++;
+    RELEASE_SP;
+}
+
+
+static node* get_node_ptr(_off_t n)
+{
+    if(n >= FS_M_SP->me_all_nums)
+    {
+        if(n != NIA)
+        {
+            panic("get_node_ptr over extent:%d\n");
+        }
+        return NULL;
+    }else{
+        return get_me(n);
+    }
+}
+
+
+//interface:1
+static void begin_fs_op()
+{
+
+     begin_cache(); 
+     if(FS_M_VALID == 0)
+         memcpy(FS_M_SP, mapping_file(SP_EXT, SP_EXT_OFFSET),sizeof(supernode));
+
+}
+
+//interface:2
+static void end_fs_op()
+{
+
+    //update_fs
+    memcpy(mapping_file(SP_EXT, SP_EXT_OFFSET) ,FS_M_SP,sizeof(supernode));
+    end_cache();
+}
+
+//interface:3
+static void* map_disk(_off_t sec,_off_t off)
+{
+    if(FS_M_VALID == 0) panic("map_disk wrong\n");
+    return  mapping_file(sec ,off);
+}
+
+//interface:4
+static void *insert_ext(void *root, _off_t key , _off_t val)
+{
+    return bpt_insert(root ,key ,val );
+}
+
+//interface:5
+static _off_t find_ext(void *root, _off_t sec)
+{
+
+    return bpt_find(root, sec);
+}
+//interface:6
+static _off_t find_ext_near(void *root, _off_t near)
+{
+    return bpt_find_near(root ,near);
+}
+
+
+//interface:7
+static void* delete_ext(void *root ,_off_t key)
+{
+    return bpt_delete(root ,key);
+}
+
+#if 0
+static void test(int bg, int ed)
+{
+//    _extent *ex;
+//    int i = 0;
+    cprintf("find test bg : %d, ed : %d\n", bg, ed);
+    int ret;
+    node *root;
+    cprintf("123456781234");
+    while(bg < ed)
+    {
+
+            begin_cache();
+            root = get_node_ptr(FS_M_SP->me_root);
+
+//            root = bpt_delete(root, bg);
+ //           root = bpt_insert(root ,bg ,bg);
+            if((ret = bpt_find(root, bg)) != NIA)
+            {
+                cprintf("\b\b\b\b\b\b\b\b\b\b\b\bret:%08d", bg);
+            }else{
+                panic("test error : %d\n",bg);
+            }
+            if(root)
+                FS_M_SP->me_root = root->where;
+            else
+                FS_M_SP->me_root = NIA;
+            end_cache();
+            bg ++;
+    }
+    cprintf("test ok\n");
+}
+#endif
+
+static fs_low_class fs_f;
+fs_low_class* init_low_fs()
+{
+    cache_init();
+    FS_M_VALID = 0; 
+
+    begin_fs_op();
+    init_lock(FS_M_LOCK, "SP_LOCK");
+    if(FS_M_SP->magic_num == SUPER_NODE_MAGIC_NUM)
+    {
+        assert(sizeof(node) == NODE_SIZE);
+        cprintf("supernode infomation:\n");
+        cprintf("me_ext_nums:%d\nme_all_nums:%d\n", FS_M_SP->me_ext_nums, FS_M_SP->me_all_nums);
+        cprintf("me_free_nums:%d\n,me_next_pos:%d\n", FS_M_SP->me_free_nums ,FS_M_SP->me_free_next_me);
+        cprintf("ext_st:%d\next_all_nums:%d\n", FS_M_SP->e_st_ext ,FS_M_SP->e_all_nums);
+        fs_f.name = "LOW_FS_FUNCTION";
+        fs_f.begin_fs_op = begin_fs_op;
+        fs_f.end_fs_op = end_fs_op;
+        fs_f.map_disk = map_disk;
+        fs_f.insert_ext = insert_ext;
+        fs_f.find_ext = find_ext;
+        fs_f.find_ext_near = find_ext_near;
+        fs_f.delete_ext = delete_ext;
+        fs_f.supernode_p = FS_M_SP;
+
+        FS_M_VALID = 1; 
+        cprintf(INITOK"fs_interface init ok\n");
+    }else{
+        panic("low_fs_init error!\n");
+    }
+    end_fs_op();
+#if 0
+    test(FS_M_SP->e_st_ext, FS_M_SP->e_st_ext + FS_M_SP->e_all_nums);
+#endif 
+
+    return &fs_f;
+}
+
+
+
+
+
+/*
+void ext_init()
+{
+        cache_init();
+        
+        begin_cache();
+        memcpy(FS_M_SP, mapping_file(0, 0) ,sizeof(supernode));
+        end_cache();
+        init_lock(FS_M_LOCK, "SP_LOCK");
+        FS_M_VALID = 1; 
+        cprintf(INITOK"ext init ok\n");
+        
+        if(FS_M_SP->magic_num == SUPER_NODE_MAGIC_NUM)
+        {
+            cprintf("supernode infomation:\n");
+            cprintf("me_ext_nums : %d\nme_all_nums : %d\n", FS_M_SP->me_ext_nums, FS_M_SP->me_all_nums);
+            cprintf("me_free_nums : %d\n,me_next_pos : %d\n", FS_M_SP->me_free_nums ,FS_M_SP->me_free_next_me);
+            cprintf("ext_st : %d\next_all_nums : %d\n", FS_M_SP->e_st_ext ,FS_M_SP->e_all_nums);
+
+            test(FS_M_SP->e_st_ext, FS_M_SP->e_st_ext + FS_M_SP->e_all_nums);
+
+            begin_cache();
+           // FS_M_SP->me_free_nums = 0;
+            memcpy( mapping_file(0, 0) ,FS_M_SP,sizeof(supernode));
+            end_cache();
+            
+        }else{
+            cprintf("invalid\n");
+            test(FS_M_SP->e_st_ext, FS_M_SP->e_st_ext + FS_M_SP->e_all_nums);
+        }
+
+}
+*/
+
+
+
+
+
+

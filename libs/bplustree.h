@@ -11,6 +11,8 @@
 #define LEAF_NODE 1
 
 typedef unsigned int _off_t;
+#ifndef _BPT_NODE_
+#define _BPT_NODE_
 #define ORDER 5
 #define KEYLEN ORDER
 #define VALLEN (KEYLEN+1)
@@ -26,6 +28,7 @@ typedef struct node{
     _off_t next;
     int empty2;
 }node ;
+#endif
 
 #define IS_GENERAL_NODE(c) (c->type == GENERAL_NODE)
 #define IS_LEAF_NODE(c) (c->type == LEAF_NODE)
