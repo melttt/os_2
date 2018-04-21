@@ -2,6 +2,9 @@
 #define __FS_DATASTRUCT_H_
 
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
 
 #ifndef uint
 #define uint unsigned int
@@ -11,7 +14,6 @@
 #endif
 
 #define SUPER_NODE_MAGIC_NUM 0x32f490c8
-#define EXTENT_MAGIC_NUM 0x8bd94107
 #define EXT_SIZE (512*8)
 #define NODE_SIZE 64
 #define MEXTS (EXT_SIZE / NODE_SIZE)
@@ -46,6 +48,8 @@ typedef struct node{
 #endif
 
 #define DEFAULT_SUPERNODE_SEC 0
+#define DEFAULT_MEXT_SEC 1
+
 #define SP_EXT 0
 #define SP_EXT_OFFSET 0
 typedef struct supernode{
@@ -66,7 +70,7 @@ typedef struct supernode{
     uint e_free_nums;
 
     /****meta_node****/
-    uint mn_nums;
+    uint mn_free_nums;
     _off_t mn_free_next_ext;
 
     /****data****/
@@ -86,16 +90,48 @@ typedef struct {
     void (*begin_fs_op)(void);    
     void  (*end_fs_op)(void);
     void* (*map_disk)(_off_t sec, _off_t off);
-    void* (*insert_ext)(void *root, _off_t key, _off_t val);
-    _off_t (*find_ext)(void *root, _off_t sec);
-    _off_t (*find_ext_near)(void *root, _off_t near);
-    void* (*delete_ext)(void *root ,_off_t key);
+    void (*insert_ext)( _off_t key, _off_t val);
+    _off_t (*find_ext)( _off_t sec);
+    _off_t (*find_ext_near)( _off_t near);
+    void (*delete_ext)(_off_t key);
     supernode* supernode_p;
 }fs_low_class;
 
+#define CALC_REAL_WHERE(h,l) (h << 8 | l)
+#define GET_REAL_WEHRE_HIGHT(a) (a >> 8)
+#define GET_REAL_WHERE_LOW(a) (a & (0xFF))
+
+
+#define EXTENT_DATA_MAX_LEN 50 
+typedef enum{E_TYPE_MN = 0, E_TYPE_DATA, E_TYPE_INODE, E_TYPE_INVALID} e_type_t;
+#define EXTENT_MAGIC_NUM 0x8bd94107
+#define EXTENT_SIZE 4096
+#define ST_EXTENT_MAX_SIZE 512
 typedef struct extent{
     uint magic_num;
     _off_t e_where;
+    e_type_t  e_type;
+    _off_t e_next_e;
+
+    uint e_size;
+    uint e_data_off;
+    uint e_nums;
+    char e_valid[EXTENT_DATA_MAX_LEN];
+    char e_len;
+    
 }extent;
+
+
+
+#define MN_MAGIC_NUM 0x5d4329aa
+typedef struct{
+  uint magic_num;  
+  _off_t real_where;
+  node data; 
+}meta_node;
+
+
+
+
 
 #endif

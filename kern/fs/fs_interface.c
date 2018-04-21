@@ -3,6 +3,7 @@
 #include "kdebug.h"
 #include "stdio.h"
 #include "cache.h"
+#include "string.h"
 
 #include "bplustree.h"
 #include "fs_interface.h"
@@ -92,28 +93,37 @@ static void* map_disk(_off_t sec,_off_t off)
 }
 
 //interface:4
-static void *insert_ext(void *root, _off_t key , _off_t val)
+static void insert_ext(_off_t key , _off_t val)
 {
-    return bpt_insert(root ,key ,val );
+    node *root = get_me(FS_M_SP->me_root);
+    root = bpt_insert(root ,key ,val);
+    FS_M_SP->me_root = root->where;
+    FS_M_SP->e_all_nums ++;
+    FS_M_SP->e_free_nums ++;
 }
 
 //interface:5
-static _off_t find_ext(void *root, _off_t sec)
+static _off_t find_ext( _off_t sec)
 {
-
+    node *root = get_me(FS_M_SP->me_root);
     return bpt_find(root, sec);
 }
 //interface:6
-static _off_t find_ext_near(void *root, _off_t near)
+static _off_t find_ext_near(_off_t near)
 {
+    node *root = get_me(FS_M_SP->me_root);
     return bpt_find_near(root ,near);
 }
 
 
 //interface:7
-static void* delete_ext(void *root ,_off_t key)
+static void delete_ext(_off_t key)
 {
-    return bpt_delete(root ,key);
+    node *root = get_me(FS_M_SP->me_root);
+    root = bpt_delete(root ,key);
+    FS_M_SP->me_root = root->where;
+    FS_M_SP->e_all_nums --;
+    FS_M_SP->e_free_nums --;
 }
 
 #if 0

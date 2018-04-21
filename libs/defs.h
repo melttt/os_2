@@ -16,12 +16,13 @@ typedef short int16_t;
 typedef unsigned short ushort;
 typedef unsigned short uint16_t;
 typedef int int32_t;
-typedef unsigned int uint;
 typedef unsigned int uint32_t;
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
 #define UINT32_MAX (~(uint32_t)0)
-
+#ifndef uint
+#define uint unsigned int
+#endif
 
 
 typedef int32_t intptr_t;
