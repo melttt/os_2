@@ -70,15 +70,15 @@ typedef struct supernode{
     uint e_free_nums;
 
     /****meta_node****/
-    uint mn_free_nums;
+    uint mn_free_list_nums;
     _off_t mn_free_next_ext;
 
     /****data****/
-    uint data_nums;
-    _off_t data_free_next_ext;
+    uint fdata_free_list_nums;
+    _off_t fdata_free_next_ext;
 
     /****inode****/
-    uint inode_nums;
+    uint inode_free_list_nums;
     _off_t inode_free_next_ext;
 
 }supernode;
@@ -103,7 +103,7 @@ typedef struct {
 
 
 #define EXTENT_DATA_MAX_LEN 50 
-typedef enum{E_TYPE_MN = 0, E_TYPE_DATA, E_TYPE_INODE, E_TYPE_INVALID} e_type_t;
+typedef enum{E_TYPE_mn = 0, E_TYPE_fdata, E_TYPE_inode, E_TYPE_invalid} e_type_t;
 #define EXTENT_MAGIC_NUM 0x8bd94107
 #define EXTENT_SIZE 4096
 #define ST_EXTENT_MAX_SIZE 512
@@ -124,11 +124,33 @@ typedef struct extent{
 
 
 #define MN_MAGIC_NUM 0x5d4329aa
+//meta_node
 typedef struct{
-  uint magic_num;  
-  _off_t real_where;
-  node data; 
-}meta_node;
+    uint magic_num;  
+    _off_t real_where;
+    node data; 
+}mn;
+
+
+typedef struct{
+    int a[53];
+}rinode_t;
+
+#define INODE_MAGIC_NUM 0xb4385c7f
+typedef struct{
+    uint magic_num; 
+    _off_t real_where;
+    rinode_t data;
+}inode;
+
+
+#define FDATA_MAGIC_NUM 0x90fcc345
+typedef struct{
+    uint magic_num; 
+    _off_t real_where;
+    char off_t[512];
+}fdata;
+
 
 
 

@@ -137,10 +137,13 @@ kmalloc(int32_t n)
             if(!ret) goto ret_null; 
         }
     }
+    assert(ret != NULL);
+
     return ret;
 alloc_page:
     ret = alloc_pages(1);
 ret_null:
+    assert(ret != NULL);
     return ret; 
 }
 
