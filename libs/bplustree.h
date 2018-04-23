@@ -5,12 +5,17 @@
 #define TEST2 0
 
 #define INF (0xff)
+#ifndef INFS
 #define INFS (0xffffffff)
+#endif
 
 #define GENERAL_NODE 0
 #define LEAF_NODE 1
 
-typedef unsigned int _off_t;
+#ifndef _off_t
+#define  _off_t unsigned int
+#endif
+
 #ifndef _BPT_NODE_
 #define _BPT_NODE_
 #define ORDER 5
@@ -46,9 +51,9 @@ static node* get_node_ptr(_off_t n);
 static void free_node(node *);
 
 //interface
-_off_t bpt_find(node *root, int key);
-node* bpt_insert(node * root, int key, _off_t value);
-node* bpt_delete(node * root, int key);
+static _off_t bpt_find(node *root, int key);
+static node* bpt_insert(node * root, int key, _off_t value);
+static node* bpt_delete(node * root, int key);
 
 #define MALLOC_NODE(a) malloc_node(a) 
 #define GET_NODE_PTR(a) get_node_ptr(a)
@@ -171,7 +176,7 @@ static node* find_leaf(node *root, int key) {
 /* Finds and returns the record to which
  * a key refers.
  */
-_off_t bpt_find(node *root, int key) {
+static _off_t bpt_find(node *root, int key) {
 	int i = 0;
 	node *c = find_leaf(root, key);
 
@@ -184,7 +189,7 @@ _off_t bpt_find(node *root, int key) {
 	else
 		return c->vals[i];
 }
-_off_t bpt_find_near(node *root, _off_t near){
+static _off_t bpt_find_near(node *root, _off_t near){
 	node *c = find_leaf(root, near);
     int i;
     int ret;
@@ -495,7 +500,7 @@ static node* insert_into_leaf_after_splitting(node *root, node *leaf,int key,_of
  * however necessary to maintain the B+ tree
  * properties.
  */
-node * bpt_insert(node * root, int key, _off_t value) {
+static node * bpt_insert(node * root, int key, _off_t value) {
 
 	node *leaf;
 
@@ -903,7 +908,7 @@ static node* delete_entry( node * root, node * n, int key, _off_t value ) {
 
 /* Master deletion function.
  */
-node * bpt_delete(node * root, int key) {
+static  node * bpt_delete(node * root, int key) {
 
 	node * key_leaf;
 	_off_t  value_off_t;

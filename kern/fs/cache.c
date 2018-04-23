@@ -208,8 +208,10 @@ void* mapping_file(uint sec ,uint off)
         t = cache_add(sec);
         assert(t && cache_manager.capacity <= 8000);
         ide_read(t->buf ,t->sec *(CACHE_NUM_PER_SEC));
+        t->using_pid = CUR_PROC->pid;
     }
-    if(t->flags != BIT_VALID)
+
+    if((t->flags != BIT_VALID ) || (t->flags == BIT_VALID && CUR_PROC->pid != t->using_pid))
         acquiresleep(&t->lock);
 
     t->using_pid = CUR_PROC->pid;

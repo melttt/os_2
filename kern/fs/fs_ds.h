@@ -125,19 +125,23 @@ typedef struct extent{
 
 #define MN_MAGIC_NUM 0x5d4329aa
 //meta_node
-typedef struct{
+typedef struct _mn{
     uint magic_num;  
     _off_t real_where;
     node data; 
 }mn;
 
 
+typedef enum{ INODE_TYPE_INVALID, INODE_TYPE_DIR ,INODE_TYPE_FILE,INODE_TYPE_DEV } i_t;
 typedef struct{
-    int a[53];
+    i_t type;    
+    short nlink;
+    _off_t size;
+    _off_t root_rwhere;
 }rinode_t;
 
 #define INODE_MAGIC_NUM 0xb4385c7f
-typedef struct{
+typedef struct _inode{
     uint magic_num; 
     _off_t real_where;
     rinode_t data;
@@ -145,9 +149,14 @@ typedef struct{
 
 
 #define FDATA_MAGIC_NUM 0x90fcc345
-typedef struct{
+#define FDATA_SIZE 512
+#define FDATA_VALID(a) (a->magic_num == FDATA_MAGIC_NUM)
+typedef struct _fdata{
     uint magic_num; 
     _off_t real_where;
+
+    _off_t file_off;
+    _off_t valid_len;
     char off_t[512];
 }fdata;
 

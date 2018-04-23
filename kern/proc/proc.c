@@ -19,8 +19,7 @@
 #include "sleep_hash.h"
 #include "syslib.h"
 
-#include "ext.h"
-
+#include "inode.h"
 static int
 load_icode(char *binary, size_t size);
 
@@ -224,7 +223,7 @@ init_main(void *arg) {
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
 
-    ext_init();
+    init_inode();
     /*
     cache_init();
     cprintf("12345678");

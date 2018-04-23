@@ -1,5 +1,5 @@
-#include "ext.h"
 #include "fs_ds.h"
+#include "ext.h"
 
 #define E_TEST 1
 
@@ -12,17 +12,9 @@
 #endif
 
 
+
+
 fs_low_class* fs_f;
-#define CLEAR_CACHE() fs_f->begin_fs_op()
-#define SYNC_DISK() fs_f->end_fs_op()
-#define MAP_D(sec ,off) fs_f->map_disk(sec ,off )
-#define INSERT_E(where ) fs_f->insert_ext(where, where)
-#define FIND_E(key ) fs_f->find_ext(key)
-#define FIND_NEAR_E(near) fs_f->find_ext_near(near )
-#define DELETE_E(key ) fs_f->delete_ext(key )
-#define SP_N fs_f->supernode_p
-
-
 /***********************************extent********************************************/
 #define EXT_IS_VALID(d) (d->magic_num == EXTENT_MAGIC_NUM) 
 #define LAST_EXT (SP_N->e_st_ext + SP_N->e_all_nums)
@@ -79,6 +71,11 @@ static inode* init_inode(inode* m,_off_t high_where, _off_t low_where)
     m->magic_num = INODE_MAGIC_NUM;
     assert(high_where < HIGH_MAX);
     m->real_where = CALC_REAL_WHERE(high_where, low_where);
+
+    m->data.type = INODE_TYPE_INVALID;
+    m->data.nlink = 0;
+    m->data.size = 0;
+    m->data.root_rwhere = NIA;
     return m;
 }
 
@@ -89,6 +86,9 @@ static fdata* init_fdata(fdata* m,_off_t high_where, _off_t low_where)
     m->magic_num = FDATA_MAGIC_NUM;
     assert(high_where < HIGH_MAX);
     m->real_where = CALC_REAL_WHERE(high_where, low_where);
+    m->file_off = 0;
+    m->valid_len = 0;
+
     return m;
 }
 
@@ -185,27 +185,35 @@ meta_free(fdata)
 #undef meta_free
 
 
-mn* get_mn(_off_t where)
-{
-    extent *ne;
-    mn *ret;
-    int high_n = GET_REAL_WEHRE_HIGHT(where);
-    int low_n = GET_REAL_WHERE_LOW(where);
-    ne = MAP_D(high_n, 0);
-    if(ne->e_valid[low_n ])
-        ret = mn_OFF(ne, GET_REAL_WHERE_LOW(where));
-    else
-        ret = NULL;
-    return ret;
+#define get_type(type) \
+type * get_##type(_off_t where)    \
+{   \
+    extent *ne; \
+    type *ret; \
+    int high_n = GET_REAL_WEHRE_HIGHT(where); \
+    int low_n = GET_REAL_WHERE_LOW(where);\
+    ne = MAP_D(high_n, 0);  \
+    if(ne->e_valid[low_n ]) \
+        ret = type##_OFF(ne, GET_REAL_WHERE_LOW(where));    \
+    else    \
+        ret = NULL; \
+    return ret; \
 }
 
+
+get_type(mn)
+get_type(inode)
+get_type(fdata)
+
+#undef get_type
 
 void *arr[1000] = {NULL};
 int ext_init(fs_low_class * _fs_f)
 {
-    int i;
+    //int i;
     fs_f = init_low_fs();
 //    mn *mn;
+#if 0
     CLEAR_CACHE();
     for(i = 0 ; i < 99 ; i += 3)
     {
@@ -231,6 +239,7 @@ int ext_init(fs_low_class * _fs_f)
     cprintf("p->real_where:%x\n", get_mn(0x2e01)->real_where);
 
 //    SYNC_DISK();
+#endif
     return 1;
 }
 
