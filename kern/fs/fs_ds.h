@@ -161,6 +161,16 @@ typedef struct _fdata{
 }fdata;
 
 
+#define DIRENT_LEN 16
+#define DIRENT_BUF_MAX 10
+typedef struct _dirent{
+    uint hash1;
+    uint hash2;
+    char name[DIRENT_LEN];
+    _off_t rwhere;
+}dirent;
+
+
 
 
 
