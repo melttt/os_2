@@ -81,6 +81,8 @@ typedef struct supernode{
     uint inode_free_list_nums;
     _off_t inode_free_next_ext;
 
+    //root path
+    _off_t root_inode_where;
 }supernode;
 
 

@@ -3,14 +3,14 @@
 #include "inode.h"
 
 #include "bplustree.h"
-#define I_TEST 1
 
-#if I_TEST
+#ifndef OUT_K
 #include "defs.h"
 #include "kdebug.h"
 #include "fs_interface.h"
 #include "string.h"
 #include "stdio.h"
+#include "file.h"
 #endif
 
 
@@ -69,20 +69,14 @@ int inode_write(inode* a, void* buf, uint len , _off_t off)
     _off_t off_st_mod = NIA;
     _off_t add_val, remind_val ;
     //calc st
-    if(a->data.size > off)         
-    {
-        off_st = (off / FDATA_SIZE) * FDATA_SIZE ; 
-        off_st_mod = off % FDATA_SIZE;
-     
-    }else{
-        assert(a->data.size % FDATA_SIZE == 0);
-        off_st = a->data.size; //tmpd->file_off ;//= a->data.size;
-        off_st_mod = 0;
-    }
+    off = off < a->data.size ? off : a->data.size;
+    off_st = (off / FDATA_SIZE) * FDATA_SIZE ; 
+    off_st_mod = off % FDATA_SIZE;
 
     fdata *tmpd = NULL;
     _off_t rwhere = NIA;
     char *cur_buf = (char*)buf;
+
     for(add_val = 0, remind_val = len; remind_val != 0 ; )
     {
         add_val = MIN(remind_val , FDATA_SIZE - off_st_mod);
@@ -94,11 +88,17 @@ int inode_write(inode* a, void* buf, uint len , _off_t off)
             memset(tmpd->off_t , 0, FDATA_SIZE);
             tmpd->file_off = off_st;
             tmpd->valid_len = FDATA_SIZE;
-            a->data.size += FDATA_SIZE;
             insert_fdata(a, off_st, tmpd->real_where);
         }else{
             tmpd = get_fdata(rwhere); 
         }
+
+        if((off + (cur_buf - (char*)buf) + add_val) > a->data.size ) 
+        {
+            a->data.size =  off + (cur_buf - (char*)buf) + add_val;
+        }
+//        a->data.size += add_val;//FDATA_SIZE;
+
         assert(tmpd != NULL && FDATA_VALID(tmpd));
         memcpy(tmpd->off_t + off_st_mod , cur_buf , add_val);
         
@@ -117,7 +117,7 @@ int inode_read(inode* a, void* buf, uint len ,_off_t off)
     _off_t add_val, remind_val ;
     if(off  >= a->data.size)
         return -1;
-    if(off + len >= a->data.size) 
+    if(off + len > a->data.size) 
     {
         len = a->data.size - off; 
     }
@@ -150,9 +150,16 @@ int inode_read(inode* a, void* buf, uint len ,_off_t off)
     return len;    
 }
 
+inode* alloc_inode_type(i_t t)
+{
+    inode *ret = inode_alloc();
+    if(ret != NULL)
+        ret->data.type = t;
+    return ret;
+}
 
 /*******************************dirent****************************/
-uint hash1(char *name, int len)
+static uint hash1(char *name, int len)
 {
     int i = 0, p = 13, mod = 1000000007;
     uint hashres = name[i];
@@ -162,7 +169,7 @@ uint hash1(char *name, int len)
     }
     return hashres;
 }
-uint hash2(char *name, int len)
+static uint hash2(char *name, int len)
 {
     int i = 0, p = 13, mod = 1000000009;
     uint hashres = name[i];
@@ -212,7 +219,7 @@ inode *dirent_lookup(inode *parent, char* name)
     return NULL;
 }
 
-void dirent_make(dirent* a, char* name, int len, _off_t rwhere)
+static void dirent_make(dirent* a, char* name, int len, _off_t rwhere)
 {
     if(len > DIRENT_LEN)
         len = DIRENT_LEN - 1;
@@ -298,18 +305,27 @@ char* parse_path(char* path, char* ret, int* ret_len)
 static char test2[513] = "Oh shit! my genius";
 void init_inode()
 {
-    int i;
+    //int i;
     ext_init();
-    //inode *file1 = get_inode(0x2e00);//inode_alloc();
-    inode *rot = get_inode(0x2e01);//inode_alloc();
-    //i = inode_write(file1,test ,sizeof(test) ,2 );
-    inode* dir2 = dirent_lookup(rot, "dir2");
-    inode* isfile3 = dirent_lookup(dir2, "file3");
+    init_filetable();
+    inode *root = get_inode(0x2e00);
 
-    if( isfile3)
+    //kcreate(root, "test1");
+    file* a = kopen(root, "test1", 0);
+    //kwrite(a, test ,sizeof(test));
+    kread(a, test2, sizeof(test2));
+
+    cprintf("test2 : %s\n", test2);
+    //inode *rot = get_inode(0x2e01);//inode_alloc();
+    //i = inode_write(file1,test ,sizeof(test) ,2 );
+    
+#if 0
+    inode_write(file1, test ,sizeof(test) ,2000);
+    if(file1)
     {
-        i = inode_read(isfile3, test2, sizeof(test2) , 0); 
-        cprintf("%d,result : %s\n",i, test2);
+        i = inode_read(file1, test2, sizeof(test2) , 512); 
+        i ++;
+        cprintf("%d,result : %s\n",file1->data.size, test2);
 
         char bb[] = "./home/////melt//tt///os_2/os_2";
         char *p = bb;
@@ -321,15 +337,15 @@ void init_inode()
             cprintf("%s\n", ret);
         }
 
-
     }else{
         panic("no file1\n");
     }
+#endif
 
     //i = inode_read(xx, test2, sizeof(test2) , 0); 
     //cprintf("%d result : %s\n : %x",i,  test2, xx->real_where);
 
-    //SYNC_DISK();
+//    SYNC_DISK();
     while(1);
 }
 

@@ -1,9 +1,8 @@
 #include "fs_ds.h"
 #include "ext.h"
 
-#define E_TEST 1
 
-#if E_TEST
+#ifndef OUT_K
 #include "defs.h"
 #include "kdebug.h"
 #include "fs_interface.h"
@@ -207,11 +206,15 @@ get_type(fdata)
 
 #undef get_type
 
-void *arr[1000] = {NULL};
 int ext_init(fs_low_class * _fs_f)
 {
     //int i;
+#ifndef OUT_K
     fs_f = init_low_fs();
+#else
+    fs_f = _fs_f;
+#endif
+
 //    mn *mn;
 #if 0
     CLEAR_CACHE();

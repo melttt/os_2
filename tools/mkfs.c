@@ -5,12 +5,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-
 #include "../libs/bplustree.h"
+
 #define FILE_PATH "../fs.img"
 typedef unsigned int uint;
-
-
 
 #define SUPER_NODE_MAGIC_NUM 0x32f490c8
 #define EXTENT_MAGIC_NUM 0x8bd94107
@@ -57,7 +55,6 @@ typedef struct supernode{
     /****inode****/
     uint inode_nums;
     _off_t inode_free_next_ext;
-    
 
     //other
     char is_valid;
@@ -97,13 +94,13 @@ inline int calc_ext_nums()
 typedef struct{
     uint ext_nums;
     int fd;  
-    uint me_now;
-    int me_pos;
+    uint me_cur;
+    int mext_index;
 }_mkfs_info;
 
 _mkfs_info mkfs_info;
-#define ME_NOW (mkfs_info.me_now)
-#define ME_POS (mkfs_info.me_pos)
+#define ME_CUR (mkfs_info.me_cur)
+#define MEXT_INDEX (mkfs_info.mext_index)
 
 #define MKFS_FD ((mkfs_info.fd))
 #define ESTIMATE_LEN (MEXTS*1800)
@@ -123,21 +120,21 @@ static void write_n_ext(_off_t n, void *buf)
 
 static node* malloc_node(node **a)
 {
-    if(ME_POS >= ESTIMATE_LEN)
+    if(MEXT_INDEX >= ESTIMATE_LEN)
     {
         printf("malloc_node over extent\n");
         exit(2);
     }
 
-    *a = &mext[ME_POS];
+    *a = &mext[MEXT_INDEX];
     (*a)->next = NIA;
-    (*a)->where = ME_POS;
+    (*a)->where = MEXT_INDEX;
 
-    ME_POS ++;
+    MEXT_INDEX ++;
 
-    if(ME_POS % MEXTS == 0)
+    if(MEXT_INDEX % MEXTS == 0)
     {
-        ME_NOW ++;
+        ME_CUR ++;
     }
     
     fs_supernode.me_all_nums ++;
@@ -311,7 +308,7 @@ int init_mkfs_info()
     int ret;
     mkfs_info.fd = open(FILE_PATH, O_RDWR);
     mkfs_info.ext_nums = ret = calc_ext_nums();    
-    ME_NOW = 1;
+    ME_CUR = 1;
 
 
     printf("filename :%s , ext_nums : %d\n",FILE_PATH, mkfs_info.ext_nums);
@@ -341,7 +338,7 @@ void mkfs(char* cmd)
         //insert node
         printf("1234561234567");
 
-        for(;ME_NOW * 5 / 4 < cur_ext ; cur_ext --)
+        for(;ME_CUR * 5 / 4 < cur_ext ; cur_ext --)
         {
             tmp_extent->e_where = cur_ext;
             root = bpt_insert(root, cur_ext, cur_ext); 
@@ -356,14 +353,14 @@ void mkfs(char* cmd)
 
         //padding the rest of room
         node *t;
-        for( ; ME_NOW < cur_ext + 1 ;)
+        for( ; ME_CUR < cur_ext + 1 ;)
         {
             malloc_node(&t);
             free_node(t);
         }
 
 
-        printf("me_now : %d, ext start %d\n",ME_NOW, cur_ext + 1);
+        printf("me_now : %d, ext start %d\n",ME_CUR, cur_ext + 1);
         //write supernode
         fs_supernode.me_st_ext = DEFAULE_ME_START_SEC;
         fs_supernode.me_root = root->where;
