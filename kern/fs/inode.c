@@ -309,12 +309,10 @@ void init_inode()
     ext_init();
     init_filetable();
     inode *root = get_inode(0x2e00);
-
     //kcreate(root, "test1");
     file* a = kopen(root, "test1", 0);
     //kwrite(a, test ,sizeof(test));
     kread(a, test2, sizeof(test2));
-
     cprintf("test2 : %s\n", test2);
     //inode *rot = get_inode(0x2e01);//inode_alloc();
     //i = inode_write(file1,test ,sizeof(test) ,2 );
@@ -345,7 +343,7 @@ void init_inode()
     //i = inode_read(xx, test2, sizeof(test2) , 0); 
     //cprintf("%d result : %s\n : %x",i,  test2, xx->real_where);
 
-//    SYNC_DISK();
+    SYNC_DISK();
     while(1);
 }
 

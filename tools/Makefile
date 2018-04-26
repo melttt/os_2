@@ -13,8 +13,8 @@ INCLUDEFLAGS:= -I../libs
 #CFLAGS :=$(INCLUDEFLAGS)  -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables
 
 
-mkfs : $(TOOLS_OBJS) 
-	gcc  -o $@ $(TOOLS_C_FILE) 
+mkfs : ./mkfs.c 
+	gcc  -o $@ ./mkfs.c 
 
 test : mkfs fs.img
 

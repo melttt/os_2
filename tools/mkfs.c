@@ -5,153 +5,67 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+
+#include "../kern/fs/fs_ds.h"
 #include "../libs/bplustree.h"
 
-#define FILE_PATH "../fs.img"
-typedef unsigned int uint;
-
-#define SUPER_NODE_MAGIC_NUM 0x32f490c8
-#define EXTENT_MAGIC_NUM 0x8bd94107
-#define EXT_SIZE (512*8)
-#define MEXTS (EXT_SIZE / sizeof(node))
-
-#ifndef INFS
-#define INFS 0xFFFFFFFF
-#define NIA (INFS)
-#endif
-
-#ifndef NIA
-#define NIA (INFS)
-#endif
 
 
-#define DEFAULE_ME_START_SEC 1
-#define DEFAULT_SP_START_SEC 0
-typedef struct supernode{
-    char boot_loader[512];
-    unsigned int magic_num;
-    /****meta_extent****/
-    uint me_st_ext;
-    uint me_ext_nums;
-    _off_t me_root;
-
-    uint me_all_nums; 
-    uint me_free_nums;
-    uint me_free_next_me;
-     
-    /****ext****/
-    _off_t e_st_ext;
-    uint e_all_nums;
-    uint e_free_nums;
-
-    /****meta_node****/
-    uint mn_nums;
-    _off_t mn_free_next_ext;
-
-    /****data****/
-    uint data_nums;
-    _off_t data_free_next_ext;
-
-    /****inode****/
-    uint inode_nums;
-    _off_t inode_free_next_ext;
-
-    //other
-    char is_valid;
-
-}supernode;
-supernode fs_supernode;
-
-typedef struct extent{
-    unsigned int magic_num;
-    _off_t e_where;
-}extent;
-
-
-//get file size
-size_t get_file_size(const char *path)
-{
-    size_t filesize = -1;
-    struct stat statbuf;
-    if(stat(path, &statbuf) < 0)
-    {
-        return filesize;
-    }
-
-    filesize = statbuf.st_size;
-    return filesize;
-}
-
-int calc_ext_nums();
-inline int calc_ext_nums()
-{
-    int ext_num;
-    ext_num = get_file_size(FILE_PATH) / EXT_SIZE;
-    return ext_num;
-}
-
-//global variates
+#define ESTIMATE_LEN (MEXTS*60)
+//#define FILE_PATH "../fs.img"
 typedef struct{
-    uint ext_nums;
-    int fd;  
+    int  fd;  
+    char *filename;
+    uint disk_all_ext_nums;
     uint me_cur;
-    int mext_index;
+    node mext[ESTIMATE_LEN];
+    int  mext_index;
+    supernode sp;
 }_mkfs_info;
-
 _mkfs_info mkfs_info;
-#define ME_CUR (mkfs_info.me_cur)
-#define MEXT_INDEX (mkfs_info.mext_index)
 
-#define MKFS_FD ((mkfs_info.fd))
-#define ESTIMATE_LEN (MEXTS*1800)
-node mext[ESTIMATE_LEN];
+#define MK_CUR (mkfs_info.me_cur)
+#define MK_FILENAME (mkfs_info.filename)
+#define MK_INDEX (mkfs_info.mext_index)
+#define MK_FD ((mkfs_info.fd))
+#define MK_SUM (mkfs_info.disk_all_ext_nums)
+#define MK_ARR (mkfs_info.mext)
+#define MK_SP (mkfs_info.sp)
 
-static void read_n_ext(_off_t n, void *buf)
-{
-    lseek(MKFS_FD, n * EXT_SIZE, SEEK_SET);
-    read(MKFS_FD, buf, EXT_SIZE);
-}
-static void write_n_ext(_off_t n, void *buf)
-{
-    lseek(MKFS_FD, n * EXT_SIZE, SEEK_SET);
-    write(MKFS_FD, buf,EXT_SIZE);
-    fsync(MKFS_FD);   
-}
-
+/*************************bplustree************************/
 static node* malloc_node(node **a)
 {
-    if(MEXT_INDEX >= ESTIMATE_LEN)
+    if(MK_INDEX >= ESTIMATE_LEN)
     {
         printf("malloc_node over extent\n");
         exit(2);
     }
 
-    *a = &mext[MEXT_INDEX];
+    *a = &MK_ARR[MK_INDEX];
     (*a)->next = NIA;
-    (*a)->where = MEXT_INDEX;
+    (*a)->where = MK_INDEX;
 
-    MEXT_INDEX ++;
+    MK_INDEX ++;
 
-    if(MEXT_INDEX % MEXTS == 0)
+    if(MK_INDEX % MEXTS == 0)
     {
-        ME_CUR ++;
+        MK_CUR ++;
     }
     
-    fs_supernode.me_all_nums ++;
+    MK_SP.me_all_nums ++;
     return (*a);
 }
+
 static void free_node(node *a)
 {
-    a->next = fs_supernode.me_free_next_me;
-    fs_supernode.me_free_next_me = a->where;
-    fs_supernode.me_free_nums ++;
+    a->next = MK_SP.me_free_next_me;
+    MK_SP.me_free_next_me = a->where;
+    MK_SP.me_free_nums ++;
 }
-
-
 static node* get_node_ptr(_off_t n)
 {
     if(n >= 0 && n < ESTIMATE_LEN)
-        return &mext[n];
+        return &MK_ARR[n];
     else
     {
         if(n == NIA)
@@ -163,80 +77,111 @@ static node* get_node_ptr(_off_t n)
     }
 }
 
-
-void init_supernode()
+/*************utiles***************/
+static uint get_file_size(const char *path)
 {
-    fs_supernode.magic_num = SUPER_NODE_MAGIC_NUM;
-    //meta_extent
-    fs_supernode.me_st_ext= 1;
-    fs_supernode.me_root = NIA;
-
-    fs_supernode.me_all_nums = 0;
-    fs_supernode.me_free_nums = 0;
-    fs_supernode.me_free_next_me = NIA;
-
-
-    //ext
-    fs_supernode.e_st_ext = NIA;
-    fs_supernode.e_all_nums = 0;
-    fs_supernode.e_free_nums = 0;
-
-    //meta_node
-    fs_supernode.mn_nums = 0;
-    fs_supernode.mn_free_next_ext = NIA;
-
-    //data
-    fs_supernode.data_nums = 0;
-    fs_supernode.data_free_next_ext = NIA;
-
-    //inode
-    fs_supernode.inode_nums = 0;
-    fs_supernode.inode_free_next_ext = NIA;
-    
-    //other
-    fs_supernode.is_valid = 1;
-}
-
-
-void write_fs_to_disk()
-{
-    int k;
-    _off_t st = DEFAULE_ME_START_SEC;
-    _off_t ed = st + fs_supernode.me_ext_nums;
-    write_n_ext(DEFAULT_SP_START_SEC, &fs_supernode);
-
-    printf("start write to disk st:%d, ed:%d\n", st, ed);
-    for(k = 0 ; st < ed ; st += 1, k += MEXTS )
+    uint filesize = -1;
+    struct stat statbuf;
+    if(stat(path, &statbuf) < 0)
     {
-        write_n_ext(st, &mext[k]); 
+        return filesize;
     }
 
+    filesize = statbuf.st_size;
+    return filesize;
+}
+int calc_ext_nums();
+inline int calc_ext_nums()
+{
+    int ext_num;
+    ext_num = get_file_size(MK_FILENAME) / EXT_SIZE;
+    return ext_num;
 }
 
+static void read_n_ext(_off_t n, void *buf)
+{
+    lseek(MK_FD, n * EXT_SIZE, SEEK_SET);
+    read(MK_FD, buf, EXT_SIZE);
+}
+static void write_n_ext(_off_t n, void *buf)
+{
+    lseek(MK_FD, n * EXT_SIZE, SEEK_SET);
+    write(MK_FD, buf,EXT_SIZE);
+    fsync(MK_FD);   
+}
+
+static void init_supernode()
+{
+    MK_SP.magic_num = SUPER_NODE_MAGIC_NUM;
+    //meta_extent
+    MK_SP.me_st_ext= 1;
+    MK_SP.me_root = NIA;
+    MK_SP.me_all_nums = 0;
+    MK_SP.me_free_nums = 0;
+    MK_SP.me_free_next_me = NIA;
+    //ext
+    MK_SP.e_st_ext = NIA;
+    MK_SP.e_all_nums = 0;
+    MK_SP.e_free_nums = 0;
+    //meta_node
+    MK_SP.mn_free_list_nums = 0;
+    //data
+    MK_SP.fdata_free_list_nums = 0;
+    MK_SP.fdata_free_next_ext = 0;
+    //inode
+    MK_SP.inode_free_list_nums = 0;
+    MK_SP.inode_free_next_ext = NIA;
+    //other
+    MK_SP.root_inode_where = NIA;
+}
+static int init_mkfs_info()
+{
+    int ret;
+    MK_FD = open(MK_FILENAME, O_RDWR);
+    MK_SUM = ret = calc_ext_nums();    
+    MK_CUR = 1;
+    init_supernode();
+    return ret;
+}
+
+static void write_fs_to_disk()
+{
+    int k;
+    _off_t st = DEFAULT_MEXT_SEC;
+    _off_t ed = st + MK_SP.me_ext_nums;
+    //write sp_node
+    write_n_ext(DEFAULT_SUPERNODE_SEC, &MK_SP);
+    for(k = 0 ; st < ed ; st += 1, k += MEXTS )
+    {
+        write_n_ext(st, &MK_ARR[k]); 
+    }
+    printf("ok\n");
+
+}
+
+/**************test function******************/
 void load_mext()
 {
     char buf[EXT_SIZE];
     read_n_ext(0, buf);
-
-        //printf("asd\n");
     //load supernode
-    fs_supernode = *((supernode*)buf);
+    MK_SP = *((supernode*)buf);
 
-    if(fs_supernode.magic_num != SUPER_NODE_MAGIC_NUM)
+    if(MK_SP.magic_num != SUPER_NODE_MAGIC_NUM)
     {
-        printf("supernode wrong num %x\n", fs_supernode.magic_num);
+        printf("supernode wrong num %x\n", MK_SP.magic_num);
         exit(2);
     }
 
     //load me to cache
-    _off_t st = fs_supernode.me_st_ext;
-    _off_t ed = fs_supernode.me_ext_nums + st; 
+    _off_t st = MK_SP.me_st_ext;
+    _off_t ed = MK_SP.me_ext_nums + st;
 
     int k = 0;
     //
     for( ; st < ed ; k += MEXTS , st += 1 )
     {
-        read_n_ext(st, &mext[k]); 
+        read_n_ext(st, &MK_ARR[k]);
     }
     printf("load over\n");
 }
@@ -244,13 +189,13 @@ void load_mext()
 
 void test_mext()
 {
-    int bg =  fs_supernode.e_st_ext;
-    int ed = fs_supernode.e_all_nums + bg;
+    int bg =  MK_SP.e_st_ext;
+    int ed = MK_SP.e_all_nums + bg;
     char xx[4096];
     int tmp;
 
-    node *root = get_node_ptr(fs_supernode.me_root);
-
+    node *root = get_node_ptr(MK_SP.me_root);
+    
     for( ; bg < ed ; bg ++)
     {
         if((tmp = bpt_find(root, bg)) == -1)
@@ -270,12 +215,12 @@ void test_mext()
 
 void test_mext2()
 {
-    int bg =  fs_supernode.e_st_ext;
-    int ed = fs_supernode.e_all_nums + bg;
+    int bg =  MK_SP.e_st_ext;
+    int ed = MK_SP.e_all_nums + bg;
     char xx[4096];
     int tmp = bg;
 
-    node *root = get_node_ptr(fs_supernode.me_root);
+    node *root = get_node_ptr(MK_SP.me_root);
     int test[] = {5,2,7,4,345,534,1234,6745};
 
 
@@ -296,115 +241,85 @@ void test_mext2()
     {
         if((bpt_find(root, tmp)) == -1)
         {
-            printf("delete:%d\n", tmp); 
+            printf("delete:%d\n", tmp);
         }
     }
     */
 
     printf("pass test!\n");
 }
-int init_mkfs_info()
+
+void mkfs()
 {
-    int ret;
-    mkfs_info.fd = open(FILE_PATH, O_RDWR);
-    mkfs_info.ext_nums = ret = calc_ext_nums();    
-    ME_CUR = 1;
+    init_mkfs_info();
+    //init node and extent
+    node *root = NULL;
+    _off_t cur_ext = MK_SUM - 1;
 
-
-    printf("filename :%s , ext_nums : %d\n",FILE_PATH, mkfs_info.ext_nums);
-    return ret;
-}
-
-
-
-void mkfs(char* cmd)
-{
-
-    int exts;
-    exts =  init_mkfs_info();
-    if(strcmp(cmd, "m") == 0)
-    {
-        init_supernode();
-
-        //init node and extent
-        node *root = NULL;
-        extent *tmp_extent = malloc(EXT_SIZE);
-        memset(tmp_extent, 0, EXT_SIZE);
-        tmp_extent->magic_num = EXTENT_MAGIC_NUM;
-
-        //end of ext
-        off_t cur_ext = exts - 1;
-
-        //insert node
-        printf("1234561234567");
-
-        for(;ME_CUR * 5 / 4 < cur_ext ; cur_ext --)
-        {
-            tmp_extent->e_where = cur_ext;
-            root = bpt_insert(root, cur_ext, cur_ext); 
-            write_n_ext(cur_ext, tmp_extent);
-            if(bpt_find(root, cur_ext) == cur_ext)
-                printf("\b\b\b\b\b\b\b\b\b\b\b\b\bindex:%07d",cur_ext);
-            else
-                printf("insert error, no find\n");
-        }
-        printf("\n");
-
-
-        //padding the rest of room
-        node *t;
-        for( ; ME_CUR < cur_ext + 1 ;)
-        {
-            malloc_node(&t);
-            free_node(t);
-        }
-
-
-        printf("me_now : %d, ext start %d\n",ME_CUR, cur_ext + 1);
-        //write supernode
-        fs_supernode.me_st_ext = DEFAULE_ME_START_SEC;
-        fs_supernode.me_root = root->where;
-        fs_supernode.me_ext_nums = cur_ext + 1 - DEFAULE_ME_START_SEC ;
-
-        fs_supernode.e_st_ext = cur_ext + 1;
-        fs_supernode.e_free_nums = fs_supernode.e_all_nums = exts - fs_supernode.e_st_ext;
-
-
-//        test_mext();
-
-        write_fs_to_disk();
-        printf("mkfs ok....final\n");
-        printf("info:\n me_ext_num : %d me_all_num : %d \n e_st : %d  e_nums : %d \n all_exts : %d \n",fs_supernode.me_ext_nums ,fs_supernode.me_all_nums, fs_supernode.e_st_ext, fs_supernode.e_all_nums ,exts );
-
-    }else{
-        load_mext();
-        test_mext();
-        //test_mext2();
-
-    }
-
+    extent tmp_extent;
+    memset(&tmp_extent, 0, sizeof(extent));
+    tmp_extent.magic_num = EXTENT_MAGIC_NUM;
     
+    //the kernel of mkfs
+    for(;MK_CUR * 5 / 4 < cur_ext ; cur_ext --)
+    {
+        tmp_extent.e_where = cur_ext;
+        root = bpt_insert(root, cur_ext, cur_ext); 
+        write_n_ext(cur_ext, &tmp_extent);
+        if(bpt_find(root, cur_ext) == cur_ext)
+            printf("\b\b\b\b\b\b\b\b\b\b\b\b\bindex:%07d",cur_ext);
+        else
+            printf("insert error, no find\n");
+    }
+    //padding the rest of room
+    node *t;
+    for( ; MK_CUR < cur_ext + 1 ;)
+    {
+        malloc_node(&t);
+        free_node(t);
+    }
+
+    //write supernode
+    MK_SP.me_st_ext = DEFAULT_MEXT_SEC;
+    MK_SP.me_root = root->where;
+    MK_SP.me_ext_nums = cur_ext + 1 - DEFAULT_MEXT_SEC ;
+    MK_SP.e_st_ext = cur_ext + 1;
+    MK_SP.e_free_nums = MK_SP.e_all_nums = MK_SUM - MK_SP.e_st_ext;
+    //test_mext();
+    write_fs_to_disk();
+
+    printf("mkfs ok....final\n");
+    printf("info:\n me_ext_num : %d me_all_num : %d \n e_st : %d e_nums:%d \n all_exts:%d \n",MK_SP.me_ext_nums ,MK_SP.me_all_nums, MK_SP.e_st_ext, MK_SP.e_all_nums ,MK_SUM);
 }
 
-int main(int ac ,char **av)
-{
-    if(ac != 2)
-    {
-        printf("mkfs t(test) or mkfs m(make fs)");
-        exit(2);
-        
-    }else{
-        if(sizeof(node) > 64 || sizeof(supernode) > 4096)
-        {
-            printf("error size of node or supernode\n exit ...");
-            return 1;
-        }
-        printf("size of node :%d %s\n", sizeof(node), av[1]);
-        
-        mkfs(av[1]);
 
+
+
+int main(int ac, char *av[])
+{
+    int opt;
+    
+    int flag = 0;
+    while ((opt = getopt(ac, av, "tmf:")) != -1) {
+        switch (opt) {
+            case 't':
+                init_mkfs_info();
+                load_mext();
+                test_mext();
+                break;
+            case 'm':
+                mkfs();
+                break;
+            case 'f':
+                MK_FILENAME = optarg;
+                break;
+            default: 
+                printf( "Usage: %s [-f filename] [-n] name\n",av[0]);
+                exit(EXIT_FAILURE);
+        }
     }
+    printf("over!\n");
 
     return 0;
-}
 
+}
