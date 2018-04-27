@@ -164,54 +164,26 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     return do_fork(clone_flags, 0, &tf);
 }
 
+extern char *user_test_buf;
+extern int user_test_buf_len;
 static int
 user_main(void *arg){
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
     assert(PCPU->ncli == 0);
 
-    extern char _binary___user_user_test_start[];
-    extern char _binary___user_user_test_size[];
+//    extern char _binary___user_user_test_start[];
+ //   extern char _binary___user_user_test_size[];
 
-    exec(" ", 1, (char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
+    init_inode();
+    //exec(" ", 1, (char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
 
+    exec(" ", 1, (char*)user_test_buf, (size_t)user_test_buf_len);
     panic("should not at here\n");
     return 1;
 }
 
 
-
-/*
-char testsz[4096];
-void testide()
-{
-    cprintf("             ");
-    for(int i = 0 ; i < 128 * 1024 ;  i ++)
-    {
-        *(int*)testsz = i;
-        ide_write(testsz, i);
-        cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
-    }
-    cprintf("write okk\b\n"); 
-    cprintf("             ");
-    for(int i = 0 ; i < 128 * 1024 ;  i ++)
-    {
-        ide_read(testsz, i);
-        if(*(int*)testsz == i)
-            cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b%06d/%06d", i, 128*1024 - 1);
-        else{
-            cprintf("read wrong in %d\n", i);
-        }
-    }
-
-    cprintf("read okk\b\n"); 
-
-
-}
-*/
-
-char testdisk[4096];
-char testdisk2[4096];
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
@@ -222,48 +194,6 @@ init_main(void *arg) {
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
-
-    init_inode();
-    /*
-    cache_init();
-    cprintf("12345678");
-    cprintf("page num : %x\n", nr_free_pages());
-    for(int xx = 0 ; xx < 128 * 1024; xx ++)
-    {
-        *(int*)testdisk = xx;
-        *(int*)testdisk = xx;
-        cache_write(xx , testdisk);
-        cache_read(xx, testdisk2);
-        cprintf("\b\b\b\b\b\b\b\b%08x", *(int*)testdisk2);
-        if(xx % 1000 == 0)
-            cache_fsyn();
-    }
-    
-    cprintf("read test12345678");
-    for(int xx = 0 ; xx < 128 * 1024 ; xx ++)
-    {
-        cache_read(xx, testdisk2);
-        if(xx != *(int*)testdisk2)
-        {
-            cprintf("wrong\n : %d %d\n", xx, *(int*)testdisk2);
-        }else{
-            cprintf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b%08x|", *(int*)testdisk2);
-
-            cprintf("%08x",nr_free_pages() );
-        }
-
-        if(xx % 1000 == 0)
-            cache_fsyn();
-    }
-
-    
-//    testide();
-    cprintf("ide test ok\n");
-
-    */
-
-    while(1);
-/******TEST**********/
     size_t before = nr_free_pages();
     int pid = kernel_thread(user_main, "one", 0);
     if (pid <= 0) {

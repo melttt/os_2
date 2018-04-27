@@ -24,8 +24,11 @@ int main()
             put('\n');
         }
     }else{
-        put('c');
-        put('\n');
+        while(1)
+        {
+            put('c');
+            put('\n');
+        }
     }
 
     return 0;

@@ -2,7 +2,7 @@
 #include "ext.h"
 #include "inode.h"
 
-#include "bplustree.h"
+#include "../../libs/bplustree.h"
 
 #ifndef OUT_K
 #include "defs.h"
@@ -11,6 +11,15 @@
 #include "string.h"
 #include "stdio.h"
 #include "file.h"
+#include "mm_p.h"
+#else
+#include <string.h>
+#include "stddef.h"
+#include "assert.h"
+#endif
+
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
 
@@ -252,7 +261,6 @@ void dirent_link(inode *parent , char* name, inode *newnode )
         }
     }
 
-    assert(off == parent->data.size);
 found:
     dirent_make(&tmpd, name, len, newnode->real_where);
     inode_write(parent ,&tmpd ,sizeof(tmpd),off);
@@ -302,22 +310,28 @@ char* parse_path(char* path, char* ret, int* ret_len)
 
 
 //static char test[513] = "Oh God ! you do it";
-static char test2[513] = "Oh shit! my genius";
+//static char test2[513] = "Oh shit! my genius";
+char *user_test_buf;
+int user_test_buf_len;
 void init_inode()
 {
+#ifndef OUT_K
     //int i;
-    ext_init();
+    ext_init(NULL);
     init_filetable();
-    inode *root = get_inode(0x2e00);
-    //kcreate(root, "test1");
-    file* a = kopen(root, "test1", 0);
+    inode *root = get_inode(SP_N->root_inode_where);
+    assert(root);
+    file* a = kopen(root, "user_test", 0);
     //kwrite(a, test ,sizeof(test));
-    kread(a, test2, sizeof(test2));
-    cprintf("test2 : %s\n", test2);
+    user_test_buf_len =  a->disk_inode.data.size;
+    user_test_buf = kmalloc(a->disk_inode.data.size);
+    kread(a, user_test_buf, user_test_buf_len);
+
+//    cprintf("file_size : %d\n",);
     //inode *rot = get_inode(0x2e01);//inode_alloc();
     //i = inode_write(file1,test ,sizeof(test) ,2 );
     
-#if 0
+    /*
     inode_write(file1, test ,sizeof(test) ,2000);
     if(file1)
     {
@@ -338,12 +352,12 @@ void init_inode()
     }else{
         panic("no file1\n");
     }
-#endif
+    SYNC_DISK();
+    */
 
     //i = inode_read(xx, test2, sizeof(test2) , 0); 
     //cprintf("%d result : %s\n : %x",i,  test2, xx->real_where);
 
-    SYNC_DISK();
-    while(1);
+#endif
 }
 

@@ -13,10 +13,13 @@ INCLUDEFLAGS:= -I../libs
 #CFLAGS :=$(INCLUDEFLAGS)  -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables
 
 
-mkfs : ./mkfs.c 
-	gcc  -o $@ ./mkfs.c 
+mkfs : ./mkfs.c  ../kern/fs/ext.c ../kern/fs/ext.h  ../kern/fs/inode.h  ../kern/fs/inode.c ./mkfs_interface.c   ./mkfs_interface.h
+	gcc  -o mkfs ./mkfs.c  ../kern/fs/ext.c ../kern/fs/ext.h  ../kern/fs/inode.h  ../kern/fs/inode.c ./mkfs_interface.c   ./mkfs_interface.h -D OUT_K
 
 test : mkfs fs.img
+
+
+
 
 fs.img : 
 	@echo making fs.img......

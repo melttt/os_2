@@ -8,6 +8,7 @@
 
 #include "../kern/fs/fs_ds.h"
 #include "../libs/bplustree.h"
+#include "mkfs_interface.h"
 
 
 
@@ -150,7 +151,9 @@ static void write_fs_to_disk()
     _off_t st = DEFAULT_MEXT_SEC;
     _off_t ed = st + MK_SP.me_ext_nums;
     //write sp_node
-    write_n_ext(DEFAULT_SUPERNODE_SEC, &MK_SP);
+    lseek(MK_FD, 0, SEEK_SET);
+    write(MK_FD, &MK_SP, sizeof(MK_SP));
+    fsync(MK_FD);   
     for(k = 0 ; st < ed ; st += 1, k += MEXTS )
     {
         write_n_ext(st, &MK_ARR[k]); 
@@ -213,42 +216,6 @@ void test_mext()
     printf("pass test!\n");
 }
 
-void test_mext2()
-{
-    int bg =  MK_SP.e_st_ext;
-    int ed = MK_SP.e_all_nums + bg;
-    char xx[4096];
-    int tmp = bg;
-
-    node *root = get_node_ptr(MK_SP.me_root);
-    int test[] = {5,2,7,4,345,534,1234,6745};
-
-
-    bpt_delete(root ,bg + 0);
-    int ret;
-    ret = bpt_find_near(root ,bg + 0);
-    printf("ret : %d\n", ret);
-    bpt_delete(root ,bg + 3);
-    ret = bpt_find_near(root ,bg + 3);
-    printf("ret : %d\n", ret);
-    /*
-    for(int i = 0 ; i < sizeof(test) /sizeof(int) ; i ++)
-    {
-        root = bpt_delete(root ,bg + test[i]);
-    }
-
-    for( ; tmp < ed ; tmp ++ )
-    {
-        if((bpt_find(root, tmp)) == -1)
-        {
-            printf("delete:%d\n", tmp);
-        }
-    }
-    */
-
-    printf("pass test!\n");
-}
-
 void mkfs()
 {
     init_mkfs_info();
@@ -298,10 +265,13 @@ void mkfs()
 int main(int ac, char *av[])
 {
     int opt;
-    
+    char *addfile[2]; 
     int flag = 0;
-    while ((opt = getopt(ac, av, "tmf:")) != -1) {
+    while ((opt = getopt(ac, av, "ltmf:a:")) != -1) {
         switch (opt) {
+            case 'a':
+                addfile[1] = optarg; 
+                break;
             case 't':
                 init_mkfs_info();
                 load_mext();
@@ -309,8 +279,13 @@ int main(int ac, char *av[])
                 break;
             case 'm':
                 mkfs();
+                loadfile(2, addfile); 
+                break;
+            case 'l':
+                loadfile(2, addfile); 
                 break;
             case 'f':
+                addfile[0] = optarg;
                 MK_FILENAME = optarg;
                 break;
             default: 
@@ -319,7 +294,6 @@ int main(int ac, char *av[])
         }
     }
     printf("over!\n");
-
     return 0;
 
 }

@@ -19,7 +19,7 @@ extern fs_low_class* fs_f;
 #define DELETE_E(key ) fs_f->delete_ext(key )
 #define SP_N fs_f->supernode_p
 
-int ext_init();
+int ext_init(fs_low_class*);
 mn* mn_alloc();
 fdata* fdata_alloc();
 inode* inode_alloc();
@@ -37,6 +37,11 @@ inode* get_inode(_off_t );
 
 
 
+#ifdef OUT_K
+#include <stddef.h>
+#define node2mn(a) ((mn*)((char*)(a) - offsetof(mn, data)))
+#else
 #define node2mn(a) to_struct(a, mn, data)
+#endif
 
 #endif

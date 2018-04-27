@@ -8,7 +8,16 @@
 #include "fs_interface.h"
 #include "string.h"
 #include "stdio.h"
+#else
+#include <string.h>
+#include "stddef.h"
+#include "assert.h"
 #endif
+
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 
 
 
@@ -36,7 +45,11 @@ extent* e_alloc()
             DELETE_E(address);
         }else{
             ret = NULL;     
+#ifndef OUT_K
             panic("e_alloc : wrong magic_num\n");
+#else
+        assert(NULL == "e_alloc : wrong magic_num\n");
+#endif
         }
     }
     return ret;

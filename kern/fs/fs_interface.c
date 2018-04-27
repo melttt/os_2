@@ -126,39 +126,6 @@ static void delete_ext(_off_t key)
     FS_M_SP->e_free_nums --;
 }
 
-#if 0
-static void test(int bg, int ed)
-{
-//    _extent *ex;
-//    int i = 0;
-    cprintf("find test bg : %d, ed : %d\n", bg, ed);
-    int ret;
-    node *root;
-    cprintf("123456781234");
-    while(bg < ed)
-    {
-
-            begin_cache();
-            root = get_node_ptr(FS_M_SP->me_root);
-
-//            root = bpt_delete(root, bg);
- //           root = bpt_insert(root ,bg ,bg);
-            if((ret = bpt_find(root, bg)) != NIA)
-            {
-                cprintf("\b\b\b\b\b\b\b\b\b\b\b\bret:%08d", bg);
-            }else{
-                panic("test error : %d\n",bg);
-            }
-            if(root)
-                FS_M_SP->me_root = root->where;
-            else
-                FS_M_SP->me_root = NIA;
-            end_cache();
-            bg ++;
-    }
-    cprintf("test ok\n");
-}
-#endif
 
 static fs_low_class fs_f;
 fs_low_class* init_low_fs()
@@ -191,9 +158,6 @@ fs_low_class* init_low_fs()
         panic("low_fs_init error!\n");
     }
     end_fs_op();
-#if 0
-    test(FS_M_SP->e_st_ext, FS_M_SP->e_st_ext + FS_M_SP->e_all_nums);
-#endif 
 
     return &fs_f;
 }
