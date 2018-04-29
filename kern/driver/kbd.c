@@ -4,7 +4,7 @@
 #include "trap.h"
 #include "kbd.h"
 #include "stdio.h"
-
+#include "proc.h"
 
 // Special keycodes
 #define KEY_HOME            0xE0
@@ -233,11 +233,41 @@ kbd_proc_data(void) {
     return c;
 }
 
+
+//easybuf aha 
+#define KDB_BUF_SIZE 1024
+static volatile char buf[KDB_BUF_SIZE];
+int buf_e, buf_r;
 int8_t
 kbd_intr(void) {
-    int8_t tmp = (char)kbd_proc_data();
-    cprintf("kdb : %c\n", tmp);
-    return tmp;
+    char tmp = kbd_proc_data();
+    if(tmp != 0)
+    {
+        buf[buf_e ++ % KDB_BUF_SIZE] = tmp;
+        wakeup((void*)0x1);
+        //cprintf("[%c]", tmp);
+    }
+    return 0;
+}
+
+
+char
+get_char()
+{
+    buf_r = buf_e;
+    while(1)    
+    {
+        if((buf_e % KDB_BUF_SIZE) > (buf_r % KDB_BUF_SIZE))
+        {
+            return buf[buf_r];
+        }
+        else{
+        PROCM_ACQUIRE;
+            sleep((void*)0x1,  PROCM_LOCK);
+        PROCM_RELEASE;
+        //    cprintf("nonono\n");
+        }
+    }
 }
 void
 kbd_init(void)

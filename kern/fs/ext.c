@@ -227,35 +227,6 @@ int ext_init(fs_low_class * _fs_f)
 #else
     fs_f = _fs_f;
 #endif
-
-//    mn *mn;
-#if 0
-    CLEAR_CACHE();
-    for(i = 0 ; i < 99 ; i += 3)
-    {
-        arr[i] = mn_alloc();
-        cprintf("mn:%d,%d,where:%x\n", SP_N->e_free_nums, SP_N->mn_free_list_nums, ((mn*)arr[i])->real_where);
-        arr[i + 1] = inode_alloc();
-        cprintf("inode:%d,%d,where:%x\n", SP_N->e_free_nums, SP_N->inode_free_list_nums, ((inode*)arr[i+1])->real_where);
-        arr[i + 2] = fdata_alloc();
-        cprintf("fdata:%d,%d,where:%x\n", SP_N->e_free_nums, SP_N->fdata_free_list_nums, ((fdata*)arr[i + 2])->real_where);
-    }
-    for(i = 0 ; i < 99 ; i += 3)
-    {
-        mn_free(arr[i]);
-        inode_free(arr[i+1]);
-        fdata_free(arr[i+2]);
-
-        cprintf("%d,%d,%d,%d\n", SP_N->e_free_nums, SP_N->mn_free_list_nums, SP_N->inode_free_list_nums, SP_N->fdata_free_list_nums);
-    }
-
-    cprintf("ok\n");
-
-    cprintf("p->real_where:%x\n", get_mn(0x2e00)->real_where);
-    cprintf("p->real_where:%x\n", get_mn(0x2e01)->real_where);
-
-//    SYNC_DISK();
-#endif
     return 1;
 }
 

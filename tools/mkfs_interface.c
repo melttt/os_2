@@ -237,6 +237,8 @@ int loadfile(int av, char *ag[])
     {
         printf("root is none\n");
         root = inode_alloc();//get_inode(0x2e00);
+        dirent_link(root ,".", root);
+        dirent_link(root ,"..", root);
         root->data.type = INODE_TYPE_DIR;
         printf("root where : %x\n" , root->real_where);
     }else{

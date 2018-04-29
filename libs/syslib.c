@@ -9,6 +9,13 @@
             : "i" (T_SYSCALL),"a" (SYS_ ## name)    \
             : "memory")                            
 
+
+int getchar(void)
+{
+    int ret;
+    SYSCALL(getchar,ret);
+    return ret;
+}
 int put(char c)
 {
     int ret;

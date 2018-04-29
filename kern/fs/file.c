@@ -2,13 +2,14 @@
 #include "basic_p.h"
 #include "kdebug.h"
 #include "fs_interface.h"
+#include "cpu.h"
+#include "stdio.h"
 #endif
 
 #include "ext.h"
 #include "inode.h"
 #include "file.h"
-
-#define FILE_TABLE_MAX 10
+#define FILE_TABLE_MAX 123
 file filetable[FILE_TABLE_MAX];
 
 file* find_free_file()
@@ -84,9 +85,14 @@ int kread(file *f, void *buf, uint len)
     return ret;
 }
 
+
 void init_filetable()
 {
     int i;
+    inode *root = get_inode(SP_N->root_inode_where);
+    assert(root);
+    CUR_PROC->cur_inode = *root;
+
     for(i = 0 ; i < FILE_TABLE_MAX ; i ++)
     {
         filetable[i].type = FD_UNINIT;
@@ -96,4 +102,13 @@ void init_filetable()
         filetable[i].off = 0;
         filetable[i].disk_inode.magic_num = 0; 
     }
+}
+
+
+void init_fs()
+{
+    ext_init(NULL);
+    init_filetable();
+    cprintf(INITOK"fs_system ok!\n");
+    SYNC_DISK();
 }

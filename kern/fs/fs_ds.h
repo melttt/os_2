@@ -162,7 +162,6 @@ typedef struct _fdata{
     char off_t[512];
 }fdata;
 
-
 #define DIRENT_LEN 16
 #define DIRENT_BUF_MAX 10
 typedef struct _dirent{
@@ -171,10 +170,5 @@ typedef struct _dirent{
     char name[DIRENT_LEN];
     _off_t rwhere;
 }dirent;
-
-
-
-
-
 
 #endif

@@ -12,4 +12,5 @@ void dirent_link(inode *parent , char* name, inode *newnode );
 char* parse_path(char* path, char* ret, int* ret_len);
 
 inode* alloc_inode_type(i_t t);
+int dirent_list(inode *parent, void *dst, int len);
 #endif

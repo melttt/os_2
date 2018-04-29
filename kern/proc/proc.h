@@ -8,6 +8,8 @@
 #include "param.h"
 #include "cfs.h"
 #include "lock_p.h"
+#include "fs_ds.h"
+#include "file.h"
 
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
@@ -36,6 +38,7 @@ enum waitstate { WT_NO, SLEEP };
 #define has_child(proc) (!list_empty(&proc->child))
 
 #define MAX_PROC 50
+
 struct proc {
     char name[PROC_NAME];               // Process name (debugging)
     enum procstate state;        // Process state
@@ -57,19 +60,11 @@ struct proc {
     list_entry_t plink;
     list_entry_t child;
     list_entry_t sleep_elm;
-
     struct sche_entity se;
 
-
-/*
-    list_entry_t list_link;                     // Process link list 
-    list_entry_t hash_link;                     // Process hash list
-    uint sz;                     // Size of process memory (bytes)
-    void *chan;                  // If non-zero, sleeping on chan
-    int killed;                  // If non-zero, have been killed
-    struct file *ofile[NOFILE];  // Open files
-    struct inode *cwd;           // Current directory
-*/
+    //filesystem
+    file *fds[PROC_MAX_FD];
+    minode cur_inode;  
 };
 struct proc_manager{
     struct spinlock lock;
@@ -103,5 +98,6 @@ bool change_childs(struct proc* old, struct proc* new);
 bool add_child(struct proc* parent, struct proc* child);
 void sleep(void *chan, struct spinlock *lk);
 void wakeup(void *chan);
+minode* get_cur_inode();
 
 #endif

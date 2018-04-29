@@ -7,4 +7,6 @@ kbd_intr(void);
 void
 kbd_init(void);
 
+char
+get_char();
 #endif

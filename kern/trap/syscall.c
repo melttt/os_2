@@ -4,6 +4,7 @@
 #include "proc.h"
 #include "cpu.h"
 #include "stdio.h"
+#include "kbd.h"
 
 extern int sys_put(void);
 extern int sys_exec(void);
@@ -12,6 +13,7 @@ extern int sys_pid(void);
 extern int sys_test(void);
 extern int sys_fork(void);
 extern int sys_wait(void);
+extern int sys_getchar(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
@@ -58,6 +60,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 */
+[SYS_getchar] sys_getchar,
 [SYS_wait]    sys_wait,
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -76,6 +79,12 @@ sys_exec()
     size_t d = get_arg_int(3);
     cprintf("sys_exec()\n");
     return do_execve(a, b, c, d);
+}
+
+int sys_getchar()
+{
+    return get_char(); 
+
 }
 int 
 sys_exit()

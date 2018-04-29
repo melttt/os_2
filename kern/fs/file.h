@@ -3,8 +3,7 @@
 
 #include "fs_ds.h"
 
-
-
+#define PROC_MAX_FD 10
 typedef inode minode;
 //    enum{FD_NONE, FD_INODE, FD_OTHER} type;
 typedef enum{FD_UNINIT, FD_INODE, FD_OTHER} file_type_t;
@@ -21,6 +20,7 @@ typedef struct _file{
 #define FD_W 2
 #define RF_RW 3
 
+void init_fs();
 void init_filetable();
 int kread(file *f, void *buf, uint len);
 int kwrite(file *f, void *buf, uint len);

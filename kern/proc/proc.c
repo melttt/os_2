@@ -109,6 +109,10 @@ alloc_proc(void)
         proc->kstack = NULL;
         proc->mm = NULL;
         proc->wait_state = WT_NO;
+        int i ;
+        for(i = 0 ; i < PROC_MAX_FD ; i ++) proc->fds[i] = NULL;
+        proc->cur_inode.magic_num = 0;
+
         list_init(&proc->elm);
         list_init(&proc->sleep_elm);
         list_init(&proc->child);
@@ -164,20 +168,21 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     return do_fork(clone_flags, 0, &tf);
 }
 
-extern char *user_test_buf;
-extern int user_test_buf_len;
+
 static int
 user_main(void *arg){
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
     assert(PCPU->ncli == 0);
+    char *user_test_buf;
+    int user_test_buf_len;
+    minode *root = get_cur_inode();
 
-//    extern char _binary___user_user_test_start[];
- //   extern char _binary___user_user_test_size[];
-
-    init_inode();
-    //exec(" ", 1, (char*)_binary___user_user_test_start, (size_t)_binary___user_user_test_size);
-
+    file* a = kopen(root , "user_test", 0);
+    user_test_buf_len =  a->disk_inode.data.size;
+    user_test_buf = kmalloc(a->disk_inode.data.size);
+    cprintf("buf_len = %d\n", user_test_buf_len);
+    kread(a, user_test_buf, user_test_buf_len);
     exec(" ", 1, (char*)user_test_buf, (size_t)user_test_buf_len);
     panic("should not at here\n");
     return 1;
@@ -194,36 +199,18 @@ init_main(void *arg) {
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
 
-    size_t before = nr_free_pages();
+    init_fs();
+
     int pid = kernel_thread(user_main, "one", 0);
     if (pid <= 0) {
         panic("create first USER failed.\n");
     }
-    /*
-    pid = kernel_thread(user_main, "two", 0);
-    if (pid <= 0) {
-        panic("create first USER failed.\n");
-    }
-    pid = kernel_thread(user_main, "three", 0);
-    if (pid <= 0) {
-        panic("create first USER failed.\n");
-    }
-    pid = kernel_thread(user_main, "four", 0);
-    if (pid <= 0) {
-        panic("create first USER failed.\n");
-    }
-    pid = kernel_thread(user_main, "five", 0);
-    if (pid <= 0) {
-        panic("create first USER failed.\n");
-    }
-    */
     schedule(PROCM_LOCK);
 
     while((pid = do_wait()) != -1)
     {
        cprintf("get a child,pid:%x\n", pid);
     }
-    assert(before == nr_free_pages());
 
     panic("proc init shouldn't be closed\n");
 
@@ -288,6 +275,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     }
 
     proc->pgdir = proc->parent->pgdir;
+    proc->cur_inode = proc->parent->cur_inode;
     copy_thread(proc, stack, tf);
     proc->pid = get_pid();
     set_proc_prio(proc, MAX_PRIO);
@@ -624,4 +612,13 @@ wakeup(void *chan)
         put_proc(proc, 1);
     }
     PROCM_RELEASE;
+}
+
+
+minode* get_cur_inode()
+{
+    minode *p = &CUR_PROC->cur_inode;
+    if(p->magic_num != INODE_MAGIC_NUM)
+        p = NULL;
+    return p; 
 }

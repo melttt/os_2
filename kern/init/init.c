@@ -11,22 +11,10 @@
 #include "trap.h"
 #include "proc.h"
 #include "sche.h"
+#include "file.h"
 
-void print_freq()
-{
-    uint32_t out_var1 = 0;
-    uint32_t op = 0x80860007;
-    asm volatile( "cpuid"
-      : "=a" (out_var1)
-      : "a" (op)
-     );
-    cprintf("---------------freq: %x \n", out_var1);
-    while(1);
-}
 int main() {
     
-    asm volatile("cli");
-    cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
     init_cons();
     clear_cons();
     init_uart();
@@ -48,29 +36,13 @@ int main() {
     idtinit();
 
     kbd_init();
-  //  ide_init();
-   /* 
-    char test[513];
-    int i;
-    ide_read_secs(1,0,test,1);
-    test[512] = 0;
-    for(i = 0 ; i < 512 ; i ++)
-    {
-        cprintf("%2x",((int)test[i] & 0xff));
-    }
-    test[0] = 'B';
-    ide_write_secs(1,0,test,1);
-    cprintf("\n");
-   */ 
     check_vmm();
 
     cprintf("cpunum : %d\n", ncpu);
     cprintf("LAPIC : %x\n",(int)lapic);
     proc_init();
     cprintf("proc init\n");
-
     cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
-
 
 #if SCHE_DEBUG
     cprintf("****************************\n");

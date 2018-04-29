@@ -28,7 +28,6 @@ static node* malloc_node(node **a)
     mn *tmp = mn_alloc();
     assert(tmp != NULL);
     *a = &tmp->data;
-
     return *a;
 }
 
@@ -198,6 +197,42 @@ inline static int dirent_cmp(dirent *a, char* name, int len, uint hash1, uint ha
     return 0;
 }
 
+inline static int dirent_isempty(dirent* a);
+inline static int dirent_isempty(dirent* a)
+{
+    if(strlen(a->name) == 0) return 1; 
+    return 0;
+}
+
+
+int dirent_list(inode *parent, void *dst, int len)
+{
+    dirent buf[DIRENT_BUF_MAX];
+    _off_t off;
+    int buf_i;
+    int ret = 0;
+    for(off = 0 ; off < parent->data.size ; off += sizeof(buf) )
+    {
+        memset(buf ,0 , sizeof(buf));
+        inode_read(parent, (char*)buf, sizeof(buf), off);
+        for(buf_i = 0 ; buf_i != DIRENT_BUF_MAX ; buf_i ++) 
+        {
+            if(!dirent_isempty(&buf[buf_i]))
+            {
+                if(len >= sizeof(dirent))            
+                {
+                    len -= sizeof(dirent);
+                    *((dirent*)dst + ret) = buf[buf_i];
+                    ret ++;
+                }else{
+                    return ret;
+                }
+            }
+        }
+    }
+
+    return ret;
+}
 
 inode *dirent_lookup(inode *parent, char* name)
 {
@@ -211,29 +246,25 @@ inode *dirent_lookup(inode *parent, char* name)
 
     for(off = 0 ; off < parent->data.size ; off += sizeof(buf) )
     {
+        memset(buf ,0 , sizeof(buf));
         inode_read(parent, (char*)buf, sizeof(buf), off);
         for(buf_i = 0 ; buf_i != DIRENT_BUF_MAX ; buf_i ++) 
         {
-            
-            if(buf[buf_i].hash1 == 0 && buf[buf_i].hash2 ==0 && buf[buf_i].rwhere == 0)
-                return NULL;
-
             if(dirent_cmp(&buf[buf_i], name, len ,hash1_res, hash2_res) == 1){
                 rwhere = buf[buf_i].rwhere;                
                 return get_inode(rwhere);
             }
         }
     }
-
     return NULL;
 }
 
 static void dirent_make(dirent* a, char* name, int len, _off_t rwhere)
 {
     if(len > DIRENT_LEN)
-        len = DIRENT_LEN - 1;
+        len = DIRENT_LEN - 1; 
     memcpy(a->name ,name ,len);
-    a->name[DIRENT_LEN - 1] = 0;
+    a->name[len] = 0;
 
     a->hash1 = hash1(name, len);
     a->hash2 = hash2(name, len);
@@ -264,9 +295,9 @@ void dirent_link(inode *parent , char* name, inode *newnode )
 found:
     dirent_make(&tmpd, name, len, newnode->real_where);
     inode_write(parent ,&tmpd ,sizeof(tmpd),off);
-
     newnode->data.nlink ++;
 }
+
 
 /*
 int dirent_delete(inode *parent ,char *name)
@@ -289,6 +320,8 @@ int dirent_delete(inode *parent ,char *name)
 */
 
 
+
+
 /****************************FILE**************************/
 
 
@@ -309,55 +342,10 @@ char* parse_path(char* path, char* ret, int* ret_len)
 }
 
 
-//static char test[513] = "Oh God ! you do it";
-//static char test2[513] = "Oh shit! my genius";
-char *user_test_buf;
-int user_test_buf_len;
 void init_inode()
 {
-#ifndef OUT_K
-    //int i;
-    ext_init(NULL);
-    init_filetable();
-    inode *root = get_inode(SP_N->root_inode_where);
-    assert(root);
-    file* a = kopen(root, "user_test", 0);
-    //kwrite(a, test ,sizeof(test));
-    user_test_buf_len =  a->disk_inode.data.size;
-    user_test_buf = kmalloc(a->disk_inode.data.size);
-    kread(a, user_test_buf, user_test_buf_len);
 
-//    cprintf("file_size : %d\n",);
-    //inode *rot = get_inode(0x2e01);//inode_alloc();
-    //i = inode_write(file1,test ,sizeof(test) ,2 );
-    
-    /*
-    inode_write(file1, test ,sizeof(test) ,2000);
-    if(file1)
-    {
-        i = inode_read(file1, test2, sizeof(test2) , 512); 
-        i ++;
-        cprintf("%d,result : %s\n",file1->data.size, test2);
 
-        char bb[] = "./home/////melt//tt///os_2/os_2";
-        char *p = bb;
-        char ret[20];
-        int ret_len;
-        for( ; *p != 0 ;)
-        {
-            p = parse_path(p ,ret, &ret_len);
-            cprintf("%s\n", ret);
-        }
 
-    }else{
-        panic("no file1\n");
-    }
-    SYNC_DISK();
-    */
-
-    //i = inode_read(xx, test2, sizeof(test2) , 0); 
-    //cprintf("%d result : %s\n : %x",i,  test2, xx->real_where);
-
-#endif
 }
 

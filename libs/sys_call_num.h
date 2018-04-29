@@ -26,7 +26,7 @@
 #define SYS_put 22
 #define SYS_pid 23
 #define SYS_test 24
-
+#define SYS_getchar 25
 
 
 #endif

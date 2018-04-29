@@ -1,16 +1,8 @@
 #include "syslib.h"
 
-
-
-int main()
+void test()
 {
-    //put('q');
-    char a = 'a';
-    char b= 'b';
-    char c= 'c';
-    char d = 'd';
-    short e = 777;
-    user_test(a, b, c, d, e);
+
     int x;
 
     x = fork();
@@ -24,12 +16,35 @@ int main()
             put('\n');
         }
     }else{
-        while(1)
+        put('c');
+        put('\n');
+    }
+
+}
+
+void putstr(char *s, int len)
+{
+    for(int i = 0 ; i < len ; i ++)
+    {
+        put( *(s+i) );
+    }
+}
+int main()
+{
+
+    int c;
+
+    putstr("start", 5);
+    while((c = getchar()) != '#')
+    {
+        put(c);
+        if(c == 'g')
         {
-            put('c');
-            put('\n');
+            test();
         }
     }
+
+    putstr("over", 4);
 
     return 0;
 }

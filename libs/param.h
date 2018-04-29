@@ -5,7 +5,7 @@
 #define CFS_DEBUG 1
 #define CFS_PRE "CFS==>"
 #define TEST_MSG ">>>>>>>>>>>>>>>"
-#define SCHE_DEBUG 1
+#define SCHE_DEBUG 0
 #define SCHE_MSG "---------->"
 #define FS_BUF_SIZE 4096
 #define SEC_SIZE 512

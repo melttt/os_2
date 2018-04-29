@@ -12,4 +12,5 @@ int show_pid(void);
 int user_test(char a, char b, char c, char d, short e);
 int exec(char *name, size_t len, char *binary, size_t size);
 int wait(void);
+int getchar(void);
 #endif
