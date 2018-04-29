@@ -11,7 +11,6 @@
 #include "mkfs_interface.h"
 
 
-
 #define ESTIMATE_LEN (MEXTS*60)
 //#define FILE_PATH "../fs.img"
 typedef struct{
@@ -234,7 +233,7 @@ void mkfs()
         root = bpt_insert(root, cur_ext, cur_ext); 
         write_n_ext(cur_ext, &tmp_extent);
         if(bpt_find(root, cur_ext) == cur_ext)
-            printf("\b\b\b\b\b\b\b\b\b\b\b\b\bindex:%07d",cur_ext);
+            printf("\b\b\b\b\b\b\b\b\b\b\b\b\bmkfs :%07d",cur_ext);
         else
             printf("insert error, no find\n");
     }
@@ -260,17 +259,18 @@ void mkfs()
 }
 
 
-
-
 int main(int ac, char *av[])
 {
     int opt;
     char *addfile[2]; 
     int flag = 0;
+    int files = 1;
+    addfile[1] = NULL;
     while ((opt = getopt(ac, av, "ltmf:a:")) != -1) {
         switch (opt) {
             case 'a':
                 addfile[1] = optarg; 
+                files ++;
                 break;
             case 't':
                 init_mkfs_info();
@@ -279,10 +279,10 @@ int main(int ac, char *av[])
                 break;
             case 'm':
                 mkfs();
-                loadfile(2, addfile); 
+                loadfile(files, addfile); 
                 break;
             case 'l':
-                loadfile(2, addfile); 
+                loadfile(files, addfile); 
                 break;
             case 'f':
                 addfile[0] = optarg;

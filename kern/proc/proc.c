@@ -168,7 +168,8 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     return do_fork(clone_flags, 0, &tf);
 }
 
-
+dirent dirs[10];
+int dir_len;
 static int
 user_main(void *arg){
     struct proc *current = CUR_PROC;
@@ -176,12 +177,18 @@ user_main(void *arg){
     assert(PCPU->ncli == 0);
     char *user_test_buf;
     int user_test_buf_len;
-    minode *root = get_cur_inode();
 
+    minode *root = get_cur_inode();
+    cprintf("list file\n");
+    dir_len = dirent_list(root ,dirs , sizeof(dirs));
+    for(int i = 0 ; i < dir_len ; i ++)
+    {
+        cprintf("%s\n", dirs[i].name);
+    }
+    cprintf("\n");
     file* a = kopen(root , "user_test", 0);
     user_test_buf_len =  a->disk_inode.data.size;
     user_test_buf = kmalloc(a->disk_inode.data.size);
-    cprintf("buf_len = %d\n", user_test_buf_len);
     kread(a, user_test_buf, user_test_buf_len);
     exec(" ", 1, (char*)user_test_buf, (size_t)user_test_buf_len);
     panic("should not at here\n");

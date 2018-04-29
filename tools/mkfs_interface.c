@@ -192,6 +192,15 @@ static void setup_interface()
     fs_c.supernode_p = &sp;
 }
 
+char *filtesubstr(char *name)
+{
+    for(int i = 0 ; i < strlen(name) ; i ++)
+    {
+        if(name[i] == '.' || name[i] == '/') continue;
+        return name;
+    }
+
+}
 static void write_file(char *name)
 {
     int tmpfd = open(name, O_RDWR);
@@ -217,7 +226,7 @@ static void write_file(char *name)
     inode_write(tmpnode, file_buf,file_len ,0);
 
     if(!exist)
-        dirent_link(root ,name, tmpnode);
+        dirent_link(root ,filtesubstr(name), tmpnode);
     free(file_buf);
     close(tmpfd);
     printf("write file : %s over\n", name);

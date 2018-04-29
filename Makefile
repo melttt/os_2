@@ -74,7 +74,7 @@ $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootm
 	$(OBJCOPY) -S -O binary -j .text $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootblock
 	$(BOOTLOADER_DIR)/sign.pl $(BOOTLOADER_DIR)/bootblock
 
-$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) tstMake #$(USER_TEST_FILE)
+$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) mkfs #$(USER_TEST_FILE)
 	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS)  -b binary $(USER_TEST_FILE)
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
@@ -86,9 +86,9 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) tstMake #$(USER_TEST_FILE)
 
 
 
-tstMake :
-	$(MAKE) -C ./user
+mkfs : fs.img
 	$(MAKE) -C ./tools
+	$(MAKE) -C ./user
 	
 #$(USER_TEST_FILE) : $(USER_OBJS)
 #	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -124,9 +124,11 @@ define f_clean
 endef
 clean: 
 	$(MAKE) clean -C ./tools
+	$(MAKE) clean -C ./user
 	$(f_clean)
 
 .ONESHELL:
+
 SHELL := /bin/bash
 msg:=""
 git:

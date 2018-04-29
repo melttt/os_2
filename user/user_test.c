@@ -34,7 +34,7 @@ int main()
 
     int c;
 
-    putstr("start", 5);
+    putstr("start\n", 6);
     while((c = getchar()) != '#')
     {
         put(c);
@@ -44,7 +44,7 @@ int main()
         }
     }
 
-    putstr("over", 4);
+    putstr("\nover", 5);
 
     return 0;
 }
