@@ -14,9 +14,10 @@
 #endif
 
 #define SUPER_NODE_MAGIC_NUM 0x32f490c8
-#define EXT_SIZE (512*8)
+#define EXT_SIZE (4096)
 #define NODE_SIZE 64
 #define MEXTS (EXT_SIZE / NODE_SIZE)
+#define BOOT_LOADER_SIZE 512
 
 #ifndef INFS
 #define INFS 0xFFFFFFFF
@@ -83,6 +84,7 @@ typedef struct supernode{
 
     //root path
     _off_t root_inode_where;
+    _off_t kernel_st_e;
 }supernode;
 
 

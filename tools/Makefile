@@ -1,9 +1,10 @@
 # TOOLS
 
 
-mkfs : ./mkfs.c  ../kern/fs/ext.c ../kern/fs/ext.h  ../kern/fs/inode.h  ../kern/fs/inode.c ./mkfs_interface.c   ./mkfs_interface.h 
+mkfs : ./mkfs.c  ../kern/fs/ext.c ../kern/fs/ext.h  ../kern/fs/inode.h  ../kern/fs/inode.c ./mkfs_interface.c   ./mkfs_interface.h ../boot/bootblock ../kern/kernel
 	gcc  -o mkfs ./mkfs.c  ../kern/fs/ext.c ../kern/fs/ext.h  ../kern/fs/inode.h  ../kern/fs/inode.c ./mkfs_interface.c   ./mkfs_interface.h -D OUT_K
-	./mkfs -f ../fs.img -m	
+	./mkfs -f ../fs.img -b ../boot/bootblock -k ../kern/kernel -m 	
+
 
 
 test : mkfs fs.img

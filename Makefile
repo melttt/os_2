@@ -55,27 +55,29 @@ OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
 CFLAGS :=$(INCLUDEFLAGS) $(USER_INCLUDE) -fno-pic -static -fno-builtin   -fno-strict-aliasing -O0   -Wall -MD -ggdb -gstabs -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables -Wno-error=char-subscripts -Wno-error=unused-function
+BOOTCFLAGS :=$(INCLUDEFLAGS) $(USER_INCLUDE) -fno-pic -static -fno-builtin   -fno-strict-aliasing  -Os -Wall -MD  -m32 -Werror -fno-omit-frame-pointer  -nostdinc -fno-stack-protector -fno-asynchronous-unwind-tables -Wno-error=char-subscripts -Wno-error=unused-function
 
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide $(INCLUDEFLAGS)
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
-
-os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel fs.img
-	dd if=/dev/zero of=os.img count=10000
-	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
-	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc
+all: mkfs 
+	
+#os.img: $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel fs.img
+#dd if=/dev/zero of=os.img count=10000
+#	dd if=$(BOOTLOADER_DIR)/bootblock of=os.img conv=notrunc
+#	dd if=$(KERN_DIR)/kernel of=os.img seek=1 conv=notrunc
 
 $(BOOTLOADER_DIR)/bootblock: $(BOOTLOADER_DIR)/bootasm.S $(BOOTLOADER_DIR)/bootmain.c 
-	$(CC) $(CFLAGS) -fno-pic -O  -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootmain.c -o $(BOOTLOADER_DIR)/bootmain.o 
-	$(CC) $(CFLAGS) -fno-pic -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootasm.S -o $(BOOTLOADER_DIR)/bootasm.o
+	$(CC) $(BOOTCFLAGS) -fno-pic -Os  -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootmain.c -o $(BOOTLOADER_DIR)/bootmain.o 
+	$(CC) $(BOOTCFLAGS) -fno-pic -nostdinc $(INCLUDEFLAGS) -c $(BOOTLOADER_DIR)/bootasm.S -o $(BOOTLOADER_DIR)/bootasm.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootasm.o $(BOOTLOADER_DIR)/bootmain.o
 	$(OBJDUMP) -S $(BOOTLOADER_DIR)/bootblock.o > $(BOOTLOADER_DIR)/bootblock.asm
 	$(OBJCOPY) -S -O binary -j .text $(BOOTLOADER_DIR)/bootblock.o $(BOOTLOADER_DIR)/bootblock
 	$(BOOTLOADER_DIR)/sign.pl $(BOOTLOADER_DIR)/bootblock
 
-$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) mkfs #$(USER_TEST_FILE)
-	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS)  -b binary $(USER_TEST_FILE)
+$(KERN_DIR)/kernel: $(OBJS) $(KERN_LD)  #$(USER_TEST_FILE)
+	$(LD) $(LDFLAGS) -T $(KERN_LD) -o $@  $(OBJS)  
 	$(OBJDUMP) -S $@ > $@.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym 
 
@@ -86,7 +88,7 @@ $(KERN_DIR)/kernel: $(OBJS) $(KERN_LD) mkfs #$(USER_TEST_FILE)
 
 
 
-mkfs : fs.img
+mkfs : $(BOOTLOADER_DIR)/bootblock $(KERN_DIR)/kernel fs.img
 	$(MAKE) -C ./tools
 	$(MAKE) -C ./user
 	
@@ -100,15 +102,21 @@ endif
 
 
 fs.img : 
-	dd if=/dev/zero of=$@ bs=1M count=20
+#	dd if=/dev/zero of=$@ bs=1K count=2880
+	dd if=/dev/zero of=$@ bs=1M count=5
+
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=fs.img,media=disk,cache=writeback 
+#QEMUOPTS =  -drive file=os.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -drive file=fs.img,media=disk,cache=writeback 
+QEMUOPTS =  -drive file=fs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) 
+
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 
-qemu: os.img fs.img
+qemu:  fs.img
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)  
+qemu2:
+	$(QEMU)  -serial mon:stdio $(QEMUOPTS)
 
 qemu-gdb:  os.img fs.img $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
@@ -148,12 +156,3 @@ else
 	echo "nonono";
 endif
 
-
-#if [ -n $(msg) ]; then 
-#echo "asd" 
-#else 
-#echo "aha" 
-#fi 
-
-
-#export C_INCLUDE_PATH="$(C_PATH)"

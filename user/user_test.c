@@ -1,50 +1,37 @@
 #include "syslib.h"
+#include "string.h"
 
+void putstr(char *s)
+{
+    for(int i = 0 ; i < strlen(s) ; i ++)
+    {
+        put( *(s+i) );
+    }
+}
 void test()
 {
-
     int x;
 
     x = fork();
     if(x != 0)
     {
-        put('p');
-        put('\n');
+        putstr("I 'm parent... wait to my child\n");
         while(wait() != -1)
         {
-            put('x');
-            put('\n');
+            putstr("close my child\n exit parent\n");
         }
     }else{
-        put('c');
-        put('\n');
-    }
-
-}
-
-void putstr(char *s, int len)
-{
-    for(int i = 0 ; i < len ; i ++)
-    {
-        put( *(s+i) );
+        putstr("I 'm child...\nexit child\n");
     }
 }
+
+
 int main()
 {
 
-    int c;
+    putstr("start fork demo\n");
+    test();
 
-    putstr("start\n", 6);
-    while((c = getchar()) != '#')
-    {
-        put(c);
-        if(c == 'g')
-        {
-            test();
-        }
-    }
-
-    putstr("\nover", 5);
-
+    putstr("over fork demo, byebye\n");
     return 0;
 }

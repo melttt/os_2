@@ -19,7 +19,7 @@ all: $(OUTPUT_FILES)
 	../tools/mkfs -f ../fs.img -a $$target -l ;\
 	done
 
-$(OUTPUT_FILES): % : %.o  ../libs/syslib.o ./ulib/umain.o
+$(OUTPUT_FILES): % : %.o  ../libs/syslib.o ./ulib/umain.o ../libs/string.o ../libs/printfmt.o
 	$(LD) $(LDFLAGS) -N -e umain -Ttext 0 -o $@ $^
 
 %.o : %.c

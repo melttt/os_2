@@ -24,9 +24,9 @@
 #define IDE_CMD_RDMUL 0xc4
 #define IDE_CMD_WRMUL 0xc5
 
-#define DEFAULT_DEV 1
+#define DEFAULT_DEV 0
 
-int havedisk1;
+int havedisk0;
 
 extern int
 iderw(void *b, int len, int blockn , int flags);
@@ -53,19 +53,17 @@ ideinit(void)
 
     ioapicenable(IRQ_IDE0, 0);
     idewait(0);
-
     // Check if disk 1 is present
     outb(0x1f6, 0xe0 | (1<<4));
     for(i=0; i<1000; i++){
         if(inb(0x1f7) != 0){
-            havedisk1 = 1;
+            havedisk0 = 1;
             break;
         }
     }
-
     // Switch back to disk 0.
     outb(0x1f6, 0xe0 | (0<<4));
-    cprintf("havedisk : %d\n", havedisk1);
+    //cprintf("havedisk : %d\n", havedisk1);
 }
 
 int debug_start;
@@ -96,6 +94,7 @@ idestart(iobuf* buf)
     outb(0x1f4, (sector >> 8) & 0xff);
     outb(0x1f5, (sector >> 16) & 0xff);
     outb(0x1f6, 0xe0 | ((DEFAULT_DEV&1)<<4) | ((sector>>24)&0x0f));
+    //outb(0x1f6, 0xe0 | ((DEFAULT_DEV&1)<<4) | ((sector>>24)&0x0f));
 
     if(buf->flags == B_WRITE)
     {
@@ -134,8 +133,10 @@ iderw(void *b, int len, int blockn, int flags)
     assert(len == IOBUF_SIZE);
     if((flags & (B_WRITE|B_READ)) == 0)
         panic("iderw: nothing to do");
+#if 0
     if(!havedisk1)
         panic("iderw: ide disk 1 not present");
+#endif
 
     iobuf_acquire_data(b ,len , DEFAULT_DEV, blockn ,flags);
     // Append b to idequeue.

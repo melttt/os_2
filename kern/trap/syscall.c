@@ -5,6 +5,9 @@
 #include "cpu.h"
 #include "stdio.h"
 #include "kbd.h"
+#include "kmalloc.h"
+#include "ext.h"
+#include "inode.h"
 
 extern int sys_put(void);
 extern int sys_exec(void);
@@ -14,6 +17,7 @@ extern int sys_test(void);
 extern int sys_fork(void);
 extern int sys_wait(void);
 extern int sys_getchar(void);
+extern int sys_ls(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
@@ -68,17 +72,41 @@ static int (*syscalls[])(void) = {
 [SYS_put]   sys_put,
 [SYS_pid]  sys_pid,
 [SYS_test] sys_test,
+[SYS_ls] sys_ls,
 };
 
+dirent dirs[10];
+int dir_len;
+int sys_ls(void)
+{
+    minode *root = get_cur_inode();
+    cprintf("list file\n");
+    dir_len = dirent_list(root ,dirs , sizeof(dirs));
+    for(int i = 0 ; i < dir_len ; i ++)
+    {
+        cprintf("%s\n", dirs[i].name);
+    }
+    cprintf("\n");
+    SYNC_DISK();
+    return 0;
+}
 int 
 sys_exec()
 {
-    char *a = (char*)get_arg_ptr(0);
-    size_t b = get_arg_int(1);
-    char *c = (char*)get_arg_ptr(2);
-    size_t d = get_arg_int(3);
-    cprintf("sys_exec()\n");
-    return do_execve(a, b, c, d);
+    char *name = (char*)get_arg_ptr(0);
+    int len = strlen(name);
+    char *filemm;
+    int file_len;
+
+    cprintf("name:%s\n", name);
+    minode *root = get_cur_inode();
+    file* a = kopen(root , name, 0);
+    file_len =  a->disk_inode.data.size;
+    filemm = kmalloc(a->disk_inode.data.size);
+    kread(a, filemm, file_len );
+    kclose(a);
+    cprintf("start execve\n"); 
+    return do_execve(name, len, filemm, file_len);
 }
 
 int sys_getchar()

@@ -10,17 +10,22 @@
             : "memory")                            
 
 
+int ls(void)
+{
+    int ret;
+    SYSCALL(ls, ret);
+    return ret;
+}
 int getchar(void)
 {
     int ret;
     SYSCALL(getchar,ret);
     return ret;
 }
-int put(char c)
+void put(char c)
 {
     int ret;
     SYSCALL(put, ret);
-    return ret;
 }
 int exit(int status)
 {
@@ -48,7 +53,7 @@ int fork()
     return ret;
 }
 
-int exec(char *name, size_t len, char *binary, size_t size)
+int exec(char *name)
 {
     int ret;
     SYSCALL(exec, ret);

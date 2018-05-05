@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include "assert.h"
 
 #include "../kern/fs/fs_ds.h"
 #include "../libs/bplustree.h"
@@ -14,6 +15,8 @@
 #define ESTIMATE_LEN (MEXTS*60)
 //#define FILE_PATH "../fs.img"
 typedef struct{
+    int kern_fd;
+    int bl_fd;
     int  fd;  
     char *filename;
     uint disk_all_ext_nums;
@@ -31,7 +34,8 @@ _mkfs_info mkfs_info;
 #define MK_SUM (mkfs_info.disk_all_ext_nums)
 #define MK_ARR (mkfs_info.mext)
 #define MK_SP (mkfs_info.sp)
-
+#define MK_KFD (mkfs_info.kern_fd)
+#define MK_BFD (mkfs_info.bl_fd)
 /*************************bplustree************************/
 static node* malloc_node(node **a)
 {
@@ -144,11 +148,37 @@ static int init_mkfs_info()
     return ret;
 }
 
+
+
+static void write_fs_bl_kern()
+{
+    char buff[EXT_SIZE];
+    lseek(MK_BFD, 0, SEEK_SET);
+    int ret = read(MK_BFD, &MK_SP.boot_loader ,BOOT_LOADER_SIZE);;
+    close(MK_BFD);
+    assert(ret == BOOT_LOADER_SIZE);
+    printf("\nbootload write over\n");
+
+    
+    int kern_st = MK_SP.kernel_st_e;
+    int size;
+    lseek(MK_KFD, 0, SEEK_SET);
+    while((size = read(MK_KFD, buff, EXT_SIZE)) > 0) 
+    {
+        write_n_ext(kern_st, buff); 
+        memset(buff ,0 ,sizeof(buff));
+        kern_st ++;
+    }
+    close(MK_KFD);
+    printf("kern write over kern_ed:%d\n", kern_st);
+}
 static void write_fs_to_disk()
 {
     int k;
     _off_t st = DEFAULT_MEXT_SEC;
     _off_t ed = st + MK_SP.me_ext_nums;
+    write_fs_bl_kern();
+
     //write sp_node
     lseek(MK_FD, 0, SEEK_SET);
     write(MK_FD, &MK_SP, sizeof(MK_SP));
@@ -215,6 +245,7 @@ void test_mext()
     printf("pass test!\n");
 }
 
+#define KERNEL_EXT_SIZE 256
 void mkfs()
 {
     init_mkfs_info();
@@ -227,7 +258,7 @@ void mkfs()
     tmp_extent.magic_num = EXTENT_MAGIC_NUM;
     
     //the kernel of mkfs
-    for(;MK_CUR * 5 / 4 < cur_ext ; cur_ext --)
+    for(;MK_CUR * 5 / 4 + KERNEL_EXT_SIZE < cur_ext  ; cur_ext --)
     {
         tmp_extent.e_where = cur_ext;
         root = bpt_insert(root, cur_ext, cur_ext); 
@@ -239,23 +270,24 @@ void mkfs()
     }
     //padding the rest of room
     node *t;
-    for( ; MK_CUR < cur_ext + 1 ;)
+    for( ; MK_CUR + KERNEL_EXT_SIZE < cur_ext + 1 ;)
     {
         malloc_node(&t);
         free_node(t);
     }
 
     //write supernode
+    MK_SP.kernel_st_e = cur_ext + 1 - KERNEL_EXT_SIZE;
     MK_SP.me_st_ext = DEFAULT_MEXT_SEC;
     MK_SP.me_root = root->where;
-    MK_SP.me_ext_nums = cur_ext + 1 - DEFAULT_MEXT_SEC ;
+    MK_SP.me_ext_nums = cur_ext + 1 - KERNEL_EXT_SIZE - DEFAULT_MEXT_SEC ;
     MK_SP.e_st_ext = cur_ext + 1;
     MK_SP.e_free_nums = MK_SP.e_all_nums = MK_SUM - MK_SP.e_st_ext;
     //test_mext();
     write_fs_to_disk();
 
     printf("mkfs ok....final\n");
-    printf("info:\n me_ext_num : %d me_all_num : %d \n e_st : %d e_nums:%d \n all_exts:%d \n",MK_SP.me_ext_nums ,MK_SP.me_all_nums, MK_SP.e_st_ext, MK_SP.e_all_nums ,MK_SUM);
+    printf("info:\n me_ext_num : %d me_all_num : %d\ne_st:%d e_nums:%d\nall_exts:%d\nkern_st:%d\n",MK_SP.me_ext_nums ,MK_SP.me_all_nums, MK_SP.e_st_ext, MK_SP.e_all_nums ,MK_SUM, MK_SP.kernel_st_e);
 }
 
 
@@ -266,8 +298,14 @@ int main(int ac, char *av[])
     int flag = 0;
     int files = 1;
     addfile[1] = NULL;
-    while ((opt = getopt(ac, av, "ltmf:a:")) != -1) {
+    while ((opt = getopt(ac, av, "b:k:ltmf:a:")) != -1) {
         switch (opt) {
+            case 'b':
+                MK_BFD = open(optarg, O_RDWR);
+                break;
+            case 'k':
+                MK_KFD = open(optarg, O_RDWR);
+                break;
             case 'a':
                 addfile[1] = optarg; 
                 files ++;

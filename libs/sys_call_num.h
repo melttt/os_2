@@ -27,6 +27,7 @@
 #define SYS_pid 23
 #define SYS_test 24
 #define SYS_getchar 25
+#define SYS_ls 26
 
 
 #endif
