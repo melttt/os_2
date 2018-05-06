@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "param.h"
 #include "x86.h"
 #include "uart.h"
 
@@ -35,7 +36,7 @@ init_uart(void)
     //  ioapicenable(IRQ_COM1, 0);
 
     // Announce that we're here.
-    for(p="uart...ok!\n"; *p; p++)
+    for(p=INITOK"uart ok!\n"; *p; p++)
         putc_uart(*p);
 }
 

@@ -29,18 +29,22 @@ static void flush_minode(minode *m)
     *n = *m;
 }
 
-void kcreate(minode *cur_cmd, char* name)
+void kcreate(minode *cur_cmd, char* name,i_t file_type)
 {
     inode *ninode = NULL;
     if((ninode = dirent_lookup(cur_cmd, name)) != NULL)
     {
-        panic("delete\n");    
-        //delete;
+        cprintf("%s already exist\n", name);
+        return ;
     }
     //create new;
-    ninode = alloc_inode_type(INODE_TYPE_FILE);
-
+    ninode = alloc_inode_type(file_type);
     dirent_link((inode*)cur_cmd, name ,ninode); 
+    if(file_type == INODE_TYPE_DIR)
+    {
+        dirent_link((inode*)ninode, "." ,ninode); 
+        dirent_link((inode*)ninode, ".." ,cur_cmd); 
+    }
     //flush cur_cmd
     flush_minode(cur_cmd);        
     SYNC_DISK(); 
@@ -49,7 +53,14 @@ void kcreate(minode *cur_cmd, char* name)
 file* kopen(minode *cur_cmd ,char *name, int flags)
 {
     inode* ninode = dirent_lookup(cur_cmd , name);
+    if(ninode == NULL) return NULL;
     file* f = find_free_file();
+
+    if(f == NULL)
+    {
+        cprintf("no enough room to filetable\n");
+        return NULL;
+    }
     if(f != NULL && ninode != NULL)
     {
         f->ref = 1;
@@ -109,6 +120,6 @@ void init_fs()
 {
     ext_init(NULL);
     init_filetable();
-    cprintf(INITOK"fs_system ok!\n");
+    cprintf(INITOK"fs system ok!\n");
     SYNC_DISK();
 }

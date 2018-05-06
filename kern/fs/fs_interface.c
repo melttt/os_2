@@ -138,10 +138,12 @@ fs_low_class* init_low_fs()
     if(FS_M_SP->magic_num == SUPER_NODE_MAGIC_NUM)
     {
         assert(sizeof(node) == NODE_SIZE);
+#if KERN_INFO
         cprintf("supernode infomation:\n");
         cprintf("me_ext_nums:%d\nme_all_nums:%d\n", FS_M_SP->me_ext_nums, FS_M_SP->me_all_nums);
         cprintf("me_free_nums:%d\n,me_next_pos:%d\n", FS_M_SP->me_free_nums ,FS_M_SP->me_free_next_me);
         cprintf("ext_st:%d\next_all_nums:%d\n", FS_M_SP->e_st_ext ,FS_M_SP->e_all_nums);
+#endif 
         fs_f.name = "LOW_FS_FUNCTION";
         fs_f.begin_fs_op = begin_fs_op;
         fs_f.end_fs_op = end_fs_op;

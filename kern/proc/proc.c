@@ -170,8 +170,10 @@ kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
 
 static int
 user_main(void *arg){
+#if KERN_INFO
     struct proc *current = CUR_PROC;
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "user");
+#endif
     assert(PCPU->ncli == 0);
 
     exec("console");
@@ -183,12 +185,14 @@ user_main(void *arg){
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
+
+#if KERN_INFO
     struct proc *current = CUR_PROC;
     assert(PCPU->ncli == 0);
-
     cprintf("%x\n", current);
     cprintf("this initproc, pid = %d, name = \"%s\"\n", current->pid, "init");
     cprintf("To U: \"%s\".\n", (const char *)arg);
+#endif
 
     init_fs();
 
@@ -200,7 +204,9 @@ init_main(void *arg) {
 
     while((pid = do_wait()) != -1)
     {
+#if KERN_INFO
        cprintf("get a child,pid:%x\n", pid);
+#endif
     }
 
     panic("proc init shouldn't be closed\n");
@@ -231,7 +237,7 @@ proc_init(void){
     
     INIT_PROC = get_proc_by_pid(pid);
     strcpy((INIT_PROC)->name, "init");
-    cprintf(INITOK"proc_init ok!\n");
+    cprintf(INITOK"proc init ok!\n");
 
     assert(IDLE_PROC != NULL && (IDLE_PROC)->pid == 0);
     assert(INIT_PROC != NULL && (INIT_PROC)->pid == 1);

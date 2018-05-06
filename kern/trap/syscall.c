@@ -18,6 +18,10 @@ extern int sys_fork(void);
 extern int sys_wait(void);
 extern int sys_getchar(void);
 extern int sys_ls(void);
+extern int sys_get_dirent(void);
+extern int sys_mkdir(void);
+extern int sys_chdir(void);
+extern int sys_createfile(void);
 /*
 extern int sys_chdir(void);
 extern int sys_close(void);
@@ -73,22 +77,60 @@ static int (*syscalls[])(void) = {
 [SYS_pid]  sys_pid,
 [SYS_test] sys_test,
 [SYS_ls] sys_ls,
+[SYS_get_dirent] sys_get_dirent,
+[SYS_mkdir] sys_mkdir,
+[SYS_chdir] sys_chdir,
+[SYS_createfile] sys_createfile,
 };
 
-dirent dirs[10];
-int dir_len;
+
+
+int sys_createfile(void)
+{
+    char *name = (char*)get_arg_ptr(0);
+    minode *curdir = get_cur_inode();
+    kcreate(curdir , name, INODE_TYPE_FILE);
+    SYNC_DISK();
+    return 1;
+}
+
+int sys_chdir(void)
+{
+    char *name = (char*)get_arg_ptr(0);
+    minode *curdir = get_cur_inode(), *newch = NULL;
+    if((newch = dirent_lookup(curdir, name)) == NULL)
+    {
+        cprintf("no such dir\n", name);
+        return -1;
+    }
+    CUR_PROC->cur_inode = *newch;
+    SYNC_DISK();
+    return 1;
+}
+
+int sys_mkdir(void)
+{
+    char *name = (char*)get_arg_ptr(0);
+    minode *curdir = get_cur_inode();
+    kcreate(curdir , name, INODE_TYPE_DIR);
+
+
+    SYNC_DISK();
+    return 1;
+}
+int sys_get_dirent(void)
+{
+    char *buff = (char*)get_arg_ptr(0);
+    int len = get_arg_int(1);
+    minode *root = get_cur_inode();
+    len = dirent_list(root ,buff , len);
+    SYNC_DISK();
+    return len;
+}
+
 int sys_ls(void)
 {
-    minode *root = get_cur_inode();
-    cprintf("list file\n");
-    dir_len = dirent_list(root ,dirs , sizeof(dirs));
-    for(int i = 0 ; i < dir_len ; i ++)
-    {
-        cprintf("%s\n", dirs[i].name);
-    }
-    cprintf("\n");
-    SYNC_DISK();
-    return 0;
+    return 1;
 }
 int 
 sys_exec()
@@ -98,15 +140,16 @@ sys_exec()
     char *filemm;
     int file_len;
 
-    cprintf("name:%s\n", name);
     minode *root = get_cur_inode();
     file* a = kopen(root , name, 0);
+    if(a == NULL) return -1;
     file_len =  a->disk_inode.data.size;
     filemm = kmalloc(a->disk_inode.data.size);
     kread(a, filemm, file_len );
     kclose(a);
-    cprintf("start execve\n"); 
-    return do_execve(name, len, filemm, file_len);
+
+    int ret = do_execve(name, len, filemm, file_len);
+    return ret;
 }
 
 int sys_getchar()
@@ -174,7 +217,6 @@ static void* get_arg_addr(int n)
 {
     return (void*)(CUR_PROC->tf->ebp + 8 + 4*n);
 }
-
 
 int get_arg_int(int n)
 {

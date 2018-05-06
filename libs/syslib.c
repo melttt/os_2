@@ -1,6 +1,7 @@
 #include "basic_p.h"
 #include "syslib.h"
 #include "sys_call_num.h"
+#include "fs_ds.h"
 
 #define SYSCALL(name, ret) \
     asm volatile(                   \
@@ -10,6 +11,31 @@
             : "memory")                            
 
 
+
+int createfile(char *name)
+{
+    int ret;
+    SYSCALL(createfile, ret);
+    return ret;
+}
+int chdir(char *name)
+{
+    int ret;
+    SYSCALL(chdir, ret);
+    return ret;
+}
+int mkdir(char *name)
+{
+    int ret;
+    SYSCALL(mkdir, ret);
+    return ret;
+}
+int get_dirents(void* buf, int bufsize)
+{
+    int ret;
+    SYSCALL(get_dirent, ret);
+    return ret;
+}
 int ls(void)
 {
     int ret;

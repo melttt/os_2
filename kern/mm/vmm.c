@@ -307,7 +307,9 @@ init_kvm(void)
 {
     kpgdir = setup_kvm();
     if(kpgdir == NULL) return 1;
+#if KERN_INFO
     kvm_print(kpgdir);
+#endif
     switchkvm();
     return -1;
 }

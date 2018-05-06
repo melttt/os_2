@@ -19,11 +19,12 @@ int main() {
     clear_cons();
     init_uart();
 
+#if KERN_INFO
     extern char data[],edata[],end[];
     cprintf("%s%2c%drl%x\n","Hello",'W',0,13);
     cprintf("start cpu id = %d\n",get_cpu());
     cprintf("data : %08x , edata %x , end %x\n",(int)data,(int)edata,(int)end);
-
+#endif
     init_pmm();
 
     mpinit();
@@ -31,18 +32,13 @@ int main() {
     ioapicinit();
 
 
-    cprintf("cpu id = %d\n",get_cpu());
     tvinit();
     idtinit();
 
     kbd_init();
     check_vmm();
 
-    cprintf("cpunum : %d\n", ncpu);
-    cprintf("LAPIC : %x\n",(int)lapic);
     proc_init();
-    cprintf("proc init\n");
-    cprintf("cpu 0 : %d %d \n",cpus[0].ncli, cpus[0].intena);
 
 #if SCHE_DEBUG
     cprintf("****************************\n");

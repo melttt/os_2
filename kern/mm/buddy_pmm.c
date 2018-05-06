@@ -333,7 +333,9 @@ init_buddy_pmm(uintptr_t *p_start, uint32_t *pg_size)
 {
     //
     calc(*p_start,*pg_size);
+#if KERN_INFO
     cprintf("buddy_start: %8x, buddy_pg_size: %8x, buddy_size: %8x\n",buddy->beginning_addr, buddy->pg_size, buddy->size); 
+#endif
     assert(buddy->size > 0);
     assert(buddy->beginning_addr - *p_start >= (buddy->size + 12));
 

@@ -79,7 +79,7 @@ int cache_init()
         list_init(CACHE_LIST(i));
     }
 
-    cprintf(INITOK"cache_ok\n");
+    cprintf(INITOK"cache ok!\n");
     return 0;
 }
 

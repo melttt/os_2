@@ -90,7 +90,6 @@ static void iobuf_adjust_free_queue()
            assert(temp != NULL);
            PUSH_IOBUF_FREE_QUEUE(temp);
         }
-        cprintf("que_len:%d\n",SIZE_IOBUF_FREE_QUEUE());
         
     }else{
         for(int i = 0 ; i < -ret ; i ++)

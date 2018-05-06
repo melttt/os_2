@@ -9,7 +9,7 @@
 #define SYS_kill    6
 #define SYS_exec    7
 #define SYS_fstat   8
-#define SYS_chdir   9
+//#define SYS_chdir   9
 #define SYS_dup    10
 #define SYS_getpid 11
 #define SYS_sbrk   12
@@ -20,7 +20,7 @@
 #define SYS_mknod  17
 #define SYS_unlink 18
 #define SYS_link   19
-#define SYS_mkdir  20
+//#define SYS_mkdir  20
 #define SYS_close  21
 // extra
 #define SYS_put 22
@@ -28,6 +28,11 @@
 #define SYS_test 24
 #define SYS_getchar 25
 #define SYS_ls 26
-
+#define SYS_get_dirent 27
+#define SYS_mkdir 28
+#define SYS_chdir 29
+#define SYS_createfile 30
+#define SYS_readfile 31
+#define SYS_writefile 32
 
 #endif

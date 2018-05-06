@@ -25,7 +25,7 @@ void init_filetable();
 int kread(file *f, void *buf, uint len);
 int kwrite(file *f, void *buf, uint len);
 void kclose(file *f);
-void kcreate(minode *cur_cmd, char* name);
+void kcreate(minode *cur_cmd, char* name,i_t file_type);
 file* kopen(minode *cur_cmd ,char *name, int flags);
 
 

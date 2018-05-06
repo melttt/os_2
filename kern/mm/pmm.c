@@ -206,9 +206,11 @@ void
 init_pmm(void)
 {
 
-    print_e280map();
     init_pmm_info();
+#if KERN_INFO
+    print_e280map();
     print_pmm_info();
+#endif
     pmm_manager = &buddy_pmm_manager;
     pmm_manager->init(&pmm_info.start, &pmm_info.size);
     cprintf(INITOK"pmm init ok !\n");

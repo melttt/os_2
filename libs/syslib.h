@@ -5,6 +5,10 @@
 #define T_SYSCALL 64
 #endif
 #include "defs.h"
+int createfile(char *name);
+int chdir(char *name);
+int mkdir(char *name);
+int get_dirents(void* buf, int bufsize);
 int ls(void);
 void put(char);
 int exit(int status);

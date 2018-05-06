@@ -1,17 +1,6 @@
 #include "syslib.h"
-#include "string.h"
-#include "stdio.h"
-
-
-static int uprintf(const char *fmt, ...)
-{
-    va_list ap;
-    int cnt;
-    va_start(ap, fmt);
-    cnt = vprintfmt(put,fmt,ap);
-    va_end(ap);
-    return cnt;
-}
+#include "ustdio.h"
+#include "../kern/fs/fs_ds.h"
 
 
 char* get_string(char *str)
@@ -21,10 +10,13 @@ char* get_string(char *str)
     uprintf("$:");
     while((ch = getchar()) != '\n')
     {
-        if(len != 0 && ch == '\b')
+        if(ch == '\b')
         {
-            len --;
-            uprintf("\b");
+            if(len > 0)
+            {
+                len --;
+                uprintf("\b \b");
+            }
         }else{
             str[len ++] = ch;
             uprintf("%c", ch); 
@@ -35,11 +27,33 @@ char* get_string(char *str)
     return str;
 }
 
+dirent dsz[10];
 int main()
 {
 
     char buff[30];
     int x;
+
+
+    uprintf("            ---*----*---            \n");
+    uprintf("      ------************------      \n");
+    uprintf("      *****--**********--**--*      \n");
+    uprintf("    -************************---    \n");
+    uprintf("  *0---00000000******---*0000000*-  \n");
+    uprintf("  *0******************************  \n");
+    uprintf(" --*****************************--- \n");
+    uprintf("-*-******************************-* \n");
+    uprintf("-*-******************************-**\n");
+    uprintf("**-***************************-**-**\n");
+    uprintf("**-***-**********************-**--*-\n");
+    uprintf(" **-***--******************--***-** \n");
+    uprintf(" -**-****--*************---***--**  \n");
+    uprintf("  -**--****--------------****--**-  \n");
+    uprintf("   --*----****************---**-    \n");
+    uprintf("     --**------*******-----**--     \n");
+    uprintf("       --****----------****-        \n");
+    uprintf("           ---********--            \n");
+
     uprintf("welcome to my os\n");
 
     while(1)
@@ -63,10 +77,20 @@ int main()
             }
 
         }else if(!strcmp(buff, "ls")){
-            ls(); 
-            uprintf("ls over\n");
+            int ret = get_dirents(dsz, sizeof(dsz));
+            for(int i = 0 ; i < ret ; i ++)
+            {
+                uprintf("%s\n", dsz[i].name);
+            }
+        }else if(!strncmp(buff ,"mkdir", 5)){
+            mkdir(buff + 6);
+        }else if(!strncmp(buff, "cd", 2)){
+            chdir(buff + 3);
+        }else if(!strncmp(buff, "file", 4)){
+
+
         }else{
-            uprintf("your input : %s\n", buff);
+            uprintf("command not found : %s\n", buff);
         }
 
     }
