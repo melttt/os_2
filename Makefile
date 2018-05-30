@@ -118,7 +118,7 @@ qemu:  fs.img
 qemu2:
 	$(QEMU)  -serial mon:stdio $(QEMUOPTS)
 
-qemu-gdb:  os.img fs.img $(TOOLS_DIR)/.gdbinit
+qemu-gdb:   fs.img $(TOOLS_DIR)/.gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 define f_clean

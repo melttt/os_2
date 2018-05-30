@@ -35,44 +35,25 @@ int main()
     int x;
 
 
-    uprintf("            ---*----*---            \n");
-    uprintf("      ------************------      \n");
-    uprintf("      *****--**********--**--*      \n");
-    uprintf("    -************************---    \n");
-    uprintf("  *0---00000000******---*0000000*-  \n");
-    uprintf("  *0******************************  \n");
-    uprintf(" --*****************************--- \n");
-    uprintf("-*-******************************-* \n");
-    uprintf("-*-******************************-**\n");
-    uprintf("**-***************************-**-**\n");
-    uprintf("**-***-**********************-**--*-\n");
-    uprintf(" **-***--******************--***-** \n");
-    uprintf(" -**-****--*************---***--**  \n");
-    uprintf("  -**--****--------------****--**-  \n");
-    uprintf("   --*----****************---**-    \n");
-    uprintf("     --**------*******-----**--     \n");
-    uprintf("       --****----------****-        \n");
-    uprintf("           ---********--            \n");
 
     uprintf("welcome to my os\n");
 
     while(1)
     {
         get_string(buff);
-        if(!strcmp(buff, "fuck"))
+        if(!strcmp(buff, "version"))
         {
-            uprintf("fuck you \n");
-        }else if(!strcmp(buff, "test")){
+            uprintf("version 0.01\n");
+        }else if(!strcmp(buff, "user_test")){
 
             x = fork();  
             if(x != 0)
             {
                 while(wait() != -1)
                 {
-                    uprintf("test over\n");
+
                 }
             }else{
-                uprintf("child exec\n");
                 exec("user_test");
             }
 
@@ -88,6 +69,18 @@ int main()
             chdir(buff + 3);
         }else if(!strncmp(buff, "file", 4)){
 
+
+        }else if(!strcmp(buff, "test2")){
+            x = fork();  
+            if(x != 0)
+            {
+                while(wait() != -1)
+                {
+
+                }
+            }else{
+                exec("test2");
+            }
 
         }else{
             uprintf("command not found : %s\n", buff);

@@ -1,5 +1,4 @@
 #include "basic_p.h"
-
 #include "stdio.h"
 #include "cpu.h"
 #include "cfs.h"
@@ -90,7 +89,6 @@ get_proc_prio(struct proc* proc)
 {
     return proc->se.prio;
 }
-
 
 int
 set_proc_prio(struct proc* proc, int prio)

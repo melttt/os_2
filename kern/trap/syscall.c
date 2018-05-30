@@ -196,7 +196,6 @@ int sys_fork(void)
 {
     struct trapframe *tf = CUR_PROC->tf;
     uintptr_t stack = tf->esp;
-    cprintf("do_fork\n");
     return do_fork(0, stack, tf);
 }
 //int sys_test(int a, int *b, char *c, char d, short e)
