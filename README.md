@@ -1,8 +1,5 @@
-内存管理：buddy system + slab(简单版本)  
-进程调度：cfs（简单实现，没有组调度）  
-文件系统：基于b+树的一种文件系统 
+Memory Management：buddy system + slab(simple version)  
+Process scheduler：cfs（simple version）  
+file system：Based on b+ tree 
 
-主要参考了xv6和ucore  
-
-
-
+References：xv6 and ucore
